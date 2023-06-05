@@ -24,10 +24,14 @@ const db_config = require("./config/db");
 const http = require("http");
 const bodyParser = require("body-parser");
 const jimp = require("jimp");
-const old_db_config=require("./config/olddb")
+const old_db_config=require("./config/olddb");
+const { INTEGER } = require("sequelize");
 
+/*
 var db = mysql.createConnection(db_config);
-var olddb=mysql.createConnection(old_db_config)
+*/
+var db=mysql.createConnection(old_db_config)
+
 const port = 3022;
 app.use(cors());
 app.use(bodyParser.json());
@@ -37,24 +41,99 @@ var corsOptions = {
 };
 
 router.use(cors(corsOptions));
-app.listen(3022, () => console.log("Server running ", 3022));
-/*
-const titles=require("./routes")
-const titlesRouter=titles.titlesRouter
+app.listen(process.env.PORT, () => console.log("Server running ", process.env.PORT));
 
-app.use("/generate-titles",titlesRouter)
 
-*/
+
+const connectdb = async () => {
+  try {
+    console.log("hello");
+    const conn = await mongoose.connect(
+      "mongodb+srv://MAB190011:Mirchoella22@atlascluster.xdodz.mongodb.net/leetcode?retryWrites=true&w=majority",
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }
+    );
+    return conn
+    console.log(`MONGO DB connected: ${conn.connection.host}`);
+  } catch (err) {
+    //console.log(err.stack);
+    // process.exit(1)
+  }
+};
+var dbmongo
+connectdb().then((conn)=>{
+  //console.log(conn)
+  dbmongo=conn.connection
+})
+
+
 app.get("/",(req,res)=>{
   res.json("Welcome to the Leetcode Api")
 })
 /************************************************************************* */
-app.get("/grant",(req,res)=>{
-  db.query("GRANT ALL PRIVILEGES ON heroku_29594a13b7b8a31.* TO ''@'localhost'",(err,results)=>{
-    console.log(results)
-    console.log(err)
+
+const problemsSchema=new mongoose.Schema({
+  title:{
+    type:String,
+    required:true,
+    index:true
+  },
+  problemId:{
+    type:Number,
+    required:false,
+  },
+  link:{
+    type:String,
+    required:false
+  },
+  difficulty:{
+    type:String,
+    require:false
+  },
+  prompt:{
+    type:String,
+    required:false,
+  },
+  firbaseId:{
+    type:String,
+    required:false
+  }
+})
+var problemItem=mongoose.model("Problem",problemsSchema)
+app.post("/sqltomongo",(req,res)=>{
+  db.query("select * from leetcode.problems",(err,results)=>{
+    if(err){
+      console.log(err)
+    }else{
+      results.map(async(r)=>{
+        const problem=new problemItem({
+          title:r.title,
+          problemId:r.problemId,
+          link:r.link,
+          prompt:r.prompt,
+          difficulty:r.difficulty
+        })
+        try{
+          const newProblem=await problem.save()
+          console.log("success")
+        }catch(err1){
+          console.log(err1)
+        }
+      })
+    }
   })
 })
+
+app.get("/problems",async(req,res)=>{
+  
+ problemItem=mongoose.model("Problem",problemsSchema)
+
+  const problems= await problemItem.find({"prompt":{$exists:true},"difficulty":{$exists:true}})
+  res.json({success:true,problems:problems})
+})
+
 app.get("/titles/:page", (req, res) => {
  
   (async () => {
@@ -460,7 +539,7 @@ app.post("/create-meal/:id",(req,res)=>{
 })
 /********************************************************************* */
 
-app.get("/problems", (req, res) => {
+app.get("/problem", (req, res) => {
   db.query(
     "select * from heroku_29594a13b7b8a31.problems where (prompt is not null) &&(problemId is not null) && (link is not null)",
     (err, results) => {
