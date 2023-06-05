@@ -90,7 +90,7 @@ const problemsSchema=new mongoose.Schema({
   },
   difficulty:{
     type:String,
-    require:false
+    require:true
   },
   prompt:{
     type:String,
@@ -166,7 +166,7 @@ app.get("/titles/:page", (req, res) => {
               var count=0
               if (problems != null) {
                 console.log("\n\n"+problems.length)
-                problems.map((q) => {
+                problems.map(async(q) => {
                   console.log(q.difficulty + " " + q.title);
                   if (q.title != null) {
                     console.log("herer")
@@ -174,6 +174,12 @@ app.get("/titles/:page", (req, res) => {
                    i++
                    console.log("i:"+i);
                    console.log(allproblems)
+                  var  problem=new promblemItem({
+                    title:q.title,
+                    difficulty:q.difficulty
+                   })
+                   problem.save()
+
                    if(i>=problems.length){
                     res.json({success:true,problems:allProblems})
                    }
