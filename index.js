@@ -157,11 +157,11 @@ app.get("/titles/:page", (req, res) => {
       if (response.url() == "https://leetcode.com/graphql/") {
         const data = await getData(response).then(async (response) => {
           const info = await JSON.parse(response).data;
-          // console.log(info)
+          //console.log(info)
           if (info != null) {
             const p = info.problemsetQuestionList;
             try {
-             // console.log(p)
+              console.log(p)
               const problems = p.questions;
               var count=0
               if (problems != null) {
@@ -178,7 +178,10 @@ app.get("/titles/:page", (req, res) => {
                     title:q.title,
                     difficulty:q.difficulty
                    })
-                   problem.save()
+                  try {problem.save()
+                  }catch(err1){
+                    console.log(err1)
+                  }
 
                    if(i>=problems.length){
                     res.json({success:true,problems:allProblems})
