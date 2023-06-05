@@ -158,6 +158,7 @@ app.get("/titles/:page", (req, res) => {
         const data = await getData(response).then(async (response) => {
           const info = await JSON.parse(response).data;
           //console.log(info)
+          var i=0
           if (info != null) {
             const p = info.problemsetQuestionList;
             try {
