@@ -1,7 +1,7 @@
 const pdfParse = require("pdf-parse");
 const dotenv = require("dotenv");
-dotenv.config({ path: "./config/config.env" });
-const express = require("express");
+
+const express=require("express")
 const app = express();
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
@@ -18,30 +18,25 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const client = require("https");
 const download = require("image-downloader");
-const bcrypt = require("bcrypt");
-const session = require("express-session");
-const db_config = require("./config/db");
-const http = require("http");
-const bodyParser = require("body-parser");
-const jimp = require("jimp");
-const old_db_config=require("./config/olddb");
-const { INTEGER } = require("sequelize");
+const uniqueValidator = require('mongoose-unique-validator')
+const bodyParser=require("body-parser")
 
-/*
-var db = mysql.createConnection(db_config);
-*/
-var db=mysql.createConnection(old_db_config)
+
+
+ 
+
+
 
 const port = 3022;
-app.use(cors());
+
 app.use(bodyParser.json());
+
 var corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200,
 };
-
-router.use(cors(corsOptions));
-app.listen(process.env.PORT, () => console.log("Server running ", process.env.PORT));
+app.use(cors(corsOptions));
+app.listen(3022, () => console.log("Server running ", 3022));
 
 
 
@@ -78,7 +73,7 @@ const problemsSchema=new mongoose.Schema({
   title:{
     type:String,
     required:true,
-    index:true
+    unique:true
   },
   problemId:{
     type:Number,
@@ -96,12 +91,15 @@ const problemsSchema=new mongoose.Schema({
     type:String,
     required:false,
   },
-  firbaseId:{
+  firebaseId:{
     type:String,
     required:false
   }
 })
-var problemItem=mongoose.model("Problem",problemsSchema)
+
+problemsSchema.plugin(uniqueValidator)
+
+const problemItem=mongoose.model("Problem",problemsSchema)
 app.post("/sqltomongo",(req,res)=>{
   db.query("select * from leetcode.problems",(err,results)=>{
     if(err){
@@ -110,7 +108,9 @@ app.post("/sqltomongo",(req,res)=>{
       results.map(async(r)=>{
         const problem=new problemItem({
           title:r.title,
+          thisId:r.id,
           problemId:r.problemId,
+          firebaseId:r.firebase_id,
           link:r.link,
           prompt:r.prompt,
           difficulty:r.difficulty
@@ -126,15 +126,39 @@ app.post("/sqltomongo",(req,res)=>{
   })
 })
 
-app.get("/problems",async(req,res)=>{
-  
- problemItem=mongoose.model("Problem",problemsSchema)
 
+app.get("/problems",async(req,res)=>{
   const problems= await problemItem.find({"prompt":{$exists:true},"difficulty":{$exists:true}})
-  res.json({success:true,problems:problems})
+  res.json({success:true,problems:problems,total:problems.length})
 })
 
+
+app.post("/streak",(req,res)=>{
+  console.log("hi there")
+  console.log(req.body)
+  
+
+})
+/***************************************************************************************************************************************************************************************************************************************************************************** */
+app.get("/get-empty-links",async(req,res)=>{
+  const problems=await problemItem.find({"title":"Two Sum"});
+  res.json({success:true,problems:problems,total:problems.length})
+})
+
+app.get("/get-empty-prompts",async(req,res)=>{
+  const problems=await problemItem.find({"prompt":{$exists:false}});
+  res.json({success:true,problems:problems,total:problems.length})
+})
+
+app.get("/get-empty-difficulty",async(req,res)=>{
+  const problems=await problemItem.find({"difficulty":{$exists:false}});
+  res.json({success:true,problems:problems,total:problems.length})
+})
+
+
+/************************************************************************************************************************************************************************************************************************************************************ */
 app.get("/titles/:page", (req, res) => {
+
  
   (async () => {
     const allproblems=[]
@@ -162,24 +186,48 @@ app.get("/titles/:page", (req, res) => {
           if (info != null) {
             const p = info.problemsetQuestionList;
             try {
-              console.log(p)
+             
               const problems = p.questions;
               var count=0
               if (problems != null) {
-                console.log("\n\n"+problems.length)
+                
                 problems.map(async(q) => {
-                  console.log(q.difficulty + " " + q.title);
-                  if (q.title != null) {
-                    console.log("herer")
+
+                  const prob=await problemItem.find({"title":q.title,"difficulty":{$exists:false}})
+                  const goodProb=await problemItem.find({"title":q.title,"difficulty":{$exists:true}})
+
+                  if(prob!=null){
+                    try{
+                      await problemItem.update({"title":prob.title},{
+                        thisId:prob.thisId,
+                        title:prob.title,
+                        difficulty:q.difficulty,
+                        link:prob.link,
+                        firebaseId:prob.firebaseId,
+                        prompt:prob.prompt,
+                        problemId:prob.problemId
+
+                      })
+                        
+                    }catch(err1){
+
+                    }
+                  }
+                 
+                  if (q.title != null && goodProb==null) {
+                    console.log("inserting")
                    allproblems.push({title:q.title,difficulty:q.difficult})
                    i++
                    console.log("i:"+i);
-                   console.log(allproblems)
-                  var  problem=new promblemItem({
+                 
+                  var  problem=new problemItem({
                     title:q.title,
                     difficulty:q.difficulty
                    })
-                  try {problem.save()
+                  try {
+                    const saved= await problem.save()
+                    console.log("success")
+                    console.log(saved)
                   }catch(err1){
                     console.log(err1)
                   }
@@ -202,23 +250,14 @@ app.get("/titles/:page", (req, res) => {
   })();
 });
 
-app.get("/get",(req,res)=>{
-  db.query("select * from heroku_29594a13b7b8a31.problems",(err,results)=>{
-    if(err){
-      res.json(err)
-    }else{
-      res.json(results)
-    }
-  })
-})
-app.get("/create-links", (req, res) => {
-  const base = "https://heroku_29594a13b7b8a31.com/problems/";
 
-  db.query("select * from problems", (err, results) => {
-    if (err) {
-      console.log(err);
-    } else {
-      results.map((q) => {
+app.get("/create-links", async(req, res) => {
+  const base = "https://heroku_29594a13b7b8a31.com/problems/";
+  var i=0;
+  const results= await problemItem.find({})
+   
+      results.map(async(q) => {
+      
         const title = q.title;
         if (title.substring(0, 1) == " ") {
           var end = title.substring(1, title.length);
@@ -227,17 +266,28 @@ app.get("/create-links", (req, res) => {
           end = end.replace(/{([])}/g, "");
           var link = base + end;
 
-          db.query(
-            "update heroku_29594a13b7b8a31.problems set link=? where (title=?) && (link is null)",
-            [link, q.title],
-            (err, results1) => {
-              if (err) {
-                console.log(err);
-              } else {
-                console.log(results1);
-              }
+          const prob=await problemItem.find({
+            "title":title
+          })
+          
+          try{
+            const val=await problemItem.update({title:prob.title},{
+              title:prob.title,
+              prompt:prob.prompt,
+              thisId:prob.thisId,
+              difficulty:prob.difficulty,
+              firebaseId:prob.firebaseId,
+              problemId:prob.problemId,
+              link:link
+            })
+            console.log("success")
+            if(i>=results.length-1){
+              res.json({success:true})
             }
-          );
+            i++
+          }catch(err1){
+            res.json(err1)
+          }
         }
         if (title.substring(0, 1) != " ") {
           var end = title;
@@ -246,21 +296,34 @@ app.get("/create-links", (req, res) => {
           end = end.replace(/{([])}/g, "");
           var link = base + end;
           console.log(link);
-          db.query(
-            "update heroku_29594a13b7b8a31.problems set link=? where (title=?) && (link is null)",
-            [link, q.title],
-            (err, results1) => {
-              if (err) {
-                console.log(err);
-              } else {
-                console.log(results1);
-              }
+
+          const prob=await problemItem.find({
+            "title":title
+          })
+         
+          try{
+            const val=await problemItem.update({title:prob.title},{
+              title:prob.title,
+              thisId:prob.thisId,
+              prompt:prob.prompt,
+              difficulty:prob.difficulty,
+              firebaseId:prob.firebaseId,
+              problemId:prob.problemId,
+              link:link
+            })
+            console.log("success")
+            if(i>=results.length-1){
+              res.json({success:true})
             }
-          );
+            i++
+          }catch(err1){
+            res.json(err1)
+          }
+        
         }
       });
-    }
-  });
+    
+  
 });
 
 app.get("/generate-prompts", (req, res) => {
@@ -444,12 +507,12 @@ app.get("/get-problems",(req,res)=>{
 /****************************FIXES****************** */
 
 app.get("/removeDuplicates",(req,res)=>{
-  db.query("select * from heroku_29594a13b7b8a31.problems",(err,results)=>{
+  db.query("select * from leetcode.problems",(err,results)=>{
     if(err){
       console.log(err)
     }else{
       results.map((r)=>{
-        db.query("select count(*) as ourCount from heroku_29594a13b7b8a31.problems where title=? ",r.title,(err1,results1)=>{
+        db.query("select count(*) as ourCount from leetcode.problems where title=? ",r.title,(err1,results1)=>{
           if(err){
             console.log(err)
           }else{
@@ -458,13 +521,13 @@ app.get("/removeDuplicates",(req,res)=>{
             console.log(c)
             if(count>1){
               console.log("DUPLICATE")
-              db.query("select * from heroku_29594a13b7b8a31.problems where title=?",r.title,(err2,results2)=>{
+              db.query("select * from leetcode.problems where title=?",r.title,(err2,results2)=>{
                 if(err2){
                   console.log(err2)
                 }else{
                   if(results2[1]!=null){
                     const dup=results2[1]
-                    db.query("delete from heroku_29594a13b7b8a31.problems where id=?",dup.id,(err3,results3)=>{
+                    db.query("delete from leetcode.problems where id=?",dup.id,(err3,results3)=>{
                       if(err3){
                         console.log(err3)
                       }else{
@@ -549,16 +612,8 @@ app.post("/create-meal/:id",(req,res)=>{
 })
 /********************************************************************* */
 
-app.get("/problem", (req, res) => {
-  db.query(
-    "select * from heroku_29594a13b7b8a31.problems where (prompt is not null) &&(problemId is not null) && (link is not null)",
-    (err, results) => {
-      if (err) {
-        res.json(err);
-      } else {
-        res.json({ success: true, count: results.length, problems: results });
-      }
-    }
-  );
+app.get("/problems", async(req, res) => {
+  const problems= await problemItem.find({})
+  res.json({success:true,problems:problems})
 });
 
