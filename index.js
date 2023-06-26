@@ -30,6 +30,7 @@ const bodyParser=require("body-parser")
 const port = 3022;
 
 app.use(bodyParser.json());
+app.use(express.json())
 
 var corsOptions = {
   origin: "*",
@@ -126,7 +127,10 @@ app.post("/sqltomongo",(req,res)=>{
   })
 })
 
-
+app.get("/new-problems",async(req,res)=>{
+  const problems=await problemItem.find({$and:[{"firebaseId":null}]})
+  res.json({success:true,no_problems:problems.length,problems:problems})
+})
 app.get("/problems",async(req,res)=>{
   const problems= await problemItem.find({"prompt":{$exists:true},"difficulty":{$exists:true}})
   res.json({success:true,problems:problems,total:problems.length})
@@ -155,7 +159,37 @@ app.get("/get-empty-difficulty",async(req,res)=>{
   res.json({success:true,problems:problems,total:problems.length})
 })
 
+app.get("/problem/:title",async(req,res)=>{
+  const problem=await problemItem.find({$and:[{"title":req.params.title}]})
+  res.json(problem)
+})
 
+app.post("/set-firebase-id/:id",async(req,res)=>{
+  console.log(req.body)
+  console.log(req.params)
+    const update=await problemItem.updateOne({"title":req.body.title},{
+      $set:{"firebaseId":req.params.id}
+    })
+    setTimeout(()=>{
+      res.json({update:update,success:true})
+    },500)
+    console.log("update:"+update)
+  
+})
+
+app.post("/set-firebase-id/",async(req,res)=>{
+  console.log(req.body)
+  console.log(req.params)
+
+ axios.get("https://leetcodetracker.onrender.com/problem/"+req.body.title).then(async(response)=>{
+  const p=resposne.data[0]
+  console.log(p)
+ res.json({success:true})
+  
+ })
+  
+ 
+})
 /************************************************************************************************************************************************************************************************************************************************************ */
 app.get("/titles/:page", (req, res) => {
 
