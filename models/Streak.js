@@ -12,6 +12,10 @@ const StreakSchema= new mongoose.Schema({
   group:{
     type:String,
     required:false
+  },
+  userId:{
+    type:Number,
+    required:false
   }
 })
 
