@@ -23,7 +23,8 @@ const uniqueValidator = require('mongoose-unique-validator')
 
 const Streak=require("./models/Streak")
 
-const StreakGroup=require("./models/StreakGroup")
+const StreakGroup=require("./models/StreakGroup");
+const { log } = require("console");
 
 
  
@@ -70,13 +71,16 @@ connectdb().then((conn)=>{
   dbmongo=conn.connection
 })
 
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 
 app.get("/",(req,res)=>{
   res.json("Welcome to the Leetcode Api")
 })
 /************************************************************************* */
+app.get("/ss/:id",(req,res)=>{
 
+})
 const problemsSchema=new mongoose.Schema({
   title:{
     type:String,
@@ -620,37 +624,76 @@ app.get("/userId/:id",async(req,res)=>{
   })
 
 })
+app.get("/id",async(req,res)=>{
+  const update=await Streak.updateMany({},
+    {$set:{"userId":Number(req.body.userId)}})
+    console.log(update)
 
-app.get("/sort-streaks",async(req,res)=>{
-  const groups=await StreakGroup.find({$and:[{"userId":req.body.userId}]})
- 
+    const update2=await StreakGroup.updateMany({},
+      {$set:{"userId":Number(req.body.userId)}})
+      console.log(update2)
+    
+})
+app.get("/sort-streaks/:userId",async(req,res)=>{
+  console.log(req.params.userId)
+  console.log(req.body)
+  const groups=await StreakGroup.find({$and:[{"userId":parseInt(req.params.userId)}]})
+
   const streaksArr=[]
   groups.map(async(g)=>{
     const arr=[]
-    const streaks=await Streak.find({$and:[{"group":g.id},{"userId":req.body.userId}]})
+    const streaks=await Streak.find({$and:[{"group":g.id},{"userId":parseInt(req.params.userId)}]})
+    console.log(streaks)
     streaks.map((s)=>{
       
       arr.push({day:s.day,problems:s.problems})
     })
     streaksArr.push(arr)
-    if(streaksArr.length==groups.length){
-      res.json({streaks:streaksArr})
-    }
+   
   })
+  setTimeout(()=>{
+    res.json({streaks:streaksArr})
+  },500)
 })
 
-app.get("/current-streak",async(req,res)=>{
+app.get("/s",async(req,res)=>{
+  const str=await Streak.find({"userId":2322})
+  console.log(str)
+})
+
+app.get("/current-streak/:userId",async(req,res)=>{
   const strek=[]
-  var streaks=await StreakGroup.find({$and:[{"userId":req.body.userId}]})
+ 
+  var streaks=await StreakGroup.find({$and:[{"userId":parseInt(req.params.userId)}]})
+  
   var curr=new Date()
   curr=curr.toString().substring(0,15)
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+  "Aug","Sep","Oct","Nov","Dec"];
+  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+
+    var date=curr.split(" ")
+  
+
+  date=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
+ var dayDate=new Date(date)
+
+ dayDate=new Date(dayDate)
+ dayDate=dayDate.setDate(date.getDate()-1)
+ var newdate=new Date(dayDate)
+ 
+ newdate=newdate.toString().substring(0,15)
+ //dayDate=dayDate.toString().substring(0,15)
+ console.log("date:"+newdate)
+ var day=new Date(dayDate)
+
   streaks.map((s)=>{
      const days=s.days
      console.log(s.days)
-    if(days.includes(curr)){
+    if(days.includes(curr) || days.includes(newdate)){
       
       days.map(async(st)=>{
-        var str=await Streak.find({$and:[{"day":st},{"userId":req.body.userId}]})
+        var str=await Streak.find({$and:[{"day":st},{"userId":parseInt(req.params.userId)}]})
         str=str[0]
         strek.push({day:str.day,problems:str.problems})
       })
@@ -659,44 +702,44 @@ app.get("/current-streak",async(req,res)=>{
 
   setTimeout(()=>{
     res.json({success:true,streaks:strek})
-  },500)
+  },900)
 })
 
 
-app.post("/create-streak/",async(req,res)=>{
+app.post("/create-streak/:userId",async(req,res)=>{
   var currDate=new Date()
   currDate=currDate.toString().substring(0,15)
-  const find=await Streak.find({$and:[{"day":currDate},{"userId":req.body.userId}]})
+  const find=await Streak.find({$and:[{"day":currDate},{"userId":parseInt(req.params.userId)}]})
   console.log(find.length)
   if(req.body.day==null){
   if(find.length==0){
   const streak=new Streak({
     day:currDate,
     problems:[req.body.problem],
-    userId:req.body.userId
+    userId:parseInt(req.params.userId)
   })
   console.log(currDate)
 
   const saved=await streak.save()
   console.log(saved)
-  const newStreak=await Streak.find({$and:[{"day":currDate},{"userId":req.body.userId}]})
+  const newStreak=await Streak.find({$and:[{"day":currDate},{"userId":parseInt(req.params.userId)}]})
   res.json({success:true,streak:newStreak,updated:saved});
 }else{
   res.json("streak already exist")
 }
 }else{
-  const day=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
+  const day=await Streak.find({$and:[{"day":req.body.day},{"userId":parseInt(req.params.userId)}]})
   if(day.length==0){
     const streak=new Streak({
       day:req.body.day,
       problems:[req.body.problem],
-      userId:req.body.userId
+      userId:parseInt(req.params.userId)
     })
   
   
     const saved=await streak.save()
     console.log(saved)
-    const newStreak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
+    const newStreak=await Streak.find({$and:[{"day":req.body.day},{"userId":parseInt(req.params.userId)}]})
     res.json({success:true,streak:newStreak,updated:saved});
 
 }else{

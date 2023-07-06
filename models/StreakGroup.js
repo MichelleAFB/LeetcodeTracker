@@ -6,7 +6,11 @@ const StreakGroupSchema= new mongoose.Schema({
   },
   days:[
 
-  ]
+  ],
+  active:{
+    type:Boolean,
+    default:true
+  }
 })
 
 const StreakGroup=mongoose.model("StreakGroup",StreakGroupSchema)
