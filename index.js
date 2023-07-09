@@ -22,7 +22,7 @@ const download = require("image-downloader");
 const uniqueValidator = require('mongoose-unique-validator')
 
 const Streak=require("./models/Streak")
-
+const Problem=require("./models/Problem")
 const StreakGroup=require("./models/StreakGroup");
 const { log } = require("console");
 
@@ -381,9 +381,12 @@ console.log(streak)
 var already=false
 streak.map((s)=>{
   s.problems.map((p)=>{
-    if(p.title==req.body.title){
-      already=true
-    }
+   var title=req.body.title.replace(/\s/g,"").toUpperCase()
+   var ptitle=p.title.replace(/\s/g,"").toUpperCase()
+   console.log(title+" "+ptitle)
+   if(title==ptitle){
+    already=true
+   }
   })
 
 })
@@ -403,26 +406,33 @@ app.post("/add-to-streak",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
-  if(req.body.day!=null){
-    var date=req.body.day.split(" ")
-  
-  console.log(date)
-  date=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
- var dayDate=new Date(date)
-
- dayDate=new Date(dayDate)
- dayDate=dayDate.setDate(date.getDate()-1)
- var newdate=new Date(dayDate)
- 
- newdate=newdate.toString().substring(0,15)
- //dayDate=dayDate.toString().substring(0,15)
- console.log("date:"+newdate)
- var day=new Date(dayDate)
+  var curr=new Date()
+  curr=curr.toString().substring(0,15)
 
 
+    axios.get("https://leetcodetracker.onrender.com/checkProblem",{title:req.body.problem.title,userId:req.body.userId,day:curr}).then(async(response)=>{
+      console.log(response.data)
+      if(response.data.already==false){
 
+        if(req.body.day!=null){
+          var date=req.body.day.split(" ")
+        
+        console.log(date)
+        date=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
+       var dayDate=new Date(date)
+      
+       dayDate=new Date(dayDate)
+       dayDate=dayDate.setDate(date.getDate()-1)
+       var newdate=new Date(dayDate)
+       
+       newdate=newdate.toString().substring(0,15)
+       //dayDate=dayDate.toString().substring(0,15)
+       console.log("date:"+newdate)
+       var day=new Date(dayDate)
+       var curr=new Date()
+       curr=curr.toString().substring(0,15)
 
-  const streak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
+        const streak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
 
   console.log(streak)
   if(streak.length>0){
@@ -431,6 +441,7 @@ app.post("/add-to-streak",async(req,res)=>{
   
    
    axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+    console.log(response.data)
       if(!response.data.already){
         const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
         {
@@ -459,6 +470,7 @@ var already=false
       if(arr.includes(newdate) && !arr.includes(req.body.day)&& found==false){
         console.log("found")
         axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+          console.log(response.data)
           already=response.data.already
 
           if(!response.data.already){
@@ -473,7 +485,7 @@ var already=false
               group:r.id
             })
             const saved=await newstreak.save()
-           // res.json({success:true,streak:streak,group:r})
+           res.json({success:true,streak:streak,group:r})
             found=true
           }
         })
@@ -554,6 +566,7 @@ var already=false
     const arr=str.problems
   
     axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+      console.log(response.data)
     if(!response.data.already){
       const saved=await Streak.updateOne({"day":curr},
       {
@@ -584,6 +597,7 @@ var already=false
         console.log("STREAK GROUP EXISTS")
 
         axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+          console.log(response.data)
           already=response.data.already
           if(!response.data.already){
             const update=await StreakGroup.updateOne({"_id":r.id},
@@ -655,8 +669,18 @@ console.log("CREATING STREAK GROUP")
   }
 }
   
-})
 
+      }else{
+        res.json({success:false,message:"problem already completed today!"})
+      }
+    })
+
+  
+})
+app.get("/problem-by-title",async(req,res)=>{
+  const problem=await problemItem.find({$and:[{"title":req.body.title}]})
+  res.json({success:true,problem:problem})
+})
 app.get("/userId/:id",async(req,res)=>{
   const groups=await StreakGroup.find({})
   groups.map(async(g)=>{
