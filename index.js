@@ -430,7 +430,7 @@ app.post("/add-to-streak",async(req,res)=>{
     const arr=str.problems
   
    
-   axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+   axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
       if(!response.data.already){
         const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
         {
@@ -458,7 +458,7 @@ var already=false
 
       if(arr.includes(newdate) && !arr.includes(req.body.day)&& found==false){
         console.log("found")
-        axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+        axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
           already=response.data.already
 
           if(!response.data.already){
@@ -553,7 +553,7 @@ var already=false
     const str=streak[0]
     const arr=str.problems
   
-    axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+    axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
     if(!response.data.already){
       const saved=await Streak.updateOne({"day":curr},
       {
@@ -583,7 +583,7 @@ var already=false
       if(arr.includes(newdate) && !arr.includes(curr)&& found==false){
         console.log("STREAK GROUP EXISTS")
 
-        axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+        axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
           already=response.data.already
           if(!response.data.already){
             const update=await StreakGroup.updateOne({"_id":r.id},
