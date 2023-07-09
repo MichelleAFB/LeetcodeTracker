@@ -373,6 +373,32 @@ app.get("/remove-streak",async(req,res)=>{
   })
   console.log(deleted)
 })
+
+app.get("/checkProblem/",async(req,res)=>{
+  const streak=await Streak.find({$and:[{"day":req.body.day},
+{"problems.title":req.body.title},{"userId":req.body.userId}]})
+console.log(streak)
+var already=false
+streak.map((s)=>{
+  s.problems.map((p)=>{
+    if(p.title==req.body.title){
+      already=true
+    }
+  })
+
+})
+
+  setTimeout(()=>{
+    res.json({success:true,streak:streak,already:already})
+
+  },500)
+})
+
+app.get("/userId",async(req,res)=>{
+  const update=await Streak.updateMany({$set:{"userId":2322}})
+  res.json(update)
+
+})
 app.post("/add-to-streak",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
@@ -397,26 +423,31 @@ app.post("/add-to-streak",async(req,res)=>{
 
 
   const streak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
+
   console.log(streak)
   if(streak.length>0){
     const str=streak[0]
     const arr=str.problems
   
    
+   axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+      if(!response.data.already){
+        const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
+        {
+          $push:{"problems":req.body.problem}
+        })
+        res.json({success:true,saved:saved})
+      }else{
+        res.json({success:false,message:"already did this problem today"})
+      }
+   })
    
-      const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
-      {
-        $push:{"problems":req.body.problem}
-      })
-      
-
-      res.json({success:true,saved:saved})
    
 
   }else{
  
    const group=await StreakGroup.find({$and:[{"userId":req.body.userId},{"userId":req.body.userId}]})
-
+var already=false
    if(group.length>0){
     var found=false
     group.map(async(r)=>{
@@ -427,24 +458,30 @@ app.post("/add-to-streak",async(req,res)=>{
 
       if(arr.includes(newdate) && !arr.includes(req.body.day)&& found==false){
         console.log("found")
-        const update=await StreakGroup.updateOne({"_id":r.id},
-        {$push:{"days":req.body.day}})
-       
-        console.log(update)
-        const newstreak=new Streak({
-          day:req.body.day,
-          problems:[req.body.problem],
-          userId:req.body.userId,
-          group:r.id
+        axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+          already=response.data.already
+
+          if(!response.data.already){
+            const update=await StreakGroup.updateOne({"_id":r.id},
+            {$push:{"days":req.body.day}})
+           
+            console.log(update)
+            const newstreak=new Streak({
+              day:req.body.day,
+              problems:[req.body.problem],
+              userId:req.body.userId,
+              group:r.id
+            })
+            const saved=await newstreak.save()
+           // res.json({success:true,streak:streak,group:r})
+            found=true
+          }
         })
-        const saved=await newstreak.save()
-        res.json({success:true,streak:streak,group:r})
-        found=true
       }
     })
 
     setTimeout(async()=>{
-      if(found==false){
+      if(found==false && already==false){
         const streakgroup=new StreakGroup({
           days:[req.body.day],
           userId:req.body.userId
@@ -458,6 +495,8 @@ app.post("/add-to-streak",async(req,res)=>{
         })
         const saved1=await str.save()
         res.json({success:true,streak:saved1,group:saved})
+      }else{
+        res.json({success:false,message:"problem already done today"})
       }
     },800)
 
@@ -514,15 +553,18 @@ app.post("/add-to-streak",async(req,res)=>{
     const str=streak[0]
     const arr=str.problems
   
-   
-   
+    axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+    if(!response.data.already){
       const saved=await Streak.updateOne({"day":curr},
       {
         $push:{"problems":req.body.problem}
       })
-      
-
       res.json({success:true,saved:saved})
+    }else{
+      res.json({success:false,message:"already did this problem today"})
+    }
+
+    })
    
 
   }else{
@@ -531,6 +573,7 @@ app.post("/add-to-streak",async(req,res)=>{
 
    if(group.length>0){
     var found=false
+    var already=false
     group.map(async(r)=>{
       const arr=r.days
       console.log(arr)
@@ -539,24 +582,32 @@ app.post("/add-to-streak",async(req,res)=>{
 
       if(arr.includes(newdate) && !arr.includes(curr)&& found==false){
         console.log("STREAK GROUP EXISTS")
-        const update=await StreakGroup.updateOne({"_id":r.id},
-        {$push:{"days":curr}})
-       
-        console.log(update)
-        const newstreak=new Streak({
-          day:curr,
-          problems:[req.body.problem],
-          userId:req.body.userId,
-          group:r.id
+
+        axios.get("http://localhost:3022/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+          already=response.data.already
+          if(!response.data.already){
+            const update=await StreakGroup.updateOne({"_id":r.id},
+            {$push:{"days":curr}})
+           
+            console.log(update)
+            const newstreak=new Streak({
+              day:curr,
+              problems:[req.body.problem],
+              userId:req.body.userId,
+              group:r.id
+            })
+            const saved=await newstreak.save()
+            res.json({success:true,streak:streak,group:r})
+            found=true
+          }
+
         })
-        const saved=await newstreak.save()
-        res.json({success:true,streak:streak,group:r})
-        found=true
+       
       }
     })
 
     setTimeout(async()=>{
-      if(found==false){
+      if(found==false && already==false){
         const streakgroup=new StreakGroup({
           userId:req.body.userId,
           days:[curr]
@@ -750,6 +801,16 @@ app.post("/create-streak/:userId",async(req,res)=>{
 
 app.get("/streak-group",(req,res)=>{
 
+})
+
+app.post("/remove-problem-from-streak/:day/:title",async(req,res)=>{
+  const deleted=await Streak.updateOne(
+    {"day":req.params.day},
+    {
+      $pull:{problems:{"title":req.params.title}}
+    }
+  )
+  res.json({success:true,deleted:deleted})
 })
 
 /***************************************************************************************************************************************************************************************************************************************************************************** */
