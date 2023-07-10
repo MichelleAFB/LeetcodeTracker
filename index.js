@@ -584,6 +584,8 @@ var already=false
       console.log(arr)
       console.log("finding:"+newdate)
       console.log(arr.includes(newdate) && found==false)
+      var curr=new Date()
+      curr=curr.toString().substring()
 
       if(arr.includes(newdate) && !arr.includes(curr)&& found==false){
         console.log("STREAK GROUP EXISTS")
