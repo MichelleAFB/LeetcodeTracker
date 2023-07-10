@@ -440,18 +440,16 @@ app.post("/add-to-streak",async(req,res)=>{
     const arr=str.problems
   
    
-   axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
+ 
     console.log(response.data)
-      if(!response.data.already){
+  
         const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
         {
           $push:{"problems":req.body.problem}
         })
         res.json({success:true,saved:saved})
-      }else{
-        res.json({success:false,message:"already did this problem today"})
-      }
-   })
+     
+  
    
    
 
@@ -469,11 +467,7 @@ var already=false
 
       if(arr.includes(newdate) && !arr.includes(req.body.day)&& found==false){
         console.log("found")
-        axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:req.body.day}).then(async(response)=>{
-          console.log(response.data)
-          already=response.data.already
-
-          if(!response.data.already){
+      
             const update=await StreakGroup.updateOne({"_id":r.id},
             {$push:{"days":req.body.day}})
            
@@ -487,8 +481,7 @@ var already=false
             const saved=await newstreak.save()
            res.json({success:true,streak:streak,group:r})
             found=true
-          }
-        })
+       
       }
     })
 
@@ -541,9 +534,9 @@ var already=false
    }
   }
 }else{
-  var curr=new Date()
-  curr=curr.toString().substring(0,15)
-  var date=curr.split(" ")
+  var currD=new Date()
+  currD=currD.toString().substring(0,15)
+  var date=currD.split(" ")
   console.log(date)
   date=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
  var dayDate=new Date(date)
@@ -559,25 +552,23 @@ var already=false
 
 
 
-  const streak=await Streak.find({$and:[{"day":curr}]})
+  const streak=await Streak.find({$and:[{"day":currD}]})
   console.log(streak)
   if(streak.length>0){
     const str=streak[0]
     const arr=str.problems
   
-    axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+
       console.log(response.data)
-    if(!response.data.already){
-      const saved=await Streak.updateOne({"day":curr},
+    
+      const saved=await Streak.updateOne({"day":currD},
       {
         $push:{"problems":req.body.problem}
       })
       res.json({success:true,saved:saved})
-    }else{
-      res.json({success:false,message:"already did this problem today"})
-    }
+    
 
-    })
+ 
    
 
   }else{
@@ -596,10 +587,10 @@ var already=false
       if(arr.includes(newdate) && !arr.includes(curr)&& found==false){
         console.log("STREAK GROUP EXISTS")
 
-        axios.get("https://leetcodetracker.onrender.com/checkProblem",{userId:req.body.userId,title:req.body.problem.title,day:curr}).then(async(response)=>{
+        
           console.log(response.data)
           already=response.data.already
-          if(!response.data.already){
+          
             const update=await StreakGroup.updateOne({"_id":r.id},
             {$push:{"days":curr}})
            
@@ -615,9 +606,9 @@ var already=false
             found=true
           }
 
-        })
+        
        
-      }
+
     })
 
     setTimeout(async()=>{
