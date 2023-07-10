@@ -375,9 +375,10 @@ app.get("/remove-streak",async(req,res)=>{
 })
 
 app.get("/checkProblem/",async(req,res)=>{
-  const streak=await Streak.find({$and:[{"day":req.body.day},
-{"problems.title":req.body.title},{"userId":req.body.userId}]})
+  const streak=await Streak.find({$and:[{"day":req.body.day}
+,{"userId":req.body.userId}]})
 console.log(streak)
+console.log(req.body)
 var already=false
 streak.map((s)=>{
   s.problems.map((p)=>{
@@ -392,7 +393,7 @@ streak.map((s)=>{
 })
 
   setTimeout(()=>{
-    res.json({success:true,streak:streak,already:already})
+    res.json({success:true,already:already,streak:streak})
 
   },500)
 })
