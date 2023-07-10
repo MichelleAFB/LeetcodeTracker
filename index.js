@@ -584,8 +584,12 @@ var already=false
 
 
   }else{
+    var currD=new Date()
+    currD=currD.toString().substring(0,15)
  
     const streakG=await StreakGroup.find({"days":{$in:[currD]}})
+
+    const group=await StreakGroup.find({"days":{$in:[currD]}})
 
    if(group.length>0){
     var found=false
