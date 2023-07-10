@@ -565,7 +565,7 @@ var already=false
 
 
   const streak=await Streak.find({$and:[{"day":currD}]})
-  console.log(streak)
+ 
   const streakG=await StreakGroup.find({"days":{$in:[currD]}})
   console.log("streakgroup")
   console.log(streakG)
@@ -590,7 +590,8 @@ var already=false
     const streakG=await StreakGroup.find({"days":{$in:[currD]}})
 
     const group=await StreakGroup.find({"days":{$in:[currD]}})
-
+    console.log("group")
+    console.log(group)
    if(group.length>0){
     var found=false
     var already=false
