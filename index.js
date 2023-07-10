@@ -566,7 +566,7 @@ var already=false
 
   const streak=await Streak.find({$and:[{"day":currD}]})
   console.log(streak)
-  const streakG=await StreakGroup.find({days:{$in:[currD]}})
+  const streakG=await StreakGroup.find({"days":{$in:[currD]}})
   console.log("streakgroup")
   console.log(streakG)
   if(streak.length>0 && streakG.length>0){
@@ -585,7 +585,7 @@ var already=false
 
   }else{
  
-   const group=await StreakGroup.find({$and:[{"userid":req.body.userId}]})
+    const streakG=await StreakGroup.find({"days":{$in:[currD]}})
 
    if(group.length>0){
     var found=false
@@ -635,7 +635,7 @@ var already=false
         })
         const saved=await streakgroup.save()
         const str=new Streak({
-          day:curr,
+          day:curr+"ddd",
           userId:req.body.userId,
           problems:[req.body.problem],
           group:saved.id
@@ -652,7 +652,7 @@ var already=false
    }else{
 console.log("CREATING STREAK GROUP")
     const streakgroup=new StreakGroup({
-      days:[curr],
+      days:[curr+"a"],
       userId:req.body.userId
     })
     console.log("here")
@@ -685,6 +685,14 @@ console.log("CREATING STREAK GROUP")
     })
 
   
+})
+
+app.get("/try",async(req,res)=>{
+  var currD=new Date()
+  currD=currD.toString().substring(0,15)
+  const streakG=await StreakGroup.find({"days":{$in:[currD]}})
+  console.log(streakG)
+
 })
 app.get("/problem-by-title",async(req,res)=>{
   const problem=await problemItem.find({$and:[{"title":req.body.title}]})
