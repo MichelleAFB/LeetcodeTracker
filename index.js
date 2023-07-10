@@ -374,18 +374,24 @@ app.get("/remove-streak",async(req,res)=>{
   console.log(deleted)
 })
 
-app.get("/checkProblem/",async(req,res)=>{
-  const streak=await Streak.find({$and:[{"day":req.body.day}
-,{"userId":req.body.userId}]})
-console.log(streak)
-console.log(req.body)
+app.get("/checkProblem/:userId/:title",async(req,res)=>{
+  var cDate=new Date()
+  cDate=cDate.toString().substring(0,15)
+ 
+  const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}
+]})
+
+
+
 var already=false
 streak.map((s)=>{
   s.problems.map((p)=>{
-   var title=req.body.title.replace(/\s/g,"").toUpperCase()
+  
+   var title=req.params.title.replace(/\s/g,"").toUpperCase()
    var ptitle=p.title.replace(/\s/g,"").toUpperCase()
    console.log(title+" "+ptitle)
    if(title==ptitle){
+    console.log("DOUBLE")
     already=true
    }
   })
@@ -395,7 +401,7 @@ streak.map((s)=>{
   setTimeout(()=>{
     res.json({success:true,already:already,streak:streak})
 
-  },500)
+  },1000)
 })
 
 app.get("/userId",async(req,res)=>{
@@ -410,8 +416,13 @@ app.post("/add-to-streak",async(req,res)=>{
   var curr=new Date()
   curr=curr.toString().substring(0,15)
 
-
-    axios.get("https://leetcodetracker.onrender.com/checkProblem",{title:req.body.problem.title,userId:req.body.userId,day:curr}).then(async(response)=>{
+console.log(req.body.problem.title)
+console.log(curr)
+console.log(req.body.userId)
+console.log("\n\n")
+const uId=req.body.userId
+const t=req.body.problem.title
+    axios.get("https://leetcodetracker.onrender.com/checkProblem/"+uId+"/"+t,{title:t,userId:uId.toString(),day:curr}).then(async(response)=>{
       console.log(response.data)
       if(response.data.already==false){
 
@@ -444,12 +455,12 @@ app.post("/add-to-streak",async(req,res)=>{
  
     console.log(response.data)
   
-        const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
+      /*  const saved=await Streak.updateOne({"day":req.body.day,"userId":req.body.userId},
         {
           $push:{"problems":req.body.problem}
         })
         res.json({success:true,saved:saved})
-     
+     */
   
    
    
@@ -555,22 +566,22 @@ var already=false
 
   const streak=await Streak.find({$and:[{"day":currD}]})
   console.log(streak)
-  if(streak.length>0){
+  const streakG=await StreakGroup.find({days:{$in:[currD]}})
+  console.log("streakgroup")
+  console.log(streakG)
+  if(streak.length>0 && streakG.length>0){
     const str=streak[0]
     const arr=str.problems
   
-
-      console.log(response.data)
+    console.log("streak exist for "+currD)
+      
     
-      const saved=await Streak.updateOne({"day":currD},
+     const saved=await Streak.updateOne({"day":currD},
       {
         $push:{"problems":req.body.problem}
       })
       res.json({success:true,saved:saved})
-    
 
- 
-   
 
   }else{
  
@@ -586,12 +597,12 @@ var already=false
       console.log(arr.includes(newdate) && found==false)
       var curr=new Date()
       curr=curr.toString().substring()
-
+      console.log("STREAK GROUP EXISTS So Now SEARCHING FOR STREAK")
       if(arr.includes(newdate) && !arr.includes(curr)&& found==false){
-        console.log("STREAK GROUP EXISTS")
+        console.log("STREAK FOUND IN STREAK GROUP")
 
         
-          console.log(response.data)
+          console.log("STREA")
           already=response.data.already
           
             const update=await StreakGroup.updateOne({"_id":r.id},
@@ -607,6 +618,7 @@ var already=false
             const saved=await newstreak.save()
             res.json({success:true,streak:streak,group:r})
             found=true
+            
           }
 
         
@@ -615,7 +627,8 @@ var already=false
     })
 
     setTimeout(async()=>{
-      if(found==false && already==false){
+      if(found==false && already==false && streak.length<1){
+        console.log("streak not found in group.maybe streak group not foun")
         const streakgroup=new StreakGroup({
           userId:req.body.userId,
           days:[curr]
@@ -628,7 +641,9 @@ var already=false
           group:saved.id
         })
         const saved1=await str.save()
+        
         res.json({success:true,streak:saved1,group:saved})
+        
       }
     },800)
 
@@ -642,7 +657,7 @@ console.log("CREATING STREAK GROUP")
     })
     console.log("here")
     const saved= await streakgroup.save()
-
+    console.log("STREAK GROUP DOES NOT EXIST")
    const newstreak=new 
    Streak({
     day:curr,
@@ -657,7 +672,7 @@ console.log("CREATING STREAK GROUP")
    console.log(saved1)
    console.log(saved)
    res.json({success:true,group:saved,streak:newstreak})
-
+   
 
    }
   }
