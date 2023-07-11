@@ -46,7 +46,7 @@ var corsOptions = {
 app.use(cors(corsOptions));
 app.listen(3022, () => console.log("Server running ", 3022));
 
-
+console.log("i")
 
 const connectdb = async () => {
   try {
