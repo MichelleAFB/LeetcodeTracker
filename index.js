@@ -763,6 +763,7 @@ console.log("prev group")
 console.log(streakGPrev)
 console.log("currentgroup")
 console.log(streakGToday)
+console.log("hello")
 
 
   const streakToday=await Streak.find({$and:[{"day":currD}]})
