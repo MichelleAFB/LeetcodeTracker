@@ -707,28 +707,55 @@ console.log("CREATING STREAK GROUP")
   
 })
 */
-app.post("/add-to-streak",async(req,res)=>{
+app.get("/timezone",(req,res)=>{
+
+  var curr = new Date().toLocaleString('en-US',{timeZone:'CST'})
+  var curr=new Date(curr)
+  var today=new Date(curr)
+ 
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
-  var curr=new Date()
+  
+
+  
+ 
   curr=curr.toString().substring(0,15)
   var currD=new Date()
-  var today=currD
-  currD=currD.toString().substring(0,15)
-  var date=currD.split(" ")
  
-  date=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
- var dayDate=new Date(date)
+ 
+ 
+
+ var dayDate=new Date(today)
 
  dayDate=new Date(dayDate)
- dayDate=dayDate.setDate(date.getDate()-1)
+ dayDate=dayDate.setDate(today.getDate()-1)
  var newdate=new Date(dayDate)
- var yesterday=newdate
+ console.log("\n\nnewdate:"+newdate)
+ console.log("\n\n"+curr)
+
+})
+app.post("/add-to-streak",async(req,res)=>{
+  
+  var currD = new Date().toLocaleString('en-US',{timeZone:'CST'})
+  var currD=new Date(currD)
+  var today=new Date(currD)
+ 
+
+ 
+  currD=currD.toString().substring(0,15)
+  var currD=new Date()
+
+
+ var dayDate=new Date(today)
+
+ dayDate=new Date(dayDate)
+ dayDate=dayDate.setDate(today.getDate()-1)
+ var newdate=new Date(dayDate)
  newdate=newdate.toString().substring(0,15)
- console.log(newdate)
- console.log(currD)
- //FIND STREAK GROUP THAT HOLDS PREV
+ console.log("\n\nnewdate:"+newdate)
+ console.log("\n\n"+curr)
+
  const streakGPrev=await StreakGroup.find({"days":{$in:[newdate]}})
 //Find StreakGroup
 const streakGToday=await StreakGroup.find({"days":{$in:[currD]}})
@@ -816,6 +843,8 @@ if(streakToday.length==0){
 }
 
 })
+const str = new Date().toLocaleString('en-US', { timeZone: 'CST' });
+console.log(str);
 
 app.get("/try",async(req,res)=>{
   var currD=new Date()
