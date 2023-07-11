@@ -817,8 +817,7 @@ if(streakToday.length==0){
 }
 
 })
-const str = new Date().toLocaleString('en-US', { timeZone: 'CST' });
-console.log(str);
+
 
 app.get("/try",async(req,res)=>{
   var currD=new Date()
