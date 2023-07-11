@@ -28,6 +28,13 @@ const { log } = require("console");
 
 
  
+function calcTime(city, offset) {
+   var d = new Date();
+   var utc = d.getTime() - (d.getTimezoneOffset() * 60000);
+   var nd = new Date(utc + (3600000*offset));
+   return nd
+}
+console.log(calcTime('Dallas', '+5.0'))
 
 
 
@@ -707,12 +714,10 @@ console.log("CREATING STREAK GROUP")
   
 })
 */
-
-app.post("/add-to-streak",async(req,res)=>{
-  
-  var currD = new Date().toLocaleString('en-US',{timeZone:'CST'})
-  var currD=new Date(currD)
-  var today=new Date(currD)
+app.get("/add",(req,res)=>{
+  var currD=calcTime("Dallas","+5.0")
+  console.log(currD)
+    var today=new Date(currD)
  
 
  
@@ -727,7 +732,31 @@ app.post("/add-to-streak",async(req,res)=>{
  var newdate=new Date(dayDate)
  newdate=newdate.toString().substring(0,15)
  console.log("\n\nnewdate:"+newdate)
- console.log("\n\n"+curr)
+ console.log("\n\n"+currD)
+})
+app.post("/add-to-streak",async(req,res)=>{
+
+    var currD=calcTime("Dallas","+5.0")
+ 
+    var today=new Date(currD)
+ 
+
+ 
+  currD=currD.toString().substring(0,15)
+  var currD=new Date()
+
+
+ var dayDate=new Date(today)
+
+ dayDate=new Date(dayDate)
+ dayDate=dayDate.setDate(today.getDate()-1)
+ var newdate=new Date(dayDate)
+ newdate=newdate.toString().substring(0,15)
+ console.log("\n\nnewdate:"+newdate)
+ console.log("\n\n"+currD)
+ currD=currD.toString().substring(0,15)
+  
+
 
  const streakGPrev=await StreakGroup.find({"days":{$in:[newdate]}})
 //Find StreakGroup
