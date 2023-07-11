@@ -707,34 +707,7 @@ console.log("CREATING STREAK GROUP")
   
 })
 */
-app.get("/timezone",(req,res)=>{
 
-  var curr = new Date().toLocaleString('en-US',{timeZone:'CST'})
-  var curr=new Date(curr)
-  var today=new Date(curr)
- 
-  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
-  "Aug","Sep","Oct","Nov","Dec"];
-  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
-  
-
-  
- 
-  curr=curr.toString().substring(0,15)
-  var currD=new Date()
- 
- 
- 
-
- var dayDate=new Date(today)
-
- dayDate=new Date(dayDate)
- dayDate=dayDate.setDate(today.getDate()-1)
- var newdate=new Date(dayDate)
- console.log("\n\nnewdate:"+newdate)
- console.log("\n\n"+curr)
-
-})
 app.post("/add-to-streak",async(req,res)=>{
   
   var currD = new Date().toLocaleString('en-US',{timeZone:'CST'})
