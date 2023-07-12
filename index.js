@@ -786,7 +786,7 @@ console.log("hello")
 
   const streakToday=await Streak.find({$and:[{"day":currD}]})
   const streakYesterday=await Streak.find({$and:[{"day":newdate}]})
-
+console.log(streakGPrev)
 if(streakToday.length==0){
   if(streakYesterday.length==0){
     //create new streak, add it to streak group
@@ -842,6 +842,7 @@ if(streakToday.length==0){
         {
           $push:{"problems":req.body.problem}
         }) */
+        console.log("\n\n\n\n"+ currD+"\n\n\n")
     const uId=req.body.userId
     const t=req.body.problem.title
     axios.get("https://leetcodetracker.onrender.com/checkProblem/"+uId+"/"+t,{title:t,userId:uId.toString(),day:currD}).then(async(response)=>{
