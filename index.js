@@ -786,7 +786,7 @@ console.log("hello")
 
   const streakToday=await Streak.find({$and:[{"day":currD}]})
   const streakYesterday=await Streak.find({$and:[{"day":newdate}]})
-console.log(streakGPrev)
+
 if(streakToday.length==0){
   if(streakYesterday.length==0){
     //create new streak, add it to streak group
@@ -795,13 +795,13 @@ if(streakToday.length==0){
       days:[currD]
     })
     const save=await newGroup.save()
-    console.log("no streak available,create new streak group")
     const newStreak=new Streak({
       day:currD,
       userId:req.body.userId,
       group:save.id,
       problems:[req.body.problem]
     })
+    console.log(newStreak)
     const savedStreak=await newStreak.save()
     res.json({success:true,added:true,group:save,streak:savedStreak})
   }if(streakYesterday.length>0){
@@ -815,6 +815,7 @@ if(streakToday.length==0){
       group:streakGPrev[0].id,
       problems:[req.body.problem]
     })
+    console.log(newStreak)
     const savedStreak=await newStreak.save()
     res.json({success:true,added:true,updatedGroup:updateStreakGroup,streak:savedStreak})
   }
