@@ -734,6 +734,22 @@ app.get("/add",(req,res)=>{
  console.log("\n\nnewdate:"+newdate)
  console.log("\n\n"+currD)
 })
+var currD=calcTime("Dallas","+5.0")
+ 
+    var today=new Date(currD)
+ 
+
+ 
+  currD=currD.toString().substring(0,15)
+  var currD=new Date()
+
+
+ var dayDate=new Date(today)
+
+ dayDate=new Date(dayDate)
+ dayDate=dayDate.setDate(today.getDate()-1)
+ var newdate=new Date(dayDate)
+ console.log(newdate.toString().substring(0,15))
 app.post("/add-to-streak",async(req,res)=>{
 
     var currD=calcTime("Dallas","+5.0")
@@ -919,7 +935,7 @@ app.get("/current-streak/:userId",async(req,res)=>{
  
   var streaks=await StreakGroup.find({$and:[{"userId":parseInt(req.params.userId)}]})
   
-  var curr=new Date()
+  var curr=calcTime('dallas',"+5.0")
   curr=curr.toString().substring(0,15)
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
