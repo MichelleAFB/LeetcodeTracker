@@ -714,6 +714,54 @@ console.log("CREATING STREAK GROUP")
   
 })
 */
+app.get("/fix",async(req,res)=>{
+  const problems=req.body.problems
+
+  const streakGPrev=await StreakGroup.find({"days":{$in:["Tue Jul 11 2023"]}})
+  const s=await Streak.find({$and:[{"day":"Wed Jul 12 2023"}]})
+  console.log(streakGPrev[0].id)
+
+  if(s.length==0){
+  const streak=new Streak({
+    userId:2322,
+    group:req.body.group,
+    problems:[problems[0]],
+    day:"Wed Jul 12 2023"
+  })
+
+  const saved=await streak.save()
+  console.log(saved)
+  }else{
+    var i=0
+ 
+  problems.map(async(p)=>{
+    if(i>0){
+    const update=await Streak.updateOne({"day":"Wed Jul 12 2023"},{
+      $push:{"problems":p}
+    })
+    
+  }
+  i++
+  })
+}
+})
+app.get("/fix-streak",async(req,res)=>{
+  const streak=await Streak.find({$and:[{"day":req.body.day}]})
+  if(streak.length==0){
+  const day=req.body.day
+  const newStreak=new Streak({
+    day:req.body.day,
+    problem:req.body.problem,
+    group:req.body.group,
+    userId:req.body.userId
+  })
+  const saved=newStreak.save()
+  res.json({success:true,saved:saved})
+}else{
+  const update=Streak.update({})
+}
+
+})
 app.get("/add",(req,res)=>{
   var currD=calcTime("Dallas","+5.0")
   console.log(currD)
@@ -786,7 +834,8 @@ console.log("hello")
 
   const streakToday=await Streak.find({$and:[{"day":currD}]})
   const streakYesterday=await Streak.find({$and:[{"day":newdate}]})
-
+  console.log("yesterday:"+newdate)
+  console.log(streakGPrev)
 if(streakToday.length==0){
   if(streakYesterday.length==0){
     //create new streak, add it to streak group
@@ -805,7 +854,7 @@ if(streakToday.length==0){
     const savedStreak=await newStreak.save()
     res.json({success:true,added:true,group:save,streak:savedStreak})
   }if(streakYesterday.length>0){
-    console.log(streakGPrev[0].id)
+    console.log(streakGPrev)
     const updateStreakGroup=await StreakGroup.updateOne({"_id":streakGPrev[0].id},
     {$push:{"days":currD}})
     console.log(updateStreakGroup)
@@ -923,8 +972,8 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
    
   })
   setTimeout(()=>{
-    res.json({streaks:streaksArr})
-  },500)
+    res.json({success:true,streaks:streaksArr})
+  },600)
 })
 
 app.get("/s",async(req,res)=>{
