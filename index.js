@@ -909,7 +909,7 @@ if(streakToday.length==0){
   streak.map((s)=>{
     s.problems.map((p)=>{
     
-     var title=req.params.title.replace(/\s/g,"").toUpperCase()
+     var title=req.problem.title.replace(/\s/g,"").toUpperCase()
      var ptitle=p.title.replace(/\s/g,"").toUpperCase()
      console.log(title+" "+ptitle)
      if(title==ptitle){
