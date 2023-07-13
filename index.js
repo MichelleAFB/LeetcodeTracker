@@ -34,7 +34,7 @@ function calcTime(city, offset) {
    var nd = new Date(utc + (3600000*offset));
    return nd
 }
-console.log(calcTime('Dallas', '+5.0'))
+//console.log(calcTime('Dallas', '+5.0'))
 
 
 
@@ -382,7 +382,8 @@ app.get("/remove-streak",async(req,res)=>{
 })
 
 app.get("/checkProblem/:userId/:title",async(req,res)=>{
-  var cDate=new Date()
+  var cDate=calcTime("Dallas","+5.0")
+  console.log(cDate.toString())
   cDate=cDate.toString().substring(0,15)
  
   const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}
@@ -408,7 +409,7 @@ streak.map((s)=>{
   setTimeout(()=>{
     res.json({success:true,already:already,streak:streak})
 
-  },1000)
+  },1500)
 })
 
 app.get("/userId",async(req,res)=>{
@@ -895,21 +896,45 @@ if(streakToday.length==0){
         console.log("\n\n\n\n"+ currD+"\n\n\n")
     const uId=req.body.userId
     const t=req.body.problem.title
-    axios.get("https://leetcodetracker.onrender.com/checkProblem/"+uId+"/"+t,{title:t,userId:uId.toString(),day:currD}).then(async(response)=>{
-      console.log(response.data)
-      console.log("ALREADY IN STREAK?"+response.data.already)
-      if(response.data.already==false){
-        
-        const saved=await Streak.updateOne({"day":currD,"userId":req.body.userId},
-        {
-          $push:{"problems":req.body.problem}
-        }) 
-        res.json({success:true,added:true,saved:saved})
-
-      }else{
-        res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today"})
-      }
+    var cDate=calcTime("Dallas","+5.0")
+    console.log(cDate.toString())
+    cDate=cDate.toString().substring(0,15)
+   
+    const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}
+  ]})
+  
+  
+  
+  var already=false
+  streak.map((s)=>{
+    s.problems.map((p)=>{
+    
+     var title=req.params.title.replace(/\s/g,"").toUpperCase()
+     var ptitle=p.title.replace(/\s/g,"").toUpperCase()
+     console.log(title+" "+ptitle)
+     if(title==ptitle){
+      console.log("DOUBLE")
+      already=true
+     }
     })
+  
+  })
+  setTimeout(async()=>{
+    console.log("ALREADY IN STREAK?"+response.data.already)
+    if(already==false){
+      
+      const saved=await Streak.updateOne({"day":currD,"userId":req.body.userId},
+      {
+        $push:{"problems":req.body.problem}
+      }) 
+      res.json({success:true,added:true,saved:saved})
+
+    }else{
+      res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today"})
+    }
+  },1000)
+      
+    
 
 }
 
