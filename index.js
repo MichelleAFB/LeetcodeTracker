@@ -897,6 +897,7 @@ if(streakToday.length==0){
     const t=req.body.problem.title
     axios.get("https://leetcodetracker.onrender.com/checkProblem/"+uId+"/"+t,{title:t,userId:uId.toString(),day:currD}).then(async(response)=>{
       console.log(response.data)
+      console.log("ALREADY IN STREAK?"+response.data.already)
       if(response.data.already==false){
         
         const saved=await Streak.updateOne({"day":currD,"userId":req.body.userId},
