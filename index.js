@@ -897,42 +897,59 @@ if(streakToday.length==0){
     const uId=req.body.userId
     const t=req.body.problem.title
     var cDate=calcTime("Dallas","+5.0")
-    console.log(cDate.toString())
-    cDate=cDate.toString().substring(0,15)
    
-    const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}
+    cDate=cDate.toString().substring(0,15)
+    console.log("cDate:"+cDate.toString())
+    const streakFind=await Streak.find({$and:[{"day":cDate},{"userId":req.body.userId}
   ]})
-  
+  console.log("streak find")
+  console.log(streakFind)
   
   
   var already=false
-  streak.map((s)=>{
+  streakFind.map((s)=>{
+    console.log(s)
     s.problems.map((p)=>{
-    
-     var title=req.problem.title.replace(/\s/g,"").toUpperCase()
+      var  t=req.body.problem.title
+     var title=t.replace(/\s/g,"").toUpperCase()
      var ptitle=p.title.replace(/\s/g,"").toUpperCase()
      console.log(title+" "+ptitle)
      if(title==ptitle){
       console.log("DOUBLE")
-      already=true
+      try{
+        res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today"})
+
+      }catch(err){
+
+      }
      }
     })
   
   })
   setTimeout(async()=>{
-    console.log("ALREADY IN STREAK?"+response.data.already)
+    console.log("ALREADY IN STREAK?"+already)
     if(already==false){
       
       const saved=await Streak.updateOne({"day":currD,"userId":req.body.userId},
       {
         $push:{"problems":req.body.problem}
       }) 
-      res.json({success:true,added:true,saved:saved})
+     try{
+       res.json({success:true,added:true,saved:saved})
+     }catch(err){
+      console.log("already sent req")
+     }
 
     }else{
-      res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today"})
+      try{
+        res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today"})
+
+      }catch(err){
+        console.log("already sent req")
+
+      }
     }
-  },1000)
+  },5000)
       
     
 
