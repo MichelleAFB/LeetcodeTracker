@@ -509,6 +509,9 @@ var currD=calcTime("Dallas","+5.0")
 app.post("/add-to-streak",async(req,res)=>{
 
     var currD=calcTime("Dallas","+5.0")
+    var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+  "Aug","Sep","Oct","Nov","Dec"];
+  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
  
     var today=new Date(currD)
  
@@ -880,6 +883,22 @@ app.post("/set-firebase-id/",async(req,res)=>{
  
 })
 /************************************************************************************************************************************************************************************************************************************************************ */
+
+app.get("/jul",async(req,res)=>{
+  const streak=await Streak.find({$and:[{"date":"Thu Jul 13 2023"}]})
+  const problems=streak[0].problems
+  const deleted=await Streak.deleteOne({$and:[{"day":"Thu Jul 13 2023"}]})
+ console.log(deleted)
+  const newStreak=new Streak({
+    day:"Thu Jul 13 2023",
+    group:"64a9b2dac29b36bd7ac6eff8",
+    problems:problems,
+    userId:2322
+  })
+
+  const saved=await newStreak.save()
+  res.json({saved:saved})
+})
 app.get("/titles/:page", (req, res) => {
 
  
