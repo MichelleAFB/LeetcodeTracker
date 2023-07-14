@@ -496,6 +496,15 @@ var currD=calcTime("Dallas","+5.0")
  
 
  
+    var currD=calcTime("Dallas","+5.0")
+    var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+  "Aug","Sep","Oct","Nov","Dec"];
+  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+ 
+    var today=new Date(currD)
+ 
+
+ 
   currD=currD.toString().substring(0,15)
   var currD=new Date()
 
@@ -505,7 +514,13 @@ var currD=calcTime("Dallas","+5.0")
  dayDate=new Date(dayDate)
  dayDate=dayDate.setDate(today.getDate()-1)
  var newdate=new Date(dayDate)
- console.log(newdate.toString().substring(0,15))
+ newdate=newdate.toString().substring(0,15)
+ console.log("\n\nnewdate:"+newdate)
+ console.log("\n\n"+currD)
+ currD=currD.toString().substring(0,15)
+
+
+
 app.post("/add-to-streak",async(req,res)=>{
 
     var currD=calcTime("Dallas","+5.0")
@@ -585,12 +600,8 @@ if(streakToday.length==0){
   checkToday=checkToday.split(" ")
 
  
-  checkToday=new Date(checkToday[3],monthnum[months.indexOf(checkToday[1])-1],checkToday[2])
- var dayDate=new Date(date)
 
- checkToday=new Date(checkToday)
- rn=checkToday.setDate(checkToday.getDate()-1)
- var rn=new Date(rn)
+
  //TODO:VALIDATE YESTERDAY IS YESTERDAY
   
    
