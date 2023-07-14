@@ -519,6 +519,49 @@ var currD=calcTime("Dallas","+5.0")
  console.log("\n\n"+currD)
  currD=currD.toString().substring(0,15)
 
+ app.post("/remove-duplicates",async(req,res)=>{
+
+  const streaks=await Streak.find({})
+  const updated=[]
+  streaks.map((s)=>{
+    const problems=s.problems
+    var index=0
+    problems.map(async(p)=>{
+      var dup=false
+      var count=0
+      problems.map(async(other)=>{
+        if(other.title==p.title){
+          count++
+          index=problems.indexOf(other)
+
+          if(count>1 && index!=problems.indexOf(p)){
+           console.log("index of dup:"+index+ " p:"+problems.indexOf(p))
+            dup=true
+            console.log(s.day)
+            console.log("DUPP:"+p.title+" "+other.title)
+            const newProblems=problems.splice(index,index);
+            const remove=await Streak.updateOne({"day":s.day},{
+            $set:{"problems":newProblems}
+          })
+          updated.push({day:s.day,prevProblems:problems.length,newProblems:newProblems.length,removed:remove})
+         
+            console.log("\n")
+            
+          }
+
+          
+        }
+
+    
+      })
+    })
+  })
+
+  setTimeout(()=>{
+    res.json({success:true,updated:updated})
+  },4000)
+
+ })
 
 
 app.post("/add-to-streak",async(req,res)=>{
