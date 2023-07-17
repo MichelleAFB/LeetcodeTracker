@@ -386,12 +386,10 @@ app.get("/checkProblem/:userId/:title",async(req,res)=>{
   console.log(cDate.toString())
   cDate=cDate.toString().substring(0,15)
  
-  const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}
-]})
-
-
-
-var already=false
+  const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}]})
+  const problem=streak[0].problems
+  var already=false;
+ 
 streak.map((s)=>{
   s.problems.map((p)=>{
   
@@ -572,10 +570,9 @@ app.post("/add-to-streak",async(req,res)=>{
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
  
     var today=new Date(currD)
- 
-
- 
-  currD=currD.toString().substring(0,15)
+    axios.get("https://leetcodetracker.onrender.com/checkProblem/"+req.body.userId+"/"+req.body.problem.title).then(async(response)=>{
+      if(response.data.already){
+        currD=currD.toString().substring(0,15)
   var currD=new Date()
 
 
@@ -718,6 +715,16 @@ if(streakToday.length==0){
     
 
 }
+      }else{
+        res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today"})
+
+      }
+      
+    })
+ 
+
+ 
+  
 
 })
 
