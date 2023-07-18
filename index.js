@@ -387,9 +387,10 @@ app.get("/checkProblem/:userId/:title",async(req,res)=>{
   cDate=cDate.toString().substring(0,15)
  
   const streak=await Streak.find({$and:[{"day":cDate},{"userId":req.params.userId}]})
-  const problem=streak[0].problems
+ 
   var already=false;
  if(streak.length>0){
+  const problem=streak[0].problems
 streak.map((s)=>{
   s.problems.map((p)=>{
   
