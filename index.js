@@ -574,7 +574,7 @@ app.post("/add-to-streak",async(req,res)=>{
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
  
     var today=new Date(currD)
-    axios.get("http://localhost:3022/checkProblem/",{day:currD.toString().substring(),problem:req.body.body,user:req.body.userId}).then(async(response)=>{
+    axios.get("http://localhost:3022/checkProblem/",{day: (req.body.day==null) ? currD.toString().substring(0,15):req.body.day,problem:req.body.problem,user:req.body.userId}).then(async(response)=>{
 
     if(req.body.day==null){
       if(response.data.already){
