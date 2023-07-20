@@ -707,7 +707,7 @@ if(streakToday.length==0){
     
 
 }
-      }if(response.data.already==false){
+      }if(response.data.already==true){
         res.json({success:true,message:"Problem "+req.body.problem.title+" has already been done today",streak:response.data.streak})
 
       }
