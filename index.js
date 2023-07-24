@@ -560,9 +560,6 @@ app.post("/add-to-streak",async(req,res)=>{
     console.log(response.data)
     if(req.body.day!=null){
       if(response.data.already==false){
-
-        
-      
      var currD=new Date()
       currD=currD.toString().substring(0,15)
 
