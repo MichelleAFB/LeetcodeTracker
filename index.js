@@ -521,16 +521,14 @@ var currD=calcTime("Dallas","+5.0")
           count++
           index=problems.indexOf(other)
 
-          if(count>1 && index!=problems.indexOf(p)){
+          if(count>0 && index!=problems.indexOf(p)){
            console.log("index of dup:"+index+ " p:"+problems.indexOf(p))
             dup=true
             console.log(s.day)
             console.log("DUPP:"+p.title+" "+other.title)
             const newProblems=problems.splice(index,index);
-            const remove=await Streak.updateOne({"day":s.day},{
-            $set:{"problems":newProblems}
-          })
-          updated.push({day:s.day,prevProblems:problems.length,newProblems:newProblems.length,removed:remove})
+            const remove=await Streak.updateOne({"day":s.day},{$set:{"problems":newProblems}})
+           updated.push({day:s.day,prevProblems:problems.length,newProblems:newProblems.length,removed:remove})
          
             console.log("\n")
             
@@ -547,9 +545,41 @@ var currD=calcTime("Dallas","+5.0")
 
  })
 
-
+app.post("/remove-from-streak",async(req,res)=>{
+  console.log(req.body.userId+" "+req.body.day)
+  var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
+  streak=streak[0]
+  //console.log(streak.problems[0])
+  var remove=false
+  console.log(streak.problems.length)
+  if(streak.problems.length>0){
+  streak.problems.map(async(p)=>{
+    console.log(p.attempts)
+    if(p.lastPracticed==req.body.problem.lastPracticed && req.body.problem.title==p.title /*&& req.problem.attempts[0]==p.attempts[0]*/&& remove==false){
+      console.log("MATCH")
+      remove=true
+      const prob= streak.problems.splice(streak.problems.indexOf(p),1)
+      console.log(prob[0].title+" "+prob.length)
+      const update=await Streak.updateOne({$and:[{"day":req.body.day},{"userID":req.body.userId}]},{
+        $set:{"problems":prob}
+      })
+      try{
+        res.json({success:true,updated:update})
+      }catch(err){
+        console.log(err)
+      }
+    }
+  })
+}else{
+  res.json({success:true,message:"no problems"})
+}
+})
 app.post("/add-to-streak",async(req,res)=>{
-
+  req.body.problem.id=req.body.id
+  var newProb=req.body.problem
+  newProb.id=req.body.id
+  
+  console.log(req.body.problem.id)
     var curr=calcTime("Dallas","+5.0")
     var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
@@ -571,28 +601,30 @@ app.post("/add-to-streak",async(req,res)=>{
  var newdate=new Date(dayDate)
  newdate=newdate.toString().substring(0,15)
  console.log("\n\nnewdate:"+newdate)
- console.log("\n\n"+currD)
+ //console.log("\n\n"+currD)
  currD=currD.toString().substring(0,15)
-  console.log("olddate:"+newdate)
+  //console.log("olddate:"+newdate)
 
 
 
  const streakGPrev=await StreakGroup.find({"days":{$in:[newdate]}})
 //Find StreakGroup
 const streakGToday=await StreakGroup.find({"days":{$in:[currD]}})
-console.log("prev group")
+/*console.log("prev group")
 console.log(streakGPrev)
 console.log("currentgroup")
 console.log(streakGToday)
 console.log("hello")
-
+*/
 
   const streakToday=await Streak.find({$and:[{"day":currD}]})
   const streakYesterday=await Streak.find({$and:[{"day":newdate}]})
   console.log("yesterday:"+newdate)
-  console.log(streakGPrev)
+  //console.log(streakGPrev)
+  var newP=newProb
 if(streakToday.length==0){
   if(streakYesterday.length==0){
+   
     //create new streak, add it to streak group
     const newGroup=new StreakGroup({
       userId:req.body.userId,
@@ -603,13 +635,13 @@ if(streakToday.length==0){
       day:currD,
       userId:req.body.userId,
       group:save.id,
-      problems:[req.body.problem]
+      problems:[newP]
     })
-    console.log(newStreak)
+   // console.log(newStreak)
     const savedStreak=await newStreak.save()
     res.json({success:true,added:true,group:save,streak:savedStreak})
   }if(streakYesterday.length>0){
-    console.log(streakGPrev)
+    //console.log(streakGPrev)
     const updateStreakGroup=await StreakGroup.updateOne({"_id":streakGPrev[0].id},
     {$push:{"days":currD}})
     console.log(updateStreakGroup)
@@ -617,9 +649,9 @@ if(streakToday.length==0){
       day:currD,
       userId:req.body.userId,
       group:streakGPrev[0].id,
-      problems:[req.body.problem]
+      problems:[newP]
     })
-    console.log(newStreak)
+   // console.log(newStreak)
     const savedStreak=await newStreak.save()
     res.json({success:true,added:true,updatedGroup:updateStreakGroup,streak:savedStreak})
   }
@@ -682,7 +714,7 @@ if(streakToday.length==0){
       
       const saved=await Streak.updateOne({"day":currD,"userId":req.body.userId},
       {
-        $push:{"problems":req.body.problem}
+        $push:{"problems":newP}
       }) 
      try{
        res.json({success:true,added:true,saved:saved})
