@@ -820,7 +820,7 @@ app.get("/current-streak/:userId",async(req,res)=>{
   const strek=[]
  
   var streaks=await StreakGroup.find({$and:[{"userId":parseInt(req.params.userId)}]})
-  
+  if(streak.length>0){
   var curr=calcTime('dallas',"+5.0")
   curr=curr.toString().substring(0,15)
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
@@ -854,9 +854,16 @@ app.get("/current-streak/:userId",async(req,res)=>{
       })
     }
   })
+}else{
+  res.json({success:true,streaks:null,message:"no streaks yet"})
+}
 
   setTimeout(()=>{
+    try{
     res.json({success:true,streaks:strek})
+    }catch(err){
+      console.log(err)
+    }
   },900)
 })
 
