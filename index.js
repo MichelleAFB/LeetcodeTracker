@@ -46,6 +46,16 @@ app.use(express.json({limit:'75mb'}))
 app.use(bodyParser.urlencoded({limit: '75mb', extended: true}));
 
 
+app.post("/idss",async(req,res)=>{
+  console.log(req.body.userId)
+  console.log(req.body)
+  const user=req.body.userId
+  const problems=req.body.problems
+
+  const probs=[]
+
+})
+
 var corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200,
@@ -80,6 +90,9 @@ connectdb().then((conn)=>{
 
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
+const adminCurrentClientRouter=require("./generate/titles").generateRouter
+app.use("/generate",adminCurrentClientRouter)  
+
 
 app.get("/",(req,res)=>{
   res.json("Welcome to the Leetcode Api")
@@ -88,44 +101,14 @@ app.get("/",(req,res)=>{
 app.get("/ss/:id",(req,res)=>{
 
 })
-const problemsSchema=new mongoose.Schema({
-  title:{
-    type:String,
-    required:true,
-    unique:true
-  },
-  problemId:{
-    type:Number,
-    required:false,
-  },
-  link:{
-    type:String,
-    required:false
-  },
-  difficulty:{
-    type:String,
-    require:true
-  },
-  prompt:{
-    type:String,
-    required:false,
-  },
-  firebaseId:{
-    type:String,
-    required:false
-  }
-})
 
-problemsSchema.plugin(uniqueValidator)
-
-const problemItem=mongoose.model("Problem",problemsSchema)
 app.post("/sqltomongo",(req,res)=>{
   db.query("select * from leetcode.problems",(err,results)=>{
     if(err){
       console.log(err)
     }else{
       results.map(async(r)=>{
-        const problem=new problemItem({
+        const problem=new Problem({
           title:r.title,
           thisId:r.id,
           problemId:r.problemId,
@@ -342,11 +325,11 @@ app.get("/all-groups",async(reeq,res)=>{
 })
 
 app.get("/new-problems",async(req,res)=>{
-  const problems=await problemItem.find({$and:[{"firebaseId":null}]})
+  const problems=await Problem.find({$and:[{"firebaseId":null}]})
   res.json({success:true,no_problems:problems.length,problems:problems})
 })
 app.get("/problems",async(req,res)=>{
-  const problems= await problemItem.find({"prompt":{$exists:true},"difficulty":{$exists:true}})
+  const problems= await Problem.find({"prompt":{$exists:true},"difficulty":{$exists:true}})
   res.json({success:true,problems:problems,total:problems.length})
 })
 
@@ -574,6 +557,48 @@ app.post("/remove-from-streak",async(req,res)=>{
   res.json({success:true,message:"no problems"})
 }
 })
+app.post("/remove-dups",async(req,res)=>{
+  var user=req.body.userId;
+  var day=req.body.day
+  console.log(day)
+  console.log(user)
+
+  var streak=await Streak.find({$and:[{"userId":user},{"day":day}]})
+  streak=streak[0];
+  //console.log(streak)
+  const problems=streak.problems;
+  const arr=[]
+  const newProblems=streak.problems
+  if(problems.length>0){
+  problems.map((p)=>{
+    if(!arr.includes(p.title)){
+      arr.push(p.title)
+     // newProblems.push(p)
+     // console.log(arr)
+    }else{
+      newProblems.splice(newProblems.indexOf(p),1);
+      console.log(newProblems.length)
+    }
+
+  })
+}else{
+  res.json({success:true,message:"no problems yet"})
+}
+  setTimeout(async()=>{
+      try{
+        const update=await Streak.updateOne({$and:[{"userId":user},{"day":day}]},{
+        $set:{"problems":newProblems}
+      })
+      var array=await Streak.find({$and:[{"day":day},{"userId":user}]})
+      setTimeout(()=>{
+        res.json({problems:array,update:update})
+      },300)
+    }catch(err){
+      console.log(err)
+    }
+  },500)
+})
+
 app.post("/add-to-streak",async(req,res)=>{
   req.body.problem.id=req.body.id
   var newProb=req.body.problem
@@ -758,7 +783,7 @@ app.get("/try",async(req,res)=>{
 
 })
 app.get("/problem-by-title",async(req,res)=>{
-  const problem=await problemItem.find({$and:[{"title":req.body.title}]})
+  const problem=await Problem.find({$and:[{"title":req.body.title}]})
   res.json({success:true,problem:problem})
 })
 app.get("/userId/:id",async(req,res)=>{
@@ -846,16 +871,20 @@ app.get("/current-streak/:userId",async(req,res)=>{
      const days=s.days
      console.log(s.days)
     if(days.includes(curr) || days.includes(newdate)){
-      
+   
       days.map(async(st)=>{
         var str=await Streak.find({$and:[{"day":st},{"userId":parseInt(req.params.userId)}]})
         str=str[0]
-        strek.push({day:str.day,problems:str.problems})
+        strek.push({day:st.day,problems:st.problems})
       })
     }
   })
 }else{
+  try{
   res.json({success:true,streaks:null,message:"no streaks yet"})
+  }catch(err){
+    console.log(err)
+  }
 }
 
   setTimeout(()=>{
@@ -926,29 +955,29 @@ app.post("/remove-problem-from-streak/:day/:title",async(req,res)=>{
 
 /***************************************************************************************************************************************************************************************************************************************************************************** */
 app.get("/get-empty-links",async(req,res)=>{
-  const problems=await problemItem.find({"title":"Two Sum"});
+  const problems=await Problem.find({"title":"Two Sum"});
   res.json({success:true,problems:problems,total:problems.length})
 })
 
 app.get("/get-empty-prompts",async(req,res)=>{
-  const problems=await problemItem.find({"prompt":{$exists:false}});
+  const problems=await Problem.find({"prompt":{$exists:false}});
   res.json({success:true,problems:problems,total:problems.length})
 })
 
 app.get("/get-empty-difficulty",async(req,res)=>{
-  const problems=await problemItem.find({"difficulty":{$exists:false}});
+  const problems=await Problem.find({"difficulty":{$exists:false}});
   res.json({success:true,problems:problems,total:problems.length})
 })
 
 app.get("/problem/:title",async(req,res)=>{
-  const problem=await problemItem.find({$and:[{"title":req.params.title}]})
+  const problem=await Problem.find({$and:[{"title":req.params.title}]})
   res.json(problem)
 })
 
 app.post("/set-firebase-id/:id",async(req,res)=>{
   console.log(req.body)
   console.log(req.params)
-    const update=await problemItem.updateOne({"title":req.body.title},{
+    const update=await Problem.updateOne({"title":req.body.title},{
       $set:{"firebaseId":req.params.id}
     })
     setTimeout(()=>{
@@ -1024,12 +1053,12 @@ app.get("/titles/:page", (req, res) => {
                 
                 problems.map(async(q) => {
 
-                  const prob=await problemItem.find({"title":q.title,"difficulty":{$exists:false}})
-                  const goodProb=await problemItem.find({"title":q.title,"difficulty":{$exists:true}})
+                  const prob=await Problem.find({"title":q.title,"difficulty":{$exists:false}})
+                  const goodProb=await Problem.find({"title":q.title,"difficulty":{$exists:true}})
 
                   if(prob!=null){
                     try{
-                      await problemItem.update({"title":prob.title},{
+                      await Problem.update({"title":prob.title},{
                         thisId:prob.thisId,
                         title:prob.title,
                         difficulty:q.difficulty,
@@ -1051,7 +1080,7 @@ app.get("/titles/:page", (req, res) => {
                    i++
                    console.log("i:"+i);
                  
-                  var  problem=new problemItem({
+                  var  problem=new Problem({
                     title:q.title,
                     difficulty:q.difficulty
                    })
@@ -1085,7 +1114,7 @@ app.get("/titles/:page", (req, res) => {
 app.get("/create-links", async(req, res) => {
   const base = "https://heroku_29594a13b7b8a31.com/problems/";
   var i=0;
-  const results= await problemItem.find({})
+  const results= await Problem.find({})
    
       results.map(async(q) => {
       
@@ -1097,12 +1126,12 @@ app.get("/create-links", async(req, res) => {
           end = end.replace(/{([])}/g, "");
           var link = base + end;
 
-          const prob=await problemItem.find({
+          const prob=await Problem.find({
             "title":title
           })
           
           try{
-            const val=await problemItem.update({title:prob.title},{
+            const val=await Problem.update({title:prob.title},{
               title:prob.title,
               prompt:prob.prompt,
               thisId:prob.thisId,
@@ -1128,12 +1157,12 @@ app.get("/create-links", async(req, res) => {
           var link = base + end;
           console.log(link);
 
-          const prob=await problemItem.find({
+          const prob=await Problem.find({
             "title":title
           })
          
           try{
-            const val=await problemItem.update({title:prob.title},{
+            const val=await Problem.update({title:prob.title},{
               title:prob.title,
               thisId:prob.thisId,
               prompt:prob.prompt,
@@ -1444,7 +1473,7 @@ app.post("/create-meal/:id",(req,res)=>{
 /********************************************************************* */
 
 app.get("/problems", async(req, res) => {
-  const problems= await problemItem.find({})
+  const problems= await Problem.find({})
   res.json({success:true,problems:problems})
 });
 

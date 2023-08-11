@@ -5,7 +5,7 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
-const router = express.Router();
+const generateRouter = express.Router();
 
 const passport = require("passport");
 //const passportSetup = require("./config/passport");
@@ -26,17 +26,21 @@ const bodyParser = require("body-parser");
 const jimp = require("jimp");
 
 
-router.use(cors());
-router.use(bodyParser.json());
+generateRouter.use(cors());
+generateRouter.use(bodyParser.json());
 var corsOptions = {
   origin: '*',
   optionsSuccessStatus: 200
 };
 
-router.use(cors(corsOptions))
+generateRouter.use(cors(corsOptions))
+console.log("GENERATE")
 
+generateRouter.get("/",(req,res)=>{
+  res.json("GENERATE")
+})
 
-router.get("./titles/:page",(req,res)=>{
+generateRouter.get("/titles/:page",(req,res)=>{
   (async () => {
     const browser = await puppeteer.launch({
       headless: true,
@@ -47,9 +51,12 @@ router.get("./titles/:page",(req,res)=>{
     const page = await browser.newPage();
     await page.goto("https://leetcode.com/problemset/all/?page="+req.params.page);
     page.on("response",async(response)=>{
+     // console.log(response.url())
       if(response.url()=="https://leetcode.com/graphql/"){
-        const data=await response.json().data
+
+        const data=await response.json()
         console.log(data)
+        console.log("\n\n")
       }
     })
   })()
@@ -57,4 +64,4 @@ router.get("./titles/:page",(req,res)=>{
 
 
 
-module.exports={router}
+module.exports={generateRouter}
