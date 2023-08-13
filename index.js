@@ -319,12 +319,15 @@ app.post("/create-streak-group",async(req,res)=>{
 
 })
 
+
 app.get("/all-groups",async(reeq,res)=>{
   const groups=await StreakGroup.find({})
   res.json({success:true,groups:groups})
 })
 
 app.get("/new-problems",async(req,res)=>{
+  console.log(Problem)
+  console.log(Streak)
   const problems=await Problem.find({$and:[{"firebaseId":null}]})
   res.json({success:true,no_problems:problems.length,problems:problems})
 })
@@ -793,7 +796,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
   if(date!=null){
 
-    axios.get("http://localhost:3022/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
+    axios.get("https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
       console.log(response.data)
       var date=req.body.day
       date=date.split(" ")
@@ -886,7 +889,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   }else{
     var curr=new Date()
     curr=curr.toString().substring(0,15)
-    axios.get("http://localhost:3022/checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
+    axios.get("https://leetcodetracker.onrender.com/checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
       console.log(response.data)
       curr=curr.split(" ")
       
@@ -983,11 +986,58 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   }
 })
 
-app.get("/try",async(req,res)=>{
-  var currD=new Date()
-  currD=currD.toString().substring(0,15)
-  const streakG=await StreakGroup.find({"days":{$in:[currD]}})
-  console.log(streakG)
+app.post("/try-remove",async(req,res)=>{
+    const day=req.body.day
+    const userId=req.body.userId
+    const problem=req.body.problem
+    console.log(userId)
+  var newArray
+    var complete=false
+    var streak= await Streak.find({$and:[{"day":day},{"userId":userId}]})
+    streak=streak[0]
+    if(streak!=null){
+      streak.problems.map(async(p)=>{
+        if(p.title==problem.title && !complete){
+          console.log(p.title)
+          console.log("MATCH:"+complete)
+          newArray=streak.problems.splice(streak.problems.indexOf(p),1)
+          console.log(newArray)
+          if(streak.problems.length>1){
+          const update=await Streak.updateOne({$and:[{"day":day},{"userId":userId}]},{
+            $set:{"problems":newArray}
+          })
+          try{
+            res.json({success:true,update:update})
+          }catch(err){
+            console.log(err)
+          }
+          complete=true
+
+        }else{
+           var group=await StreakGroup.find({$and:[{"_id":streak.group},{"userId":userId}]})
+           group=group[0]
+           if(group!=null){
+              var arr=group.days.splice(group.days.indexOf(day),1)
+              const updateGroup=await StreakGroup.updateOne({$and:[{"userId":userId},{"_id":streak.group}]},{
+                $set:{"days":arr}
+              })
+
+              const deleteStreak=await Streak.deleteOne({$and:[{"day":day},{"userId":userId}]})
+              try{
+                res.json({success:true,deletedStreak:deleteStreak})
+              }catch(err){
+                console.log(err)
+              }
+           }else{
+            res.json({success:false})
+           }
+
+        }
+        }
+      })
+    }else{
+      res.json({success:true,message:"NO streak"})
+    }
 
 })
 app.get("/problem-by-title",async(req,res)=>{

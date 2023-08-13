@@ -36,4 +36,4 @@ const problemsSchema=new mongoose.Schema({
 problemsSchema.plugin(uniqueValidator)
 
 const Problem=mongoose.model("Problem",problemsSchema)
-module.exports={Problem}
+module.exports=Problem
