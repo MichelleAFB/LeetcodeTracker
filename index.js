@@ -25,8 +25,18 @@ const Streak=require("./models/Streak")
 const Problem=require("./models/Problem")
 const StreakGroup=require("./models/StreakGroup");
 const { log } = require("console");
+const morgan = require('morgan')
+morgan.token('id', (req) => { //creating id token
+  return req.id
+})
+function assignId (req, res, next) {
+  const id = 16
+  req.id = id
+  next()
+}
 
-
+app.use(assignId)
+app.use(morgan(':id :method :url :response-time'))
  
 function calcTime(city, offset) {
    var d = new Date();
@@ -369,10 +379,11 @@ app.get("/remove-streak",async(req,res)=>{
 
 
 
-app.get("/checkProblem",async(req,res)=>{
-  var cDate=calcTime("Dallas","+5.0")
-  console.log(cDate.toString())
-  console.log(req.body)
+app.post("/checkProblem",async(req,res)=>{
+ // var cDate=calcTime("Dallas","+5.0")
+  //console.log(cDate.toString())
+  console.log("HERE CHECK PROBLEM")
+
   cDate= req.body.day 
   const streak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
  var foundProblem
@@ -783,7 +794,7 @@ if(streakToday.length==0){
 })
 */
 app.post("/add-to-streak",async(req,res)=>{
-  const id=Number(req.body.userId)
+  const id=req.body.userId
   const problem=req.body.problem
   const date=req.body.day
 
@@ -792,12 +803,14 @@ app.post("/add-to-streak",async(req,res)=>{
 "Aug","Sep","Oct","Nov","Dec"];
 var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
-  console.log(date)
+  console.log(req.body)
 
   if(date!=null){
 
-    axios.get("https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
-      console.log(response.data)
+    axios.post("https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
+     // console.log(response.data)
+     console.log("HERE DATE")
+      try{
       var date=req.body.day
       date=date.split(" ")
       var dateDate=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
@@ -883,19 +896,25 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         }
 
       }
+    }catch(err){
+      console.log(err)
+    }
+    
     })
 
 
   }else{
     var curr=new Date()
     curr=curr.toString().substring(0,15)
-    axios.get("https://leetcodetracker.onrender.com/checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
-      console.log(response.data)
+    axios.post("https://leetcodetracker.onrender.com/checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
+      try{
+     // console.log(response.data)
       curr=curr.split(" ")
       
       
      
-      console.log(response.data)
+      //console.log(response.data)
+      console.log("HERE NO DAY")
       
       curr=curr.split(" ")
       var dateDate=new Date(curr[3],monthnum[months.indexOf(curr[1])-1],curr[2])
@@ -981,6 +1000,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         }
 
       }
+    }catch(err){
+      console.log("err")
+    }
 
     })
   }
