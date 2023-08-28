@@ -2,7 +2,7 @@ const mongoose=require("mongoose")
 
 const StreakGroupSchema= new mongoose.Schema({
   userId:{
-    type:Number,
+    type:String,
   },
   days:[
 

@@ -52,9 +52,41 @@ const port = 3022;
 
 app.use(bodyParser.json());
 app.use(express.json())
-app.use(express.json({limit:'75mb'}))
-app.use(bodyParser.urlencoded({limit: '75mb', extended: true}));
+app.use(express.json({limit:'50mb'}))
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true,parameterLimit:50000}));
 
+
+app.post("/set-ids",async(req,res)=>{
+ 
+  console.log(req.body.problems[0].userId)
+  const streaks=await Streak.find({})
+
+
+  if(streaks.length>0){
+    streaks.map(async(s)=>{
+      const problems=s.problems
+
+      problems.map((p)=>{
+        req.body.problems.map(async(pp)=>{
+          const index=problems.indexOf(p)
+          if(pp.title==p.title && p.userId==pp.userId){
+            p.xid=pp.id
+            const prob=p
+            s.problems[index]=prob
+            console.log(prob.xid)
+            setTimeout(async()=>{
+              const update=await Streak.updateOne({$and:[{"_id":s._id}]},{
+                $set:{"problems":problems}
+              }) 
+              console.log(update)
+            },6)
+          }
+        })
+      })
+
+    })
+  }
+})
 
 app.post("/idss",async(req,res)=>{
   console.log(req.body.userId)
@@ -383,7 +415,7 @@ app.post("/checkProblem",async(req,res)=>{
  // var cDate=calcTime("Dallas","+5.0")
   //console.log(cDate.toString())
   console.log("HERE CHECK PROBLEM")
-
+  console.log(Object.keys(req.body))
   cDate= req.body.day 
   const streak=await Streak.find({$and:[{"day":req.body.day},{"userId":req.body.userId}]})
  var foundProblem
@@ -391,9 +423,11 @@ app.post("/checkProblem",async(req,res)=>{
  if(streak.length>0){
   const problem=streak[0].problems
 streak.map((s)=>{
+  console.log(s.day)
   s.problems.map((p)=>{
-  
-   var title=req.params.title.replace(/\s/g,"").toUpperCase()
+
+  console.log(Object.keys(p))
+   var title=req.body.problem.title.replace(/\s/g,"").toUpperCase()
    var ptitle=p.title.replace(/\s/g,"").toUpperCase()
    console.log(title+" "+ptitle)
    if(title==ptitle){
@@ -617,7 +651,7 @@ app.get("/find-streak",async(req,res)=>{
   res.json({streak:streak})
 })
 /*
-app.post("/add-to-streak",async(req,res)=>{
+app.post("/ad/d-to-streak",async(req,res)=>{
   req.body.problem.id=req.body.id
   var newProb=req.body.problem
   newProb.id=req.body.id
@@ -793,20 +827,23 @@ if(streakToday.length==0){
 
 })
 */
+console.log()
 app.post("/add-to-streak",async(req,res)=>{
+  console.log("HI")
   const id=req.body.userId
   const problem=req.body.problem
   const date=req.body.day
+  console.log("HI")
 
   console.log((typeof id)+ " "+id)
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
 "Aug","Sep","Oct","Nov","Dec"];
 var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
-  console.log(req.body)
+  
 
   if(date!=null){
-
+    console.log(Object.keys(req.body.problem))
     axios.post("https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
      // console.log(response.data)
      console.log("HERE DATE")
@@ -814,40 +851,48 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
       var date=req.body.day
       date=date.split(" ")
       var dateDate=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
-      var yesterday=new Date(dateDate)
-      yesterday=yesterday.setDate(dateDate.getDate()-1)
-      yesterday=new Date(yesterday)
-      console.log(yesterday.toString())
+      var yesterDay=new Date(dateDate)
+      yesterDay=yesterDay.setDate(dateDate.getDate()-1)
+      const yesterday=new Date(yesterDay)
+      console.log("yesterday:"+yesterday.toString())
 
       if(response.data.already){
-        res.json({success:true,message:"Problem "+problem.title+" has already been done today"})
+        res.json({success:true,message:"Problem "+problem.problem.title+" has already been done today"})
       }else{
 
         //check if streak already exist
         var streakExist=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
         streakExist=streakExist[0]
         if(streakExist!=null){
+          console.log("STREAK TODAY EXISTS")
           //add-problem to streak
-          console.log("streakExist:"+streakExist)
+         console.log("streakExist:"+streakExist)
           const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$push:{"problems":req.body.problem}})
           var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
           res.json({success:true,updatedStreak:updateStreak,streak:streak})
+          
 
         }else{
+          console.log("STREAK TODAY DOES NOT EXIST")
           //check if streak can be added to a streak group
-          var yesterdayStreak=await Streak.find({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":id}]})
+          console.log(yesterday.toString().substring(0,15))
+          console.log(typeof(req.body.userId))
+          var yesterdayStreak=await Streak.find({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.body.userId}]})
           yesterdayStreak=yesterdayStreak[0]
+          console.log(yesterdayStreak)
           if(yesterdayStreak!=null){
             
-            
+            console.log("STREAK YESTERDAY EXIST")
             //create streak and add it to StreakGroup
             var streakGroup=await StreakGroup.find({$and:[{"_id":yesterdayStreak.group}]})
             streakGroup=streakGroup[0]
             if(streakGroup!=null){
-                if(!streakGroup.problems.includes(req.body.day)){
+              console.log("STREAKGROUP EXIST")
+                if(!streakGroup.days.includes(req.body.day)){
+                  console.log("TODAY STREAK NOT IN STREAK GROUP")
                   //if streakGroup doesnt have day
-              const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterday.group},
+              const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
               {$push:{"days":req.body.day}})
               console.log("UPDATING STREAK:")
               console.log(updateStreakGroup)
@@ -857,11 +902,12 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 day:req.body.day,
                 userId:id,
                 group:streakGroup._id,
-                problems:[req.body.problem]
+                problems:[req.body.problem.problem]
               })
               const save=await newStreak.save()
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
             }else if(streakGroup.problems.includes(req.body.day)){
+              console.log("TODAY STREAK ALREADY IN STREAK GROUP")
                 const newStreak=new Streak({
                 day:req.body.day,
                 userId:id,
@@ -870,13 +916,14 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                const save=await newStreak.save()
                res.json({success:true,streak:save,streakGroup:streakGroup})
-
+                  
             }
 
             }else{
               res.json({"success":false,message:"streakGroup does not exist"})
             }
           }else{
+            console.log("STREAK YESTERDAY DOES NOT EXIST/ CREATING NEW STREAK GROUP")
             const newGroup= new StreakGroup({
               userId:id,
               days:[req.body.day]
@@ -892,6 +939,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             const addStreak=newStreak.save()
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
             //create new streakgroup and new streak
+            
           }
         }
 
@@ -951,7 +999,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             if(streakGroup!=null){
                 if(!streakGroup.problems.includes(req.body.day)){
                   //if streakGroup doesnt have day
-              const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterday.group},
+              const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
               {$push:{"days":req.body.day}})
               console.log("UPDATING STREAK:")
               console.log(updateStreakGroup)
@@ -1133,7 +1181,8 @@ app.get("/s",async(req,res)=>{
 app.get("/current-streak/:userId",async(req,res)=>{
   const strek=[]
  
-  var streaks=await StreakGroup.find({$and:[{"userId":parseInt(req.params.userId)}]})
+  var streaks=await StreakGroup.find({$and:[{"userId":req.params.userId}]})
+  console.log(streaks)
   if(streaks.length>0){
   var curr=new Date()
   curr=curr.toString().substring(0,15)
@@ -1162,7 +1211,7 @@ app.get("/current-streak/:userId",async(req,res)=>{
     if(days.includes(curr) || days.includes(newdate)){
    console.log("MACTHC")
       days.map(async(st)=>{
-        var str=await Streak.find({$and:[{"day":st},{"userId":Number(req.params.userId)}]})
+        var str=await Streak.find({$and:[{"day":st},{"userId":req.params.userId}]})
         str=str[0]
         //console.log(str)
         strek.push({day:str.day,problems:str.problems})

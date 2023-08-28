@@ -14,7 +14,7 @@ const StreakSchema= new mongoose.Schema({
     required:false
   },
   userId:{
-    type:Number,
+    type:String,
     required:false
   }
 })
