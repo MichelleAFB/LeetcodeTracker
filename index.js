@@ -426,15 +426,33 @@ streak.map((s)=>{
   console.log(s.day)
   s.problems.map((p)=>{
 
-  console.log(Object.keys(p))
-   var title=req.body.problem.title.replace(/\s/g,"").toUpperCase()
-   var ptitle=p.title.replace(/\s/g,"").toUpperCase()
+  const problem=req.body.problem
+  if(p!=null){
+    console.log(Object.keys(p))
+
    console.log(title+" "+ptitle)
-   if(title==ptitle){
-    console.log("DOUBLE")
-    foundProblem=p
-    already=true
+   console.log(!Object.keys(problem).includes("problem"))
+   if(Object.keys(problem).includes("problem")){
+    var title=problem.problem.title.replace(/\s/g,"").toUpperCase()
+    var ptitle=p.title.replace(/\s/g,"").toUpperCase()
+    if(title==ptitle){
+      console.log("DOUBLE")
+      foundProblem=p
+      already=true
+     }
+   
+  }else if(!Object.keys(problem).includes("problem")){
+    var title=problem.title.replace(/\s/g,"").toUpperCase()
+    var ptitle=p.title.replace(/\s/g,"").toUpperCase()
+    if(title==ptitle){
+      console.log("DOUBLE")
+      foundProblem=p
+      already=true
+     }
+
+
    }
+  }
   })
 
 })
@@ -835,7 +853,6 @@ app.post("/add-to-streak",async(req,res)=>{
   const date=req.body.day
   console.log("HI")
 
-  console.log((typeof id)+ " "+id)
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
 "Aug","Sep","Oct","Nov","Dec"];
 var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
@@ -844,6 +861,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
   if(date!=null){
     console.log(Object.keys(req.body.problem))
+    console.log(req.body)
     axios.post("https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
      // console.log(response.data)
      console.log("HERE DATE")
@@ -867,10 +885,20 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           console.log("STREAK TODAY EXISTS")
           //add-problem to streak
          console.log("streakExist:"+streakExist)
+         if(Object.keys(req.body.problem).includes("problem")){
+          const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$push:{"problems":req.body.problem.problem}})
+          var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
+          res.json({success:true,updatedStreak:updateStreak,streak:streak})
+
+         }else if(!Object.keys(req.body.problem).includes("problem")){
           const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$push:{"problems":req.body.problem}})
           var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
           res.json({success:true,updatedStreak:updateStreak,streak:streak})
+
+         }
+         
           
 
         }else{
@@ -897,7 +925,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               console.log("UPDATING STREAK:")
               console.log(updateStreakGroup)
               console.log("\n\n")
-                
+                if(Object.keys(req.body.problem).includes("problem")){
               const newStreak=new Streak({
                 day:req.body.day,
                 userId:id,
@@ -906,9 +934,20 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               })
               const save=await newStreak.save()
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
-            }else if(streakGroup.problems.includes(req.body.day)){
-              console.log("TODAY STREAK ALREADY IN STREAK GROUP")
-                const newStreak=new Streak({
+            }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
+              const newStreak=new Streak({
+                day:req.body.day,
+                userId:id,
+                group:streakGroup._id,
+                problems:[req.body.problem]
+              })
+              const save=await newStreak.save()
+              res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+
+            }
+            }else if(streakGroup.days.includes(req.body.day)){
+             console.log("TODAY STREAK ALREADY IN STREAK GROUP")
+                /*const newStreak=new Streak({
                 day:req.body.day,
                 userId:id,
                 group:streakGroup._id,
@@ -916,6 +955,24 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                const save=await newStreak.save()
                res.json({success:true,streak:save,streakGroup:streakGroup})
+               */
+               if(Object.keys(req.body.problem).includes("problem")){
+                
+                const update=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":req.body.day}]},{
+                  $push:{"problems":req.body.problem.problem}
+                })
+                console.log(update)
+                const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
+                res.json({success:true,streak:updatedStreak,updatedStreak:update,updateupdatedGroup:updateStreakGroup})
+              }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
+                const update=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":req.body.day}]},{
+                  $push:{"problems":req.body.problem}
+                })
+                console.log(update)
+                const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
+                res.json({success:true,streak:updatedStreak,updatedStreak:update,updateupdatedGroup:updateStreakGroup})
+  
+              }
                   
             }
 
@@ -1057,7 +1114,36 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 })
 
 app.post("/try-remove",async(req,res)=>{
-    const day=req.body.day
+
+ // console.log(req.body)
+  const id=req.body.userId
+  const day=req.body.day
+  const problem=req.body.problem
+
+  var streak=await Streak.find({$and:[{"day":day},{"userId":id}]})
+  streak=streak[0]
+  //console.log(streak)
+  if(streak!=null){
+   // console.log(streak)
+
+    const problems=streak.problems
+
+    problems.map(async(p)=>{
+      if(p.id==problem.id){
+        console.log("match")
+        console.log(p.id+" "+problem.id)
+        const problemss=problems.splice(problems.indexOf(p),1)
+        console.log(problemss.length)
+        const update=await Streak.updateOne({$and:[{"userId":id},{"day":day}]},{
+          $set:{"problems":problemss}
+        })
+        var streakUpdate=await Streak.find({$and:[{"day":day},{"userId":id}]})
+
+        res.json({success:true,updatedStreak:update,streak:streakUpdate})
+      }
+    })
+  }
+   /* const day=req.body.day
     const userId=req.body.userId
     const problem=req.body.problem
     console.log(userId)
@@ -1108,6 +1194,7 @@ app.post("/try-remove",async(req,res)=>{
     }else{
       res.json({success:true,message:"NO streak"})
     }
+    */
 
 })
 app.get("/problem-by-title",async(req,res)=>{
