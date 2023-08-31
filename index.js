@@ -963,14 +963,17 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                 console.log(update)
                 const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
-                res.json({success:true,streak:updatedStreak,updatedStreak:update,updateupdatedGroup:updateStreakGroup})
+                           const updateStreakGroup=await StreakGroup.find({$and:[{"userId":req.body.userId},{"_id":streakGroup._id}]})
+
+                res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
               }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
                 const update=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":req.body.day}]},{
                   $push:{"problems":req.body.problem}
                 })
                 console.log(update)
                 const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
-                res.json({success:true,streak:updatedStreak,updatedStreak:update,updateupdatedGroup:updateStreakGroup})
+                const updateStreakGroup=await StreakGroup.find({$and:[{"userId":req.body.userId},{"_id":streakGroup._id}]})
+                res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
   
               }
                   
