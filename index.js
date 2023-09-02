@@ -922,7 +922,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   //if streakGroup doesnt have day
               const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
               {$push:{"days":req.body.day}})
-              console.log("UPDATING STREAK:")
+              console.log("UPDATING STREAKGROUP:" +streakGroup._ID)
+              console.log("CREATE NEW STREAK")
               console.log(updateStreakGroup)
               console.log("\n\n")
                 if(Object.keys(req.body.problem).includes("problem")){
@@ -989,7 +990,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               days:[req.body.day]
             })
             const addGroup=await newGroup.save()
-
+            if(!Object.keys(req.body.problem).includes("problem")){
             const newStreak=new Streak({
               day:req.body.day,
               userId:id,
@@ -997,7 +998,19 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               problems:[req.body.problem]
             })
             const addStreak=newStreak.save()
+                        res.json({success:true,streak:newStreak,streakGroup:addGroup})
+
+          }else if(Object.keys(req.body.problem).includes("problem")){
+              const newStreak=new Streak({
+              day:req.body.day,
+              userId:id,
+              group:addGroup._id,
+              problems:[req.body.problem.problem]
+            })
+            const addStreak=newStreak.save()
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
+
+          }
             //create new streakgroup and new streak
             
           }
