@@ -25,7 +25,8 @@ const Streak=require("./models/Streak")
 const Problem=require("./models/Problem")
 const StreakGroup=require("./models/StreakGroup");
 const { log } = require("console");
-const morgan = require('morgan')
+const morgan = require('morgan');
+const Challenge = require("./models/Challenge");
 morgan.token('id', (req) => { //creating id token
   return req.id
 })
@@ -845,7 +846,7 @@ if(streakToday.length==0){
 
 })
 */
-console.log()
+
 app.post("/add-to-streak",async(req,res)=>{
   console.log("HI")
   const id=req.body.userId
@@ -1128,7 +1129,132 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
     })
   }
 })
+/***************************************CHALLENGE */
 
+app.post("/create-new-challenge",async(req,res)=>{
+
+  const challenge=req.body.challenge
+  const userId=req.body.userId
+  const current=req.body.current
+  console.log(challenge.startDate)
+  console.log(new Date((challenge.endDate.seconds*1000) + (challenge.endDate.nanoseconds/1000000)))
+
+  
+  const newChallenge=new Challenge({
+    userId:userId,
+    title:challenge.title,
+    no_questions:challenge.no_questions,
+    startDate:new Date((challenge.startDate.seconds*1000) +(challenge.startDate.nanoseconds/1000000)),
+    endDate:new Date((challenge.endDate.seconds*1000) + (challenge.endDate.nanoseconds/1000000)),
+    length:challenge.length,
+    current: current? true:false
+  })
+  const saved= await newChallenge.save()
+  res.json({success:true,challenge:saved})
+  
+})
+
+function getDatesArray(start, end) {
+  for(var arr=[],dt=new Date(start); dt<=new Date(end); dt.setDate(dt.getDate()+1)){
+      arr.push(dt.toString().substring(0,15));
+  }
+  return arr;
+};
+
+app.get("/challenges/:userId/:day",async(req,res)=>{
+  const userId=req.params.userId
+  const challenges= await Streak.find({$and:{"userId":userId}})
+})
+
+app.get("/get-current-challenge/:userId",async(req,res)=>{
+  const streaks=[]
+  var currentChallenge
+  const challenges=await Challenge.find({$and:[{"userId":req.params.userId}]})
+  var today=new Date()
+
+  challenges.map(async(c)=>{
+    const start=c.startDate
+    const end=c.endDate
+    const today=new Date()
+    const dates=getDatesArray(start,end)
+    if(dates.includes(today.toString().substring(0,15))){
+      currentChallenge=c
+
+      //find a streak that exist for today
+      var streak=await Streak.find({$and:[{"userId":req.params.userId},{"day":today.toString().substring(0,15)}]})
+      streak=streak[0]
+      if(streak!=null){
+        streaks.push(streak)
+        var group=await StreakGroup.find({$and:[{"_id":streak.group},{"userId":req.params.userId}]})
+        group=group[0]
+        console.log(group)
+        if(group!=null){
+          group.days.map(async(d)=>{
+            var s=await Streak.find({$and:[{"day":d},{"userId":req.params.userId}]})
+            s=s[0]
+            if(s!=null){
+              streaks.push(s)
+            }
+          })
+          setTimeout(()=>{
+            res.json({success:true,streaksLength:streaks.length,currentChallenge:c,currentStreak:streak,streaks:streaks})
+          },500)
+        }
+      }else{
+      var yesterday=new Date()
+      yesterday=new Date(yesterday.setDate(yesterday.getDate()-1))
+      var yesterdayStreak=await Streak.find({$and:[{"userId":req.params.userId},{"day":yesterday.toString().substring(0,15)}]})
+      console.log("yesterdayStreak",yesterdayStreak)
+      yesterdayStreak=yesterdayStreak[0]
+      if(yesterdayStreak!=null){
+        var group=await StreakGroup.find({$and:[{"_id":yesterdayStreak.group},{"userId":req.params.userId}]})
+        group=group[0]
+        if(group!=null){
+          group.days.map(async(d)=>{
+            var s=await Streak.find({$and:[{"day":d},{"userId":req.params.userId}]})
+            s=s[0]
+            if(s!=null){
+              streaks.push(s)
+            }
+          })
+          setTimeout(()=>{
+            res.json({success:true,streaksLength:streaks.length,currentChallenge:c,currentStreak:null,streak:streaks})
+          },500)
+        }
+        }else{
+          res.json({success:true,current})
+        }
+      }
+      }
+      
+
+    
+   /* const start=c.startDate
+    const end=c.endDate
+    const today=new Date()
+    const dates=getDatesArray(start,end)
+    
+    if(dates.includes(today.toString().substring(0,15))){
+      var streak=await Streak.find({$and:[{"userId":req.params.userId},{"day":today.toString().substring(0,15)}]})
+      if(streak[0]!=null){
+        const group=await StreakGroup.find({$and:[{"_id":streak[0].group},{"userId":req.params.userId},{"day":req.params.day==null? today.toString().substring(0,15):req.params.day}]})
+        console.log(group)
+        res.json({success:true, challenge:c,streak:streak[0],group:group})
+
+
+      }else{
+        var yesterday=new Date()
+        yesterday=new Date(yesterday.setDate(yesterday.getDate()-1))
+        const yesterdayStreak=await Streak.find({$and:[{"userId":req.params.userId},{"day":yesterday.toString().substring(0,15)}]})
+        console.log("yesterdayStreak",yesterdayStreak)
+      }
+    }else{
+      res.json({sucess:false,challenge:null})
+    }
+    */
+  })
+
+})
 app.post("/try-remove",async(req,res)=>{
 
  // console.log(req.body)
