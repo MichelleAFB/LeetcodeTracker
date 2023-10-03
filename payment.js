@@ -1,7 +1,7 @@
 const strip=require('stripe')("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")
 const express = require("express");
 const cors=require('cors')
-const bodyParser=require('bodyParser')
+const bodyParser=require('body-parser')
 const router = express.Router();
 router.use(bodyParser.json());
 var corsOptions = {
@@ -44,7 +44,7 @@ console.log("\n\n\n"+req.params.id+"\n\n\n")
     
 
     const prom1=new Promise((resolve1,reject1)=>{
-
+/*
       const checkout=async()=>{
 
         const session=await strip.checkout.sessions.create({
@@ -61,10 +61,12 @@ console.log("\n\n\n"+req.params.id+"\n\n\n")
           reject(error)
        }
       }
+      
       checkout().then((response)=>{
         console.log(response)
         resolve1(response)
       })  
+      */
 
     })
 
