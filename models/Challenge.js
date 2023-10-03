@@ -32,6 +32,25 @@ const challengeSchema= new mongoose.Schema({
   },
   length:{
     type:Number
+  },
+  passes:{
+    type:Number,
+    default:0
+  },
+  intialPasses:{
+    type:Number,
+    default:0
+  },
+  usedPasses:{
+    type:Number,
+    default:0
+  },lastUpdated:{
+    type:Date,
+    default:new Date()
+  },
+  failedDays:{
+    type:Number,
+    default:0
   }
 })
 
