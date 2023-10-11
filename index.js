@@ -58,6 +58,9 @@ app.use(bodyParser.urlencoded({limit: '50mb', extended: true,parameterLimit:5000
 
 const paymentRouter=require("./payment").router
 app.use("/payment",paymentRouter)
+const userRouter=require("./user").router
+app.use("/user",userRouter)
+
 
 app.post("/set-ids",async(req,res)=>{
  
@@ -1246,12 +1249,72 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
  var currentStreak
   var sent=false
 
+
   challenges.map(async(c)=>{
+    const failedDay=[]
     const start=c.startDate
     const end=c.endDate
     const today=new Date()
     console.log(c)
+    var current=false
     const dates=getDatesArray(start,end)
+    console.log(typeof(c.enddate)+" "+typeof(today))
+    console.log(new Date(c.endDate),today)
+    if(new Date(c.endDate)<today && c.success){
+      console.log("LESS THAN")
+      dates.map(async(d)=>{
+        var str=await Streak.find({$and:[{"day":d},{"userId":req.params.userId}]})
+        str=str[0]
+        if(str!=null){
+          if(str.problems.length<c.no_questions){
+            failedDay.push(str)
+            //console.log("failedDays",failedDay)
+          }
+        }else{
+          console.log("\n\nEMPTY DAY\n\n")
+          failedDay.push({date:"fail"})
+        }
+      })
+      setTimeout(async()=>{
+        console.log("failed",failedDay.length)
+        console.log(Object.keys(c._doc))
+        console.log("initialPasses",c._doc.initialPasses)
+        console.log("\n\n")
+        if(failedDay.length>c.initialPasses){
+          console.log()
+          const updateFail=await Challenge.updateOne({$and:[{"_id":c._id}]},{
+            $set:{"success":false}
+          })
+
+          const updateFai=await Challenge.updateOne({$and:[{"_id":c._id}]},{
+            $set:{"failedDays":failedDay}
+          })
+          console.log("\n\n")
+           console.log(updateFail)
+           
+            
+        console.log("\n\n")
+        //console.log(c)
+        }
+       
+      },300)
+
+      
+    }
+    if(dates.includes(today.toString().substring(0,15))){
+      current=true
+      if(c.current==false){
+        const updateCurrent=await Challenge.updateOne({$and:[{"_id":c._id}]},{
+          $set:{"current":true}
+        })
+        //console.log("update",updateCurrent)
+      }
+    }else if(c.current==true && !dates.includes(today.toString().substring(0,15))){
+      const updateCurrent=await Challenge.updateOne({$and:[{"_id":c._id}]},{
+        $set:{"current":false}
+      })
+      //console.log("\n\n",updateCurrent)
+    }
     
     if(c!=null){
       
@@ -1259,10 +1322,11 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
       yesterday=new Date(yesterday.setDate(yesterday.getDate()-1))
       
       var yesterdayStreak=await Streak.find({$and:[{"userId":req.params.userId},{"day":yesterday.toString().substring(0,15)}]})
-      console.log("all dates:",dates)
+
     if(dates.includes(today.toString().substring(0,15))){
-      currentChallenge=c
-      console.log("current challenge",c)
+      var cha=await Challenge.find({$and:[{"_id":c._id}]})
+      currentChallenge=cha[0]
+
 
       //find a streak that exist for today
       var streak=await Streak.find({$and:[{"userId":req.params.userId},{"day":today.toString().substring(0,15)}]})
@@ -1274,7 +1338,7 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
 
         var group=await StreakGroup.find({$and:[{"_id":streak.group},{"userId":req.params.userId}]})
         group=group[0]
-        console.log(group)
+       // console.log(group)
         if(group!=null){
           group.days.map(async(d)=>{
             var s=await Streak.find({$and:[{"day":d},{"userId":req.params.userId}]})
@@ -1288,8 +1352,8 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
           })
         }
       }else if(yesterdayStreak[0]!=null){
-      if(c.current){
-      console.log("yesterdayStreak",yesterdayStreak)
+      if(current){
+      console.log("yesterdayStreak not null",yesterdayStreak[0].day)
       yesterdayStreak=yesterdayStreak[0]
       if(yesterdayStreak!=null){
         var group=await StreakGroup.find({$and:[{"_id":yesterdayStreak.group},{"userId":req.params.userId}]})
@@ -1313,7 +1377,8 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
       }
       }else if(streak==null && yesterdayStreak[0]==null){
         var found=false
-        
+        console.log("NO FOUND")
+        console.log(dates)
         
         dates.map(async(d)=>{
           var str=await Streak.find({$and:[{"userId":req.params.userId},{"day":d}]})
@@ -1336,8 +1401,10 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
         })
       }
       }else{
-        console.log("\n\nFUTURE",c)
+       // console.log("\n\nFUTURE",c)
+       //console.log("HERE")
         dates.map(async(d)=>{
+         // console.log(d)
           var streak=await Streak.find({$and:[{"day":d}]})
           streak=streak[0]
           if(streak!=null){
@@ -1351,6 +1418,7 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
         })
         
       }
+      //challengesFreah.push(c)
       
 
     
@@ -1380,11 +1448,12 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
   }
   })
 
-  setTimeout(()=>{
+  setTimeout(async()=>{
     if(sent==false){
       sent=false
+      const challengesAll=await Challenge.find({$and:[{"userId":req.params.userId}]})
       try{
-    res.json({success:true,streaksLength:streaks.length,currentChallenge:currentChallenge,currentStreak:null,streaks:streaks,challenges:challenges})
+    res.json({success:true,streaksLength:streaks.length,currentChallenge:currentChallenge,currentStreak:null,streaks:streaks,challenges:challengesAll})
       }catch(err){
         console.log(err)
       }
