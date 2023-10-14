@@ -1288,14 +1288,10 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
             $set:{"success":false}
           })
 
-          const updateFai=await Challenge.updateOne({$and:[{"_id":c._id}]},{
-            $set:{"failedDays":failedDay}
-          })
+          console.log("updating fail:",updateFail)
           console.log("\n\n")
-           console.log(updateFail)
            
             
-        console.log("\n\n")
         //console.log(c)
         }
        
@@ -1404,8 +1400,8 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
               day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
               //console.log(day)
               console.log("/n/n","1403")
-              console.log(streak.day)
-              streaks.push({streak:s,problems:s.problems,day:day,challenge_id:c._id,passed:c.no_questions<=s.problems.length?true:false})
+              console.log(str.day)
+              streaks.push({streak:str,problems:str.problems,day:day,challenge_id:c._id,passed:c.no_questions<=str.problems.length?true:false})
             })
       
       
