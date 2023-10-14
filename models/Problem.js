@@ -1,10 +1,7 @@
 const mongoose=require("mongoose")
 const uniqueValidator=require("mongoose-unique-validator")
 const problemsSchema=new mongoose.Schema({
-  userId:{
-    type:String,
-    
-  },
+  
 
   title:{
     type:String,
@@ -19,10 +16,23 @@ const problemsSchema=new mongoose.Schema({
     type:String,
     required:false
   },
+  acRate:{
+    type:Number
+  },
+  frontendQuestionId:{
+    type:String
+  },
   difficulty:{
     type:String,
     require:true
   },
+  tags:{
+    type:Array
+},
+examples:{
+  type:Array,
+  default:[]
+},
   prompt:{
     type:String,
     required:false,

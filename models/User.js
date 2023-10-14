@@ -3,6 +3,7 @@ const mongoose=require("mongoose")
 const userSchema= new mongoose.Schema({
   userId:{
     type:String,
+    unique:true
   },
   firstname:{
     type:String,
@@ -31,6 +32,12 @@ const userSchema= new mongoose.Schema({
   challenges:{
     type:Array
 
+},emailVerified:{
+  type:Boolean,
+  default:false
+},password:{
+  type:String,
+  required:true
 },
   currentChallenge:{
     type:Object,
@@ -38,11 +45,11 @@ const userSchema= new mongoose.Schema({
   },
   criticalIndex:{
     type:Object,
-    default:null
+    
   },
   decliningIndex:{
     type:Object,
-    default:null
+    
   },
   healthyIndex:{
     type:Object,
@@ -55,6 +62,12 @@ const userSchema= new mongoose.Schema({
   subscription_updated:{
     type:Date,
     default:new Date()
+  },
+  customer_Id:{
+    type:String
+  },
+  subscription_Id:{
+    type:String
   }
   
 })

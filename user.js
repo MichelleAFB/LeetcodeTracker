@@ -1,11 +1,10 @@
 
-const dotenv = require("dotenv");
 
-dotenv.config({path:"./config/.env"});
+const dotenv = require("dotenv").config({path:"./config/.env"})
 const axios=require("axios")
-const stripe_live=require('stripe')(process.env.STRIP_LIVE_KEY)
-const strip_test=require('stripe')(
-process.env.STRIP_TEST_KEY)
+const stripe_live=require('stripe')(dotenv.parsed.STRIP_LIVE_KEY)
+const stripe_test=require('stripe')(
+dotenv.parsed.STRIP_TEST_KEY)
 const User=require("./models/User")
 const express = require("express");
 const cors=require('cors')
@@ -18,27 +17,142 @@ var corsOptions = {
   origin: "*",
   optionsSuccessStatus: 200,
 };
-console.log(process.env.STRIPE_KEY)
 
 router.use(cors(corsOptions));
- const stripe = require('stripe')(process.env.STRIPE_TEST_KEY);
+ router.post("/delete-subscription",async(req,res)=>{
 
-router.post("/update-subscription/:subscription",(req,res)=>{
+  const user=req.body.user
+  const subscription=req.body.subscription
+axios.get("https://leetcodetracker.onrender.com/user/customers").then((response)=>{
+  const customers=response.data.customers.data
 
-axios.get("http://localhost:3022/user/subscriptions").then((response)=>{
-  const sub=response.data.subscriptions
-console.log(response.data) 
-const stripe=require("stripe")(process.env.STRIPE_KEY)
-  sub.data.map(async(d)=>{
+  customers.map(async(d)=>{
+    console.log("\n\n\n")
+    if(d.email==req.body.email || d.email==user.email){
+      const customer=d
 
-    const subscriptionCancel = await stripe.subscriptionItems.del(
-      d.id,
-      {
-       // cancel_at_period_end: true,
+      axios.get("https://leetcodetracker.onrender.com/user/subscriptions").then((response)=>{
+        console.log(response.data.subscription)
+       const subscriptions=response.data.subscriptions.data
+       //console.log(sub)
+       console.log(subscriptions.length)
+       Object.keys(subscriptions).map((r)=>{
+        const sub=subscriptions[r]
+        const items=sub.items.data
+        items.map(async(i)=>{
+          const plan=i.plan
+          //console.log(plan.id)
+          if(plan.id==subscription){
+            console.log("MATCH")
+            console.log("customer:",sub.customer)
+            console.log("plan",plan.id,"      || subscription",subscription)
+            console.log("price:",plan.amount)
+            console.log("other subscription id:",sub.id)
+            const deleted = await stripe_test.subscriptions.cancel(sub.id);
+
+            console.log(deleted)
+
+
+          }
+        })
+        console.log("\n\n")
+       })
+      /* subscriptions.items((s)=>{
+        console.log(customer)
+        console.log(s)
+       })
+       */
+       
       })
-      console.log(subscriptionCancel)
+    }
+    
+    //  console.log(subscriptionCancel)
 
   })
+})
+ })
+
+
+router.post("/update-subscription/:subscription",(req,res)=>{
+  const user=req.body.user
+  const subscription=req.body.subscription
+axios.get("https://leetcodetracker.onrender.com/user/customers").then((response)=>{
+  const customers=response.data.customers.data
+ var data={}
+  customers.map(async(d)=>{
+    console.log("\n\n\n")
+    if(d.email==req.body.email || d.email==user.email){
+      const customer=d
+
+      axios.get("https://leetcodetracker.onrender.com/user/subscriptions").then((response)=>{
+
+      
+        console.log(response.data.subscription)
+       const subscriptions=response.data.subscriptions.data
+       //console.log(sub)
+       console.log(subscriptions.length)
+       Object.keys(subscriptions).map((r)=>{
+        const sub=subscriptions[r]
+        const items=sub.items.data
+        items.map(async(i)=>{
+          const plan=i.plan
+          //console.log(plan.id)
+          if(plan.id!=subscription){
+            console.log("MATCH")
+            console.log("customer:",sub.customer)
+            console.log("plan",plan.id,"      || subscription",subscription)
+            console.log("price:",plan.amount)
+            console.log("other subscription id:",sub.id)
+            const hasId= user.customer_Id!=null ? true:false
+            customers.map(async(c)=>{
+              if(c.email==customer.email && hasId && c.id!=user.customer_Id ){
+                             try{ const deleted = await stripe_test.customers.del(user.customer_Id);
+                             }catch(err){
+                              console.log(err)
+                             }
+
+              }
+            })
+            try{
+            const deleted = await stripe_test.subscriptions.cancel(sub.id);
+            }catch(err){
+              console.log(err)
+            }
+
+           // console.log(deleted)
+
+
+          }
+          else{
+            data.customer_id=sub.customer
+            data.subscription_id=sub.id
+
+          }
+        })
+        console.log("\n\n")
+       })
+      /* subscriptions.items((s)=>{
+        console.log(customer)
+        console.log(s)
+       })
+       */
+       
+      })
+    }
+    
+    //  console.log(subscriptionCancel)
+
+  })
+
+  setTimeout(async()=>{
+    console.log(data)
+      var ourUser=await User({$and:[{"userId":user.userId}]})
+      const updateSubId=await User.updateOne({$and:[{"userId":user.userId}]},{
+        $set:{"customer_Id":data.customer_id,"subscription_Id":data.subscription_id,subscription:req.params.subscription,subscription_updated:new Date()}
+      })
+      const newUser=await User.find({$and:[{"userId":user.userId}]})
+      res.json({updated:updateSubId,user:newUser[0],success:true})
+  },500)
 })
 
  /* console.log(req.body)
@@ -110,7 +224,7 @@ const subscriptions = await stripe.subscriptions.list({});
 
      const save=await newUser.save()
     // res.json({user:user,success:true})
-    axios.post("http://localhost:3022/user/get-stripe-customer",{user:req.body.user})
+    axios.post("https://leetcodetracker.onrender.com/user/get-stripe-customer",{user:req.body.user})
     // console.log(newUser)
      
     }
@@ -160,21 +274,71 @@ const subscriptions = await stripe.subscriptions.list({
 
 router.get("/subscriptions",async(req,res)=>{
 
-  const stripe = require('stripe')(process.env.STRIPE_TEST_KEY);
+  
 
-
-  const subscriptions=await stripe.subscriptions.list({})
+  const subscriptions=await stripe_test.subscriptions.list({})
   res.json({subscriptions:subscriptions})
 })
 
-router.post("/cancel-subscription",async(req,res)=>{
+
+router.get("/customers",async(req,res)=>{
+
   
 
-  const subscription = await stripe_test.subscriptions.update(
+  const customers=await stripe_test.customers.list({})
+  res.json({customers:customers})
+})
+
+
+router.post("/create-user",async(req,res)=>{
+  const newUser=req.body.user
+  var user=await User.find({$and:[{"userId":req.body.user.userId}]})
+  user=user[0]
+  if(user!=null){
+    //onsole.log(user)
+    res.json({user:user,success:true})
+  }else{
+    const model=new User({
+      userId:newUser.userId,
+      firstname:newUser.lastname,
+      lastname:newUser.lastname,
+      email:newUser.email,
+      password:newUser.password,
+      challenges:newUser.challenges,
+      currentChallenge:newUser.currentChallenge,
+      online:newUser.online,
+      healthyIndex:newUser.healthyIndex,
+      decliningIndex:newUser.decliningIndex,
+      criticalIndex:newUser.criticalIndex,
+      subscription:newUser.subscription,
+      subscription_Id:newUser.subscription_Id,
+      customer_Id:newUser.customer_Id,
+      emailVerfied:newUser.emailVerified,
+  })
+  console.log(model)
+  const save=await model.save()
+  const use=await User.find({$and:[{"userId":newUser.userId}]})
+  res.json({user:use,success:true})
+
+  }
+
+})
+
+
+
+router.post("/cancel-subscription",async(req,res)=>{
+  console.log(req.body)
+
+  axios.get("https://leetcodetracker.onrender.com/user/customers").then((c)=>{
+    const customers=response.data.customers
+  })
+
+ /* const subscription = await stripe_test.subscriptions.update(
     //'sub_49ty4767H20z6a',
     {
       cancel_at_period_end: true,
     })
+    */
 
 })
 

@@ -1,6 +1,8 @@
+
+const dotenv = require("dotenv").config({path:"./config/.env"})
 const stripe_live=require('stripe')("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")
-const strip_test=require('stripe')(
-"sk_test_51MrXkxLxMJskpKlAqyll3YtK4rnwOsslfy4HkGHeDrvChbt3Yk9f8ZJuEzv28Qf2nAgz6kM2nVmzigtEYQ2wkj4H00Ma19A8HG")
+const stripe_test=require('stripe')(
+dotenv.parsed.STRIP_TEST_KEY)
 
 const express = require("express");
 const cors=require('cors')
@@ -45,6 +47,22 @@ const calculateOrderAmount = (items) => {
   return 1400;
 };
 
+router.get("/saved-card/:userId",async(req,res)=>{
+
+  var user=await User.find({$and:[{"userId":req.params.userId}]})
+  user=user[0]
+   var card={}
+  if(user.customer_Id!=null){
+  const paymentMethods = await stripe_test.paymentMethods.list({
+    customer: user.customer_Id,
+    type: 'card',
+  });
+  const card=paymentMethods.data[0]
+  res.json({success:true,card:card})
+  
+  }
+  
+  })
 router.post("/create-payment-intent", async (req, res) => {
   const { items } = req.body;
   
@@ -104,8 +122,8 @@ try{
         const session=await strip_test.checkout.sessions.create({
           line_items:items,
           mode:"subscription",
-          success_url:"http://localhost:3000/payment/success/"+req.params.subscription,
-          cancel_url:"http://localhost:3000/payment/cancel"
+          success_url:"https://leetcodetrackerclient.onrender.com/payment/success/"+req.params.subscription,
+          cancel_url:"https://leetcodetrackerclient.onrender.com/payment/cancel"
         })
        try{ 
         console.log(session.url)
@@ -244,8 +262,8 @@ console.log("\n\n\n"+req.params.userId+"\n\n\n")
             quantity:1
         }],
           mode:"payment",
-          success_url:"http://localhost:3000/payment/success/"+id,
-          cancel_url:"http://localhost:3000/payment/cancel/"+id
+          success_url:"https://leetcodetrackerclient.onrender.com/payment/success/"+id,
+          cancel_url:"https://leetcodetrackerclient.onrender.com/payment/cancel/"+id
         })
        try{ 
         console.log(session.url)

@@ -1,5 +1,6 @@
 const pdfParse = require("pdf-parse");
-const dotenv = require("dotenv");
+const dotenv = require("dotenv").config({path:"./config/.env"})
+
 const bodyParser=require("body-parser")
 const express=require("express")
 
@@ -27,6 +28,8 @@ const StreakGroup=require("./models/StreakGroup");
 const { log } = require("console");
 const morgan = require('morgan');
 const Challenge = require("./models/Challenge");
+const {data}=require("./data");
+const { $Size } = require("sift");
 morgan.token('id', (req) => { //creating id token
   return req.id
 })
@@ -687,7 +690,7 @@ app.post("/ad/d-to-streak",async(req,res)=>{
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
  
     var today=new Date(curr)
-    axios.get("https://leetcodetracker.onrender.com/checkProblem/",{day: (req.body.day==null) ? curr.toString().substring(0,15):req.body.day,problem:req.body.problem,user:req.body.userId}).then(async(response)=>{
+    axios.get("https://leetcodetracker.onrender.com//checkProblem/",{day: (req.body.day==null) ? curr.toString().substring(0,15):req.body.day,problem:req.body.problem,user:req.body.userId}).then(async(response)=>{
     console.log(response.data)
     if(req.body.day!=null){
       if(response.data.already==false){
@@ -868,7 +871,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   if(date!=null){
     console.log(Object.keys(req.body.problem))
     console.log(req.body)
-    axios.post("https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
+    axios.post("https://leetcodetracker.onrender.com//checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
      // console.log(response.data)
      console.log("HERE DATE")
       try{
@@ -1033,7 +1036,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   }else{
     var curr=new Date()
     curr=curr.toString().substring(0,15)
-    axios.post("https://leetcodetracker.onrender.com/checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
+    axios.post("https://leetcodetracker.onrender.com//checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
       try{
      // console.log(response.data)
       curr=curr.split(" ")
@@ -1255,11 +1258,11 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
     const start=c.startDate
     const end=c.endDate
     const today=new Date()
-    console.log(c)
+   // console.log(c)
     var current=false
     const dates=getDatesArray(start,end)
-    console.log(typeof(c.enddate)+" "+typeof(today))
-    console.log(new Date(c.endDate),today)
+    console.log(typeof(c.endDate)+" "+typeof(today))
+    //console.log(new Date(c.endDate),today)
     if(new Date(c.endDate)<today && c.success){
       console.log("LESS THAN")
       dates.map(async(d)=>{
@@ -1276,12 +1279,11 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
         }
       })
       setTimeout(async()=>{
-        console.log("failed",failedDay.length)
-        console.log(Object.keys(c._doc))
-        console.log("initialPasses",c._doc.initialPasses)
+        //console.log("failed",failedDay.length)
+        //console.log(Object.keys(c._doc))
+        //console.log("initialPasses",c._doc.initialPasses)
         console.log("\n\n")
         if(failedDay.length>c.initialPasses){
-          console.log()
           const updateFail=await Challenge.updateOne({$and:[{"_id":c._id}]},{
             $set:{"success":false}
           })
@@ -1322,7 +1324,6 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
       yesterday=new Date(yesterday.setDate(yesterday.getDate()-1))
       
       var yesterdayStreak=await Streak.find({$and:[{"userId":req.params.userId},{"day":yesterday.toString().substring(0,15)}]})
-
     if(dates.includes(today.toString().substring(0,15))){
       var cha=await Challenge.find({$and:[{"_id":c._id}]})
       currentChallenge=cha[0]
@@ -1346,6 +1347,9 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
             if(s!=null){
               var day=s.day.split(" ")
               day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
+              if(day.toString().substring(0,15)=="Sun Oct 08 2023"){
+                console.log("FOUND \n\n")
+              }
 
               streaks.push({streak:s,problems:s.problems,day:day,challenge_id:c._id,passed:c.no_questions<=s.problems.length?true:false})
             }
@@ -1353,7 +1357,7 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
         }
       }else if(yesterdayStreak[0]!=null){
       if(current){
-      console.log("yesterdayStreak not null",yesterdayStreak[0].day)
+      //console.log("yesterdayStreak not null",yesterdayStreak[0].day)
       yesterdayStreak=yesterdayStreak[0]
       if(yesterdayStreak!=null){
         var group=await StreakGroup.find({$and:[{"_id":yesterdayStreak.group},{"userId":req.params.userId}]})
@@ -1372,15 +1376,21 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
           })
         }
         }else{
+          console.log("\n\n\n Last")
+          console.log(dates)
          
         }
       }
-      }else if(streak==null && yesterdayStreak[0]==null){
+      }else {
         var found=false
         console.log("NO FOUND")
-        console.log(dates)
+        //console.log(dates)
         
         dates.map(async(d)=>{
+          console.log("date:",d)
+          if(d=="Sun Oct 08 2023"){
+            console.log("found\n\n")
+          }
           var str=await Streak.find({$and:[{"userId":req.params.userId},{"day":d}]})
           str=str[0]
           if(str!=null && found==false){
@@ -1392,7 +1402,9 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
               
               var day=s.day.split(" ")
               day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
-              console.log(day)
+              //console.log(day)
+              console.log("/n/n","1403")
+              console.log(streak.day)
               streaks.push({streak:s,problems:s.problems,day:day,challenge_id:c._id,passed:c.no_questions<=s.problems.length?true:false})
             })
       
@@ -1403,14 +1415,23 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
       }else{
        // console.log("\n\nFUTURE",c)
        //console.log("HERE")
+       console.log("\n\nfuture")
+      console.log(dates[0])
+       console.log(dates)
+       console.log("\nl\n")
         dates.map(async(d)=>{
-         // console.log(d)
+          console.log("HERE:",d)
+          if(d=="Sun Oct 08 2023"){
+            console.log("found\n\n")
+          }
+          //console.log(d)
           var streak=await Streak.find({$and:[{"day":d}]})
           streak=streak[0]
           if(streak!=null){
           var day=streak.day.split(" ")
           day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
-
+            console.log("/n/n 1428")
+            console.log(streak.day)
           streaks.push({streak:streak,day:day,problems:streak.problems,challenge_id:c._id,passed:c.no_questions<=streak.problems.length?true:false})
           }
 
@@ -1459,6 +1480,111 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
       }
     }
   },1000)
+
+})
+
+
+/*
+app.get("/head",(req,res)=>{
+
+  (async () => {
+    try {
+      let characterResponse = await axios("http://localhost:3022/problems")
+      
+  
+      //console.log(Object.keys(characterResponse))
+      return characterResponse.data
+    } catch (err) {
+      console.log("error",err.message)
+    }
+  }
+  )()
+
+  var characterResponseJson={
+    films:["http://localhost:3022/","http://localhost:3022/"]
+  }
+  
+  let films = characterResponseJson.films.map(async filmUrl => {
+    try{
+      console.log(filmUrl)
+    let filmResponse = await axios(filmUrl)
+//  let filmResponseJSON = filmResponse.json()
+    return filmResponse
+    }catch(err){
+      console.log("error first",err.message)
+    }
+  })
+  console.log(films)
+  films.map(async(c)=>{
+    const a=await c
+    console.log(a.data)
+
+  })
+  res.send(films)
+
+})
+*/
+
+app.post("/process/:userId",async(req,res)=>{
+  console.log(req.body)
+  const challenge=req.body.challenge
+  const userId=req.params.userId
+  const streaks=req.body.streaks
+  
+  const dates=getDatesArray(challenge.startDate,challenge.endDate)
+  //console.log(dates)
+  dates.map(async(d)=>{
+    var streak=await Streak.find({$and:[{"day":d},{"userId":userId}]})
+    streak=streak[0]
+    if(streak!=null){
+    streaks.push({day:streak.day})
+    }
+  })
+  setTimeout(()=>{
+    res.json({streaks:streaks})
+  },600)
+})
+
+app.get("/get-current-challenge-2/:userId",async(req,res)=>{
+  const streaks=[]
+  const userId=req.params.userId
+  console.log(typeof req.params.userId)
+  const challenges=await Challenge.find({$and:[{"userId":userId}]})
+//console.log("challenges",challenges)
+  var currentChallenge
+  if(challenges.length>0){
+
+
+
+    challenges.map((c)=>{
+
+      var today=new Date()
+      const dates=getDatesArray(c.startDate,c.endDate)
+      if(dates.includes(today.toString().substring(0,15))){
+        currentChallenge=c
+      }
+
+      if(c.success==true && new Date(c.endDate)<today){
+        console.log("check")
+      }
+      dates.map(async(d)=>{
+        var streak=await Streak.find({$and:[{"day":d},{"userId":userId}]})
+        streak=streak[0]
+        if(streak!=null){
+        streaks.push({day:streak.day,problems:streak.problems,challenge_id:c._id,streak:streak,passed:streak.problems.length>=c.no_questions? true:false})
+        }
+
+        
+      })
+
+    })
+    setTimeout(()=>{
+      res.json({streaks:streaks,challenges:challenges,currentChallenge:currentChallenge})
+    },4000)
+    
+  }else{
+    //res.json({})
+  }
 
 })
 app.post("/try-remove",async(req,res)=>{
@@ -1766,7 +1892,7 @@ app.post("/set-firebase-id/",async(req,res)=>{
   console.log(req.body)
   console.log(req.params)
 
- axios.get("https://leetcodetracker.onrender.com/problem/"+req.body.title).then(async(response)=>{
+ axios.get("https://leetcodetracker.onrender.com//problem/"+req.body.title).then(async(response)=>{
   const p=resposne.data[0]
   console.log(p)
  res.json({success:true})
@@ -1794,8 +1920,10 @@ app.get("/jul",async(req,res)=>{
 })
 app.get("/titles/:page", (req, res) => {
 
- 
+
   (async () => {
+    const arrr=[]
+
     const allproblems=[]
     const browser = await puppeteer.launch({
       headless: true,
@@ -1819,6 +1947,7 @@ app.get("/titles/:page", (req, res) => {
           //console.log(info)
           var i=0
           if (info != null) {
+            arrr.push(info)
             const p = info.problemsetQuestionList;
             try {
              
@@ -1868,7 +1997,7 @@ app.get("/titles/:page", (req, res) => {
                   }
 
                    if(i>=problems.length){
-                    res.json({success:true,problems:allProblems})
+                    res.json({success:true,problems:allProblems,arr:arrr})
                    }
                   }
                 });
@@ -1881,20 +2010,100 @@ app.get("/titles/:page", (req, res) => {
         //console.log(data)
       }
     });
+    setTimeout(()=>{
+      
+      res.json({success:true,length:arrr.length,arr:arrr})
+    },6000)
   
   })();
 });
 
 
+app.get("/parse-info/:page",(req,res)=>{
+  const problems=data.data.problemsetQuestionList.questions
+
+ /* problems.map(async(p)=>{
+    console.log(p.title)
+    const tags=p.topicTags.filter((f)=>{
+       return f.name
+     })
+  console.log(tags)
+    try{
+      const problem=new Problem({
+        title:p.title,
+        difficulty:p.difficulty,
+        frontendQuestionId:p.frontendQuestionList,
+        tags:tags,
+        acRate:p.acRate
+      })
+      console.log(problem)
+      var update=await problem.save()
+      console.log(update)
+
+    }catch(err){
+      console.log(err)
+
+    }
+  })
+  */
+  /*axios.get("http://localhost:3022/titles/"+req.params.toString()).then((response)=>{
+    const arr=response.data.arr
+    const p=arr.filter((r)=>{
+     // console.log(r)
+      if(Object.keys(r).includes("problemsetQuestionList")){
+        return r
+      }   
+ })
+console.log("\n\n",p) 
+console.log(p[0].problemsetQuestionList.questions.length)  
+
+console.log("\n\n")
+ try{
+      if(p!=null){
+
+        if(p[0].problemsetQuestionList!=null){
+    const problems=p[0].problemsetQuestionList.questions
+    console.log(response.data.length)
+    console.log(problems.length)
+    problems.map(async(a)=>{
+      console.log(a.title)
+      //console.log(a.difficulty)
+      //console.log(a.frontendQuestionId)
+      try{
+      const problem=new Problem({
+      
+      
+        title:a.title,
+        frontendQuestionId:a.frontendQuestionId,
+        difficulty:a.difficulty,
+        acRate:a.acRate
+       })
+       const update=await problem.save()
+       console.log(update)
+      }catch(err){
+       // console.log(err)
+      }
+      
+    })
+  }
+  }
+  }catch(err){
+    console.log(err)
+  }
+  })
+  */
+})
+
 app.get("/create-links", async(req, res) => {
-  const base = "https://heroku_29594a13b7b8a31.com/problems/";
+  const base = "https://leetcode.com/problems/";
   var i=0;
   const results= await Problem.find({})
    
       results.map(async(q) => {
       
         const title = q.title;
-        if (title.substring(0, 1) == " ") {
+        if (title.substring(0, 1) == " " && q.link==null && q.difficulty!=null) {
+          console.log("creating link for "+p.title)
           var end = title.substring(1, title.length);
           end = end.toLowerCase();
           end = end.replace(/\s/g, "-");
@@ -1906,16 +2115,11 @@ app.get("/create-links", async(req, res) => {
           })
           
           try{
-            const val=await Problem.update({title:prob.title},{
-              title:prob.title,
-              prompt:prob.prompt,
-              thisId:prob.thisId,
-              difficulty:prob.difficulty,
-              firebaseId:prob.firebaseId,
-              problemId:prob.problemId,
-              link:link
-            })
-            console.log("success")
+            const  val=await Problem.updateOne({$and:[{"title":title}]},{
+              $set:{"link":link}
+             })
+
+           // console.log("success")
             if(i>=results.length-1){
               res.json({success:true})
             }
@@ -1937,15 +2141,9 @@ app.get("/create-links", async(req, res) => {
           })
          
           try{
-            const val=await Problem.update({title:prob.title},{
-              title:prob.title,
-              thisId:prob.thisId,
-              prompt:prob.prompt,
-              difficulty:prob.difficulty,
-              firebaseId:prob.firebaseId,
-              problemId:prob.problemId,
-              link:link
-            })
+         const  val=await Problem.updateOne({$and:[{"title":title}]},{
+          $set:{"link":link}
+         })
             console.log("success")
             if(i>=results.length-1){
               res.json({success:true})
@@ -1960,6 +2158,163 @@ app.get("/create-links", async(req, res) => {
     
   
 });
+
+app.get("/create-prompts",async(req,res)=>{
+    
+      (async () => {
+        const arr=[]
+
+        const generate = async (r) => {
+          console.log(r.prompt)
+          if(r.prompt==null){
+          const browser = await puppeteer.launch({
+            headless: true,
+            defaultViewport: false,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          });
+          console.log("grabbing all httprequest from browser");
+          const page = await browser.newPage();
+    
+          const getData = async (response) => {
+            
+            var c= await response.text();
+            return c;
+          };
+          
+          console.log(r.title)
+          await page.goto(r.link);
+          console.log(r.link)
+          page.on("response", async (response) => {
+            arr.push(response)
+            const content=await page.content()
+           //console.log(Object.keys(content))
+           
+           //res.json({length:content.length,content:content})
+              const $=cheerio.load(content)
+              var t = $('html *').contents().map(function() {
+                return (this.type === 'text') ? $(this).text() : '';
+            }).get().join(' ');
+            
+            //  console.log(container);#qd-content > div.h-full.flex-col.ssg__qd-splitter-primary-w > div > div > div > div.flex.h-full.w-full.overflow-y-auto.rounded-b > div > div > div.px-5.pt-4.__web-inspector-hide-shortcut__ > div.xFUwe
+              var paragraphs = $('div [style="width: calc(50% - 4px);"]').toArray().map(p => {
+              // console.log($.html(p));
+                return $.html(p)
+            });
+           // console.log(paragraphs.length)
+            paragraphs.map((p)=>{
+             const div=$(p).text()
+             console.log(div)
+             // console.log($(div))
+           //   var text=$(div).find('p')
+            
+            /*  if($(div).attr('data-tracker-load').contains("description_content")){
+                console.log("\n\n\nMATCH\n\n\n")
+              }
+              */
+            })
+             // console.log(container)
+              //console.log(content)            
+           /* if (response.url().includes("https://leetcode.com/graphql/")) {
+              const data = await getData(response).then(async (response) => {
+               // console.log(info)
+                  try{
+                   // let response=response.url()
+                // console.log(Object.keys(info))
+
+                
+                  try {
+                    
+                    let info = await JSON.parse(response).data;
+                   // console.log(reponse.data())
+                    let p = info.question;
+                  
+                    
+                    
+                    if (p != null) {
+                      console.log(p)
+
+                     // console.log(Object.keys(p))
+
+
+                      //console.log("\n\n\n FOUND!!!!!!!!!!!!!!!")
+                      //console.log(p)
+                    
+                    
+                    //console.log(content)
+                    
+                    }if(Object.keys(p).includes("content")){
+
+                      const content = p.content;
+                      console.log("\n\n\n FOUND!!!!!!!!!!!!!!!")
+
+
+                      const examples=p.exampleTestcaseList
+                      console.log(content)
+                      //console.log(content)
+                      const jsdom = require("jsdom");
+                      const { JSDOM } = jsdom;
+                      
+                      const dom = new JSDOM(
+                        "<!DOCTYPE html><body id='body'>" + content + "</body>"
+                      );
+    
+                      console.log(
+                        dom.window.document.getElementById("body").textContent
+                      );
+
+                    }
+                  } catch {
+                   // console.log("no problems");
+                  }
+                
+              }catch(err){
+                console.log(err)
+              }
+              });
+            }
+            */
+            
+          });
+        }
+        };
+        const problems=await Problem.find({$and:[{"prompt":null}]})
+        console.log(problems.length+" empty prompts")
+        generate(problems[0])
+        generate(problems[1])
+        generate(problems[2])
+  
+      })();
+
+    
+
+  
+})
+
+app.get("/try-click",async(req,res)=>{
+  const browser = await puppeteer.launch({
+    headless: true,
+    defaultViewport: false,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  console.log("grabbing all httprequest from browser");
+  const page = await browser.newPage();
+
+ await  page.goto("https://leetcode.com/problemset/all/")
+ page.on("response", async(response)=>{
+  console.log(response)
+//console.log(Object.keys(r))
+  try{
+    if(response!=null){
+      console.log(response)
+
+ // res.json(response)
+    }
+  }catch(err){
+    console.log(err)
+  }
+ })
+
+})
 
 app.get("/generate-prompts", (req, res) => {
   (async () => {
