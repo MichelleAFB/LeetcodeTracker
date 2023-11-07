@@ -866,12 +866,15 @@ app.post("/add-to-streak",async(req,res)=>{
 "Aug","Sep","Oct","Nov","Dec"];
 var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
-  
+  try{
 
   if(date!=null){
     console.log(Object.keys(req.body.problem))
-    console.log(req.body)
-    axios.post("https://leetcodetracker.onrender.com//checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
+    console.log(problem)
+    console.log(date)
+    try{
+
+    axios.post(" https://leetcodetracker.onrender.com/checkProblem",{day:date,problem:problem,userId:id}).then(async(response)=>{
      // console.log(response.data)
      console.log("HERE DATE")
       try{
@@ -1031,12 +1034,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
     }
     
     })
+  }catch(err){
+    console.log(err)
+  }
 
 
   }else{
     var curr=new Date()
     curr=curr.toString().substring(0,15)
-    axios.post("https://leetcodetracker.onrender.com//checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
+    axios.post(" https://leetcodetracker.onrender.com/checkProblem",{day:curr,problem:problem,userId:id}).then(async(response)=>{
       try{
      // console.log(response.data)
       curr=curr.split(" ")
@@ -1136,6 +1142,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
     })
   }
+}catch(err){
+  console.log(err)
+}
 })
 /***************************************CHALLENGE */
 
@@ -1277,11 +1286,18 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
           console.log("\n\nEMPTY DAY\n\n")
           failedDay.push({date:"fail"})
         }
+        console.log("\n\n")
+        console.log("fail:",failedDay.length)
+        console.log(c)
+        console.log("\n\n")
       })
       setTimeout(async()=>{
         //console.log("failed",failedDay.length)
         //console.log(Object.keys(c._doc))
         //console.log("initialPasses",c._doc.initialPasses)
+        console.log("\n\n")
+        console.log("fail:",failedDay.length)
+        console.log(c.initialPasses)
         console.log("\n\n")
         if(failedDay.length>c.initialPasses){
           const updateFail=await Challenge.updateOne({$and:[{"_id":c._id}]},{
@@ -1295,7 +1311,7 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
         //console.log(c)
         }
        
-      },300)
+      },200)
 
       
     }
@@ -1485,7 +1501,7 @@ app.get("/head",(req,res)=>{
 
   (async () => {
     try {
-      let characterResponse = await axios("http://localhost:3022/problems")
+      let characterResponse = await axios(" https://leetcodetracker.onrender.com/problems")
       
   
       //console.log(Object.keys(characterResponse))
@@ -1497,7 +1513,7 @@ app.get("/head",(req,res)=>{
   )()
 
   var characterResponseJson={
-    films:["http://localhost:3022/","http://localhost:3022/"]
+    films:[" https://leetcodetracker.onrender.com/"," https://leetcodetracker.onrender.com/"]
   }
   
   let films = characterResponseJson.films.map(async filmUrl => {
@@ -1553,7 +1569,7 @@ app.get("/get-current-challenge-2/:userId",async(req,res)=>{
 
 
     challenges.map((c)=>{
-
+      const failedDay=[]
       var today=new Date()
       const dates=getDatesArray(c.startDate,c.endDate)
       if(dates.includes(today.toString().substring(0,15))){
@@ -1562,6 +1578,28 @@ app.get("/get-current-challenge-2/:userId",async(req,res)=>{
 
       if(c.success==true && new Date(c.endDate)<today){
         console.log("check")
+        dates.map(async(d)=>{
+          var str=await Streak({$and:[{"day":d},{"userId":req.params.userId}]})
+          str= str[0]
+          if(str!=null){
+            if(str.problems.length<c.no_questions){
+              failedDay.push(str)
+            }
+
+          }else{
+            failedDay.push({empty:true})
+          }
+        })
+        console.log("faile",failedDay.length," passes:",c.no_questions)
+        setTimeout(async()=>{
+          if(failedDay.length>c.no_questions){
+            const update=await Challenge.updateOne({$and:[{"_id":c._id}]},{
+              $set:{"success":false}
+            })
+            console.log(update)
+          }
+
+        },400)
       }
       dates.map(async(d)=>{
         var streak=await Streak.find({$and:[{"day":d},{"userId":userId}]})
@@ -2042,7 +2080,7 @@ app.get("/parse-info/:page",(req,res)=>{
     }
   })
   */
-  /*axios.get("http://localhost:3022/titles/"+req.params.toString()).then((response)=>{
+  /*axios.get(" https://leetcodetracker.onrender.com/titles/"+req.params.toString()).then((response)=>{
     const arr=response.data.arr
     const p=arr.filter((r)=>{
      // console.log(r)
@@ -2297,11 +2335,11 @@ app.get("/try-click",async(req,res)=>{
 
  await  page.goto("https://leetcode.com/problemset/all/")
  page.on("response", async(response)=>{
-  console.log(response)
+   
 //console.log(Object.keys(r))
   try{
     if(response!=null){
-      console.log(response)
+       
 
  // res.json(response)
     }
