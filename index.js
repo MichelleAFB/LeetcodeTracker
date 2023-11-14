@@ -30,6 +30,7 @@ const morgan = require('morgan');
 const Challenge = require("./models/Challenge");
 const {data}=require("./data");
 const { $Size } = require("sift");
+const ProblemTopicTag = require("./models/ProblemTopicTags");
 morgan.token('id', (req) => { //creating id token
   return req.id
 })
@@ -375,7 +376,14 @@ app.get("/all-groups",async(reeq,res)=>{
   const groups=await StreakGroup.find({})
   res.json({success:true,groups:groups})
 })
-
+app.get("/all-problems",async(req,res)=>{
+  const problems= await Problem.find({})
+  res.json({success:true,length:problems.length,total:problems})
+})
+app.get("/incomplete-problems",async(req,res)=>{
+  const problems= await Problem.find({$or:[{"difficulty":{$exists:false}},{"frontendQuestionId":{$exists:false}},{"acRate":{$exists:false}}]})
+  res.json({success:true,length:problems.length,total:problems})
+})
 app.get("/new-problems",async(req,res)=>{
   console.log(Problem)
   console.log(Streak)
@@ -384,7 +392,7 @@ app.get("/new-problems",async(req,res)=>{
 })
 app.get("/problems",async(req,res)=>{
   const problems= await Problem.find({"prompt":{$exists:true},"difficulty":{$exists:true}})
-  res.json({success:true,problems:problems,total:problems.length})
+  res.json({success:true,length:problems.length,problems:problems})
 })
 
 app.get("/remove",async(req,res)=>{
@@ -1495,6 +1503,148 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
 
 })
 
+app.get("/monthCharts/:id",async(req,res)=>{
+ // dbmongo.streak.createIndex( { "$**": "text" } )
+ const date=new Date()
+ console.log(date.getFullYear())
+  const janDates=[]
+ const jan=await Streak.find({
+  $and:[{"userId":req.params.id},{"day":{$regex:"Jan"}},{"day":{$regex:date.getFullYear().toString()}}]
+})
+var janCount=0;
+  jan.map((a)=>{
+  janCount+=a.problems.length
+  janDates.push(a.day)
+  })
+  /*********** */
+  const febDates=[]
+  const feb=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Feb"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var febCount=0;
+  feb.map((a)=>{
+    febCount+=a.problems.length
+    febDates.push(a.day)
+  })
+
+  /*********** */
+  marDates=[]
+  const mar=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Mar"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var marCount=0;
+  mar.map((a)=>{
+    marCount+=a.problems.length
+    marDates.push(a.day)
+  })
+
+  /*********** */
+  const aprDates=[]
+  const apr=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Mar"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var aprCount=0;
+  apr.map((a)=>{
+    aprCount+=a.problems.length
+    aprDates.push(a.day)
+  })
+
+  /*********** */
+   /*********** */
+   const mayDates=[]
+   const may=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"May"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var mayCount=0;
+  may.map((a)=>{
+    mayCount+=a.problems.length
+    a.push(a.day)
+  })
+
+   /*********** */
+   const junDates=[]
+   const jun=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Jun"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var junCount=0;
+  jun.map((a)=>{
+    junCount+=a.problems.length
+    junDates.push(a.day)
+  })
+   /*********** */
+   const julDates=[]
+   const jul=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Jul"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var julCount=0;
+  jul.map((a)=>{
+    julCount+=a.problems.length
+    julDates.push(a.day)
+  })
+
+     /*********** */
+  const augDates=[]
+  const aug=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Aug"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var augCount=0;
+  aug.map((a)=>{
+    augCount+=a.problems.length
+    augDates.push(a.day)
+  })
+
+   /*********** */
+  const sepDates=[]
+   const sep=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Sep"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var sepCount=0;
+  sep.map((a)=>{
+    sepCount+=a.problems.length
+    sepDates.push(a.day)
+  })
+
+   /*********** */
+  octDates=[]
+   const oct=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Oct"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var octCount=0;
+  oct.map((a)=>{
+    octCount+=a.problems.length
+    octDates.push(a.day)
+  })
+
+   /*********** */
+  const novDates=[]
+   const nov=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Nov"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var novCount=0;
+  nov.map((a)=>{
+    novCount+=a.problems.length
+    novDates.push(a.day)
+  })
+  
+   /*********** */
+  const decDates=[]
+   const dec=await Streak.find({
+    $and:[{"userId":req.params.id},{"day":{$regex:"Dec"}},{"day":{$regex:date.getFullYear().toString()}}]
+  })
+  var decCount=0;
+  dec.map((a)=>{
+    novCount+=a.problems.length
+    decDates.push(a.day)
+  })
+
+  
+  console.log(julCount,augCount,sepCount,octCount,novCount)
+  res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,problems:mayDates},{month:"June",problem:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
+
+
+
+})
+
 
 /*
 app.get("/head",(req,res)=>{
@@ -1935,28 +2085,27 @@ app.post("/set-firebase-id/",async(req,res)=>{
   
  
 })
-/************************************************************************************************************************************************************************************************************************************************************ */
 
-app.get("/jul",async(req,res)=>{
-  const streak=await Streak.find({$and:[{"date":"Thu Jul 13 2023"}]})
-  const problems=streak[0].problems
-  const deleted=await Streak.deleteOne({$and:[{"day":"Thu Jul 13 2023"}]})
- console.log(deleted)
-  const newStreak=new Streak({
-    day:"Thu Jul 13 2023",
-    group:"64a9b2dac29b36bd7ac6eff8",
-    problems:problems,
-    userId:2322
-  })
+app.get("/topicTag",async(req,res)=>{
+  const empty=await Problem.find({topicTags:{$size:0}})
+ const notempty=await Problem.find({})
+ const pro=notempty.map((p)=>{
+  if(p.tags.length>0){
+  return {tags:p.tags,topicTags:p.topicTags}
+  }
+ })
 
-  const saved=await newStreak.save()
-  res.json({saved:saved})
+  res.json({length:empty.length,notempty:notempty.length-pro.length,pro:pro,empty:empty})
 })
+/************************************************************************************************************************************************************************************************************************************************************ */
+//GOOD
 app.get("/titles/:page", (req, res) => {
 
 
   (async () => {
     const arrr=[]
+    const updates=[]
+    const newProblems=[]
 
     const allproblems=[]
     const browser = await puppeteer.launch({
@@ -1971,6 +2120,7 @@ app.get("/titles/:page", (req, res) => {
       const c = await response.text();
       return c;
     };
+    if(req.params.page!=1 && req.params.page!=null){
     await page.goto(
       "https://leetcode.com/problemset/all/?page=" + req.params.page
     );
@@ -1988,13 +2138,105 @@ app.get("/titles/:page", (req, res) => {
               const problems = p.questions;
               var count=0
               if (problems != null) {
-                
                 problems.map(async(q) => {
-
-                  const prob=await Problem.find({"title":q.title,"difficulty":{$exists:false}})
-                  const goodProb=await Problem.find({"title":q.title,"difficulty":{$exists:true}})
-
+                  const tags=q.topicTags.map((t)=>{
+                    return t.name
+                  })
+                  //console.log(tags)
+                  tags.map(async(t)=>{
+                    try{
+                    const tag=new ProblemTopicTag({
+                      name:t
+                    })
+                    const saveTag=await tag.save()
+                    console.log("new tag:",saveTag)
+                  }catch(err){
+                   // console.log(err)
+                  }
+                  })
+                  const prob=await Problem.findOne({$and:[{"title":q.title}]})
                   if(prob!=null){
+                  //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
+                 // console.log(prob.difficulty," ",q.acRate)
+                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
+                  if(prob.acRate==null){
+                    const acRate=await Problem.updateOne({"title":prob.title},{
+                      $set:{"acRate":q.acRate}
+                    })
+                    console.log("acRate update:",prob.title," ",acRate)
+                  }
+                  if(prob.difficulty==null){
+                    const difficulty=await Problem.updateOne({"title":prob.title},{
+                      $set:{"difficulty":q.difficulty}
+                    })
+                    console.log("difficulty update:",prob.title," ",difficulty)
+
+                  }
+                  if(prob.frontendQuestionId==null){
+                    const frontend=await Problem.updateOne({"title":prob.title},{
+                      $set:{"frontendQuestionId":q.frontendQuestionId}
+                    })
+                   console.log("frontendId update:",prob.title," ",frontend)
+
+                  }
+                  if(prob.tags.length==0 || prob.topicTags.length==0){
+                    tags.map(async(t)=>{
+                      if(prob.topicTags.length==0){
+                      const topicTag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"topicTags":t}
+                      })
+                      console.log("topictags update:",prob.title,topicTag)
+
+                    }
+                      if(prob.tags.length==0){
+                      const ptag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"tags":t}
+                      })
+                      console.log("tags update:",prob.title,ptag)
+
+                    }
+                     // console.log(problem.title,ptag)
+                    }) 
+
+                  }
+                  console.log("\n\n")
+                  const updateP=await Problem.find({title:prob.title})
+                  updates.push(updateP)
+                }
+                  }else{
+                    console.log("\nEMPTY:",q.title)
+                    var  newProblem=new Problem({
+                      title:q.title,
+                      difficulty:q.difficulty,
+                      acRate:q.acRate,
+                      frontendQuestionId:q.frontendQuestionId
+                      
+                     })
+                    try {
+                      const saved= await newProblem.save()
+                      console.log("success")
+                      console.log(saved)
+
+                      tags.map(async(t)=>{
+                        const topicTag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"topicTags":t}
+                        })
+  
+                      
+                        const ptag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"tags":t}
+                        })
+  
+                       // console.log(problem.title,ptag)
+                      }) 
+                      newProblems.push(saved)
+                    }catch(err1){
+                      console.log(err1)
+                    }
+                  }
+                 // const goodProb=await Problem.find({"title":q.title,"difficulty":{$exists:true}})
+
+                  /*if(prob!=null){
                     try{
                       await Problem.update({"title":prob.title},{
                         thisId:prob.thisId,
@@ -2014,7 +2256,7 @@ app.get("/titles/:page", (req, res) => {
                  
                   if (q.title != null && goodProb==null) {
                     console.log("inserting")
-                   allproblems.push({title:q.title,difficulty:q.difficult})
+                   allproblems.push({title:q.title,difficulty:q.difficulty})
                    i++
                    console.log("i:"+i);
                  
@@ -2034,6 +2276,177 @@ app.get("/titles/:page", (req, res) => {
                     res.json({success:true,problems:allProblems,arr:arrr})
                    }
                   }
+                  */
+                });
+              
+              }
+            } catch {
+              console.log("no problems");
+            }
+          }
+        });
+        //console.log(data)
+      }
+    });
+  }else{
+    
+    await page.goto(
+      "https://leetcode.com/problemset/all/" 
+    );
+    page.on("response", async (response) => {
+      console.log()
+      if (response.url() == "https://leetcode.com/graphql/") {
+        const data = await getData(response).then(async (response) => {
+          const info = await JSON.parse(response).data;
+          //console.log(info)
+          var i=0
+          if (info != null) {
+            arrr.push(info)
+            const p = info.problemsetQuestionList;
+            try {
+             
+              const problems = p.questions;
+              var count=0
+              if (problems != null) {
+                problems.map(async(q) => {
+                  const tags=q.topicTags.map((t)=>{
+                    return t.name
+                  })
+                  //console.log(tags)
+                  tags.map(async(t)=>{
+                    try{
+                    const tag=new ProblemTopicTag({
+                      name:t
+                    })
+                    const saveTag=await tag.save()
+                    console.log(saveTag)
+                  }catch(err){
+
+                  }
+                  })
+                  const prob=await Problem.findOne({$and:[{"title":q.title}]})
+                  if(prob!=null){
+                  //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
+                 // console.log(prob.difficulty," ",q.acRate)
+                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
+                  if(prob.acRate==null){
+                    const acRate=await Problem.updateOne({"title":prob.title},{
+                      $set:{"acRate":q.acRate}
+                    })
+                    console.log("acRate update:",prob.title," ",acRate)
+                  }
+                  if(prob.difficulty==null){
+                    const difficulty=await Problem.updateOne({"title":prob.title},{
+                      $set:{"difficulty":q.difficulty}
+                    })
+                    console.log("difficulty update:",prob.title," ",difficulty)
+
+                  }
+                  if(prob.frontendQuestionId==null){
+                    const frontend=await Problem.updateOne({"title":prob.title},{
+                      $set:{"frontendQuestionId":q.frontendQuestionId}
+                    })
+                   console.log("frontendId update:",prob.title," ",frontend)
+
+                  }
+                  if(prob.tags.length==0 || prob.topicTags.length==0){
+                    tags.map(async(t)=>{
+                      if(prob.topicTags.length==0){
+                      const topicTag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"topicTags":t}
+                      })
+                      console.log("topictags update:",prob.title,topicTag)
+
+                    }
+                      if(prob.tags.length==0){
+                      const ptag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"tags":t}
+                      })
+                      console.log("tags update:",prob.title,ptag)
+
+                    }
+                     // console.log(problem.title,ptag)
+                    }) 
+
+                  }
+                  console.log("\n\n")
+                  const updateP=await Problem.find({title:prob.title})
+                  updates.push(updateP)
+                }
+                  }else{
+                    console.log("\nEMPTY:",q.title)
+                    var  newProblem=new Problem({
+                      title:q.title,
+                      difficulty:q.difficulty,
+                      acRate:q.acRate,
+                      frontendQuestionId:q.frontendQuestionId
+                      
+                     })
+                    try {
+                      const saved= await newProblem.save()
+                      console.log("success")
+                      console.log(saved)
+
+                      tags.map(async(t)=>{
+                        const topicTag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"topicTags":t}
+                        })
+  
+                      
+                        const ptag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"tags":t}
+                        })
+  
+                       // console.log(problem.title,ptag)
+                      }) 
+                      newProblems.push(saved)
+                    }catch(err1){
+                      console.log(err1)
+                    }
+                  }
+                 // const goodProb=await Problem.find({"title":q.title,"difficulty":{$exists:true}})
+
+                  /*if(prob!=null){
+                    try{
+                      await Problem.update({"title":prob.title},{
+                        thisId:prob.thisId,
+                        title:prob.title,
+                        difficulty:q.difficulty,
+                        link:prob.link,
+                        firebaseId:prob.firebaseId,
+                        prompt:prob.prompt,
+                        problemId:prob.problemId
+
+                      })
+                        
+                    }catch(err1){
+
+                    }
+                  }
+                 
+                  if (q.title != null && goodProb==null) {
+                    console.log("inserting")
+                   allproblems.push({title:q.title,difficulty:q.difficulty})
+                   i++
+                   console.log("i:"+i);
+                 
+                  var  problem=new Problem({
+                    title:q.title,
+                    difficulty:q.difficulty
+                   })
+                  try {
+                    const saved= await problem.save()
+                    console.log("success")
+                    console.log(saved)
+                  }catch(err1){
+                    console.log(err1)
+                  }
+
+                   if(i>=problems.length){
+                    res.json({success:true,problems:allProblems,arr:arrr})
+                   }
+                  }
+                  */
                 });
               }
             } catch {
@@ -2044,10 +2457,11 @@ app.get("/titles/:page", (req, res) => {
         //console.log(data)
       }
     });
+  }
     setTimeout(()=>{
       
-      res.json({success:true,length:arrr.length,arr:arrr})
-    },6000)
+      res.json({success:true,updatesLength:updates.length,newProblemsLength:newProblems.length,length:arrr.length,updates:updates,newProblems:newProblems,arr:arrr})
+    },10000)
   
   })();
 });
@@ -2131,38 +2545,40 @@ console.log("\n\n")
 app.get("/create-links", async(req, res) => {
   const base = "https://leetcode.com/problems/";
   var i=0;
-  const results= await Problem.find({})
+  const updated=[]
+  const results= await Problem.find({"prompt":{$exists:false}})
    
       results.map(async(q) => {
+        console.log(q.title)
       
         const title = q.title;
-        if (title.substring(0, 1) == " " && q.link==null && q.difficulty!=null) {
-          console.log("creating link for "+p.title)
-          var end = title.substring(1, title.length);
+        if (title.substring(0, 1) != " " && q.link==null) {
+          console.log("creating link for "+title)
+          var end = title //.substring(1, title.length);
           end = end.toLowerCase();
           end = end.replace(/\s/g, "-");
           end = end.replace(/{([])}/g, "");
           var link = base + end;
+          console.log(link,"\n")
+     
 
-          const prob=await Problem.find({
-            "title":title
-          })
           
           try{
             const  val=await Problem.updateOne({$and:[{"title":title}]},{
               $set:{"link":link}
              })
+             updated.push({title:title,update:val})
 
            // console.log("success")
             if(i>=results.length-1){
-              res.json({success:true})
+             // res.json({success:true,updated:updated,success:true})
             }
             i++
           }catch(err1){
             res.json(err1)
           }
         }
-        if (title.substring(0, 1) != " ") {
+        /*if (title.substring(0, 1) != " ") {
           var end = title;
           end = end.toLowerCase();
           end = end.replace(/\s/g, "-");
@@ -2186,14 +2602,84 @@ app.get("/create-links", async(req, res) => {
           }catch(err1){
             res.json(err1)
           }
+          
         
-        }
+        }*/
       });
+      setTimeout(()=>{
+        res.json({success:true,updated:updated,success:true})
+
+      },8000)
     
   
 });
 
+app.get("/all-question-tags",async(req,res)=>{
+  const tags=await ProblemTopicTag.find({})
+  res.json({success:true,topicTags:tags})
+})
+
+app.get("/graphql",async(req,res)=>{
+  const https=require('http')
+
+  const options = {
+    scheme:"https",
+    "Remote Address":"[2606:4700:20::681a:965]:443",
+    method: 'POST',
+    headers: {
+   
+
+      Baggage:
+      "sentry-environment=production,sentry-release=98a18c23,sentry-transaction=%2Fproblems%2F%5Bslug%5D%2F%5B%5B...tab%5D%5D,sentry-public_key=2a051f9838e2450fbdd5a77eb62cc83c,sentry-trace_id=eb129694537740bc9d6d5653d5a90e92,sentry-sample_rate=0.03",
+ 
+      "Content-Type":"application/json",
+      "Cookie":
+      "ajs_anonymous_id=7d5174b0-c8a5-40c1-8f6e-cf3802fa154c; gr_user_id=a8932b92-a81d-439f-8857-210ec56ea7b5; 87b5a3c3f1a55520_gr_last_sent_cs1=mirchiB; __stripe_mid=10f3ed19-a184-46dc-bd33-60df8138c9b573c8a3; _gid=GA1.2.1393882582.1699926407; 87b5a3c3f1a55520_gr_session_id=98e436e0-fc11-4e9d-9148-10a034182a64; 87b5a3c3f1a55520_gr_last_sent_sid_with_cs1=98e436e0-fc11-4e9d-9148-10a034182a64; 87b5a3c3f1a55520_gr_session_id_sent_vst=98e436e0-fc11-4e9d-9148-10a034182a64; __stripe_sid=3e730274-8dfa-4bca-bce4-15ed4febf4da4b7445; csrftoken=dmaJHldCfSGV3WbxfGJN04mZ1XQOIkXdPhvYf7B4lLPic5bJpSfE1lW3qcO7HCOm; messages=.eJyLjlaKj88qzs-Lz00tLk5MT1XSMdAxMtVRCi5NTgaKpJXm5FQqFGem56WmKGTmKSQWK-RmFiVnZDrpKcXq0ERzZH6pQkZiWSpMY35pCaV2xQIAxAROnA:1r2yJs:2CF2aQBgYNOnpBzlGNefqGULX0Dpx9gaUWMsgu4FB78; LEETCODE_SESSION=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJfYXV0aF91c2VyX2lkIjoiMzY4ODYzMyIsIl9hdXRoX3VzZXJfYmFja2VuZCI6ImFsbGF1dGguYWNjb3VudC5hdXRoX2JhY2tlbmRzLkF1dGhlbnRpY2F0aW9uQmFja2VuZCIsIl9hdXRoX3VzZXJfaGFzaCI6ImFiYmMyYzIxYmVkYjkyMzYyNmU4MjM4ODBlNGFhYmUwOTQ5Nzg4NDBiNGRlYTViZTExMzEyNjgxMjY5MTM1YTAiLCJpZCI6MzY4ODYzMywiZW1haWwiOiJtaXJjaG9lbGxlYmFkdUBnbWFpbC5jb20iLCJ1c2VybmFtZSI6Im1pcmNoaUIiLCJ1c2VyX3NsdWciOiJtaXJjaGlCIiwiYXZhdGFyIjoiaHR0cHM6Ly9zMy11cy13ZXN0LTEuYW1hem9uYXdzLmNvbS9zMy1sYy11cGxvYWQvYXNzZXRzL2RlZmF1bHRfYXZhdGFyLmpwZyIsInJlZnJlc2hlZF9hdCI6MTY5OTk4NzE2OCwiaXAiOiIyNjAwOjE3MDA6NjM0OmIzNTA6YTljZjpmMDc3Ojk4YzY6M2M4MiIsImlkZW50aXR5IjoiZjUyOWEzMjA3M2EyMjM4OGE4MzcwYzM5ZTliOTNjODYiLCJzZXNzaW9uX2lkIjo0OTk2MDUzOSwiX3Nlc3Npb25fZXhwaXJ5IjoxMjA5NjAwfQ.H2OE-lb-NzUswJ4Xwmb6oMFdyUIdPNAj_aV_hBC3ybM; _ga=GA1.1.41775054.1696443548; _dd_s=rum=0&expire=1699989356539; 87b5a3c3f1a55520_gr_cs1=mirchiB; _ga_CDRWKZTDEX=GS1.1.1699987119.15.1.1699988456.60.0.0",
+      "Origin":"https://leetcode.com",
+      "Pragma": "no-cache",
+      "Random-Uuid":"5334fd4b-37c9-440f-75b9-61856493b818",
+      "Referer":"https://leetcode.com/problems/median-of-two-sorted-arrays/",
+      "Sec-Ch-Ua":
+      'Google Chrome;v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+      "Sec-Ch-Ua-Mobile":
+      "?0",
+      "Sec-Ch-Ua-Platform":
+      "Windows",
+      "Sec-Fetch-Dest":
+      "empty",
+      "Sec-Fetch-Mode":
+      "cors",
+      "Sec-Fetch-Site":
+      "same-origin",
+      "Sentry-Trace":
+      "eb129694537740bc9d6d5653d5a90e92-8d84be6783f83041-0",
+      "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+      "X-Csrftoken":
+      "dmaJHldCfSGV3WbxfGJN04mZ1XQOIkXdPhvYf7B4lLPic5bJpSfE1lW3qcO7HCOm"
+    },
+  };
+  const requ = https.request("https://leetcode.com/graphql/",
+  options, (resu) => {
+    console.log("here")
+    let data = '';
+    console.log(`statusCode: ${resu.statusCode}`);
+  
+    resu.on('data', (d) => {
+      data += d;
+    });
+    resu.on('end', () => {
+      console.log(JSON.parse(data).data);
+    });
+  });
+  
+  requ.on('error', (error) => {
+    console.error(error);
+  });
+
+})
 app.get("/create-prompts",async(req,res)=>{
+
     
       (async () => {
         const arr=[]
@@ -2219,8 +2705,13 @@ app.get("/create-prompts",async(req,res)=>{
           await page.goto(r.link);
           console.log(r.link)
           page.on("response", async (response) => {
-            arr.push(response)
+            arr.push(response.url())
+            if(response.url().includes("https://leetcode.com/graphql/")){
+          console.log(Object.keys(response))
+            }
+            
             const content=await page.content()
+            
            //console.log(Object.keys(content))
            
            //res.json({length:content.length,content:content})
@@ -2230,22 +2721,19 @@ app.get("/create-prompts",async(req,res)=>{
             }).get().join(' ');
             
             //  console.log(container);#qd-content > div.h-full.flex-col.ssg__qd-splitter-primary-w > div > div > div > div.flex.h-full.w-full.overflow-y-auto.rounded-b > div > div > div.px-5.pt-4.__web-inspector-hide-shortcut__ > div.xFUwe
-              var paragraphs = $('div [style="width: calc(50% - 4px);"]').toArray().map(p => {
-              // console.log($.html(p));
-                return $.html(p)
-            });
+            /*  var paragraphs = $('div [id="qd-content]').toArray().map(p => {
+              //  console.log($(p).text())
+               //console.log($.html(p),"\n\n");
+               const $$ =cheerio.load($.html(p))
+                return
+            });*/
+         var container=$("div [id='qd-content']").text()
+         //console.log(container)
+       
+            // console.log($('div.uFUwe'))
+              
            // console.log(paragraphs.length)
-            paragraphs.map((p)=>{
-             const div=$(p).text()
-             console.log(div)
-             // console.log($(div))
-           //   var text=$(div).find('p')
-            
-            /*  if($(div).attr('data-tracker-load').contains("description_content")){
-                console.log("\n\n\nMATCH\n\n\n")
-              }
-              */
-            })
+ 
              // console.log(container)
               //console.log(content)            
            /* if (response.url().includes("https://leetcode.com/graphql/")) {
@@ -2316,8 +2804,13 @@ app.get("/create-prompts",async(req,res)=>{
         generate(problems[0])
         generate(problems[1])
         generate(problems[2])
+
+        setTimeout(()=>{
+          res.json(arr)
+        },10000)
   
       })();
+
 
     
 
@@ -2349,7 +2842,7 @@ app.get("/try-click",async(req,res)=>{
  })
 
 })
-
+//GOOD
 app.get("/generate-prompts", (req, res) => {
   (async () => {
     const generate = async (r) => {
@@ -2393,7 +2886,7 @@ app.get("/generate-prompts", (req, res) => {
                   console.log(
                     dom.window.document.getElementById("body").textContent
                   );
-                  db.query("update heroku_29594a13b7b8a31.problems set prompt=? where link=?",[dom.window.document.getElementById("body").textContent,r.link],(err,results)=>{
+                  /*db.query("update heroku_29594a13b7b8a31.problems set prompt=? where link=?",[dom.window.document.getElementById("body").textContent,r.link],(err,results)=>{
                     if(err){
                       console.log(err)
                     }else{
@@ -2401,6 +2894,7 @@ app.get("/generate-prompts", (req, res) => {
                     }
 
                   })
+                  */
 
            
 
@@ -2414,12 +2908,7 @@ app.get("/generate-prompts", (req, res) => {
       });
     };
 
-    db.query(
-      "select link from heroku_29594a13b7b8a31.problems where (link is not null) && (prompt is null) ",
-      async (err, results) => {
-        if (err) {
-          console.log(err);
-        } else {
+const results=await Problem.find({"prompt":{$exists:false}})
           console.log(results.length+" empty prompts")
           console.log(results[0].link)
           generate(results[0]);
@@ -2432,9 +2921,6 @@ app.get("/generate-prompts", (req, res) => {
 
 
 
-        }
-      }
-    );
   })();
 });
 
@@ -2491,13 +2977,7 @@ app.get("/generate-problemIds", (req, res) => {
         }
       });
     };
-
-    db.query(
-      "select link from heroku_29594a13b7b8a31.problems where (link is not null) && (problemId is null) ",
-      async (err, results) => {
-        if (err) {
-          console.log(err);
-        } else {
+      const results=await Problem.find({"prompt":{$exists:false}})
           console.log(results.length+" empty prompts")
           console.log(results[0].link)
           generate(results[0]);
@@ -2511,9 +2991,8 @@ app.get("/generate-problemIds", (req, res) => {
 
 
 
-        }
-      }
-    );
+        
+      
   })();
 });
 
@@ -2638,6 +3117,6 @@ app.post("/create-meal/:id",(req,res)=>{
 
 app.get("/problems", async(req, res) => {
   const problems= await problemItem.find({})
-  res.json({success:true,problems:problems})
+  res.json({success:true,length:problems.length,problems:problems})
 });
 

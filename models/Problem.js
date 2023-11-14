@@ -40,6 +40,9 @@ examples:{
   firebaseId:{
     type:String,
     required:false
+  },
+  topicTags:{
+    type:Array
   }
 })
 

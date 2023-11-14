@@ -119,7 +119,7 @@ try{
 
       const checkout=async()=>{
 
-        const session=await strip_test.checkout.sessions.create({
+        const session=await stripe_test.checkout.sessions.create({
           line_items:items,
           mode:"subscription",
           success_url:"https://leetcodetrackerclient.onrender.com/payment/success/"+req.params.subscription,
