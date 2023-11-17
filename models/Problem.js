@@ -12,6 +12,9 @@ const problemsSchema=new mongoose.Schema({
     type:Number,
     required:false,
   },
+  page:{
+    type:Number
+  },
   link:{
     type:String,
     required:false

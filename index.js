@@ -31,6 +31,9 @@ const Challenge = require("./models/Challenge");
 const {data}=require("./data");
 const { $Size } = require("sift");
 const ProblemTopicTag = require("./models/ProblemTopicTags");
+const ProblemPage = require("./models/LeetcodeProblemPages");
+const clust=require("cluster");
+const { Number } = require("core-js");
 morgan.token('id', (req) => { //creating id token
   return req.id
 })
@@ -2085,6 +2088,7 @@ app.post("/set-firebase-id/",async(req,res)=>{
   
  
 })
+app.get("/generate")
 
 app.get("/topicTag",async(req,res)=>{
   const empty=await Problem.find({topicTags:{$size:0}})
@@ -2096,6 +2100,13 @@ app.get("/topicTag",async(req,res)=>{
  })
 
   res.json({length:empty.length,notempty:notempty.length-pro.length,pro:pro,empty:empty})
+})
+
+app.get("/problem-page",async(req,res)=>{
+  var page=await ProblemPage.find({$orderby:"page"})
+  setTimeout(()=>{
+    res.json({success:true,lastPage:page[page.length-1]})
+  },1000)
 })
 /************************************************************************************************************************************************************************************************************************************************************ */
 //GOOD
@@ -2138,7 +2149,19 @@ app.get("/titles/:page", (req, res) => {
               const problems = p.questions;
               var count=0
               if (problems != null) {
+               // res.json(problems)
+         
                 problems.map(async(q) => {
+                  console.log(q.title)
+                  const pp=await Problem.findOne({"title":q.title})
+                  if(q.paidOnly && pp!=null){
+                    const del=await Problem.deleteOne({"title":q.title})
+                    console.log("DELETED:",q.title,del)
+                  }
+                  console.log(q.paidOnly)
+          if(q.paidOnly==false){
+                
+            
                   const tags=q.topicTags.map((t)=>{
                     return t.name
                   })
@@ -2154,11 +2177,23 @@ app.get("/titles/:page", (req, res) => {
                    // console.log(err)
                   }
                   })
-                  const prob=await Problem.findOne({$and:[{"title":q.title}]})
+                  const prob=await Problem.findOne({"title":q.title})
+                  
                   if(prob!=null){
+                       if(q.paidOnly){
+              console.log("MUST PAY:"+q.title)
+              const del=await Problem.deleteOne({"title":q.title})
+              console.log("deleted",q.title,del)
+            }
                   //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
                  // console.log(prob.difficulty," ",q.acRate)
-                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
+                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null || prob.page==null){
+                  if(prob.page==null){
+                    const page=await Problem.updateOne({"title":prob.title},{
+                      $set:{"page":req.params.page}
+                    })
+                    console.log("updating page for:",q.title,page)
+                  }
                   if(prob.acRate==null){
                     const acRate=await Problem.updateOne({"title":prob.title},{
                       $set:{"acRate":q.acRate}
@@ -2203,13 +2238,47 @@ app.get("/titles/:page", (req, res) => {
                   const updateP=await Problem.find({title:prob.title})
                   updates.push(updateP)
                 }
+                }else{
+                  console.log("CREATING NEW PROBLEM",q.title)
+                  var  newProblem=new Problem({
+                    title:q.title,
+                    difficulty:q.difficulty,
+                    acRate:q.acRate,
+                    frontendQuestionId:q.frontendQuestionId
+                    
+                   })
+                  try {
+                    const saved= await newProblem.save()
+                    console.log("success")
+                    console.log(saved)
+
+                    tags.map(async(t)=>{
+                      const topicTag=await Problem.updateOne({"title":newProblem.title},{
+                        $push:{"topicTags":t}
+                      })
+
+                    
+                      const ptag=await Problem.updateOne({"title":newProblem.title},{
+                        $push:{"tags":t}
+                      })
+
+                     // console.log(problem.title,ptag)
+                    }) 
+                    newProblems.push(saved)
+                  }catch(err1){
+                    console.log(err1)
+                  }
+                }
                   }else{
-                    console.log("\nEMPTY:",q.title)
+                    if(q.paidOnly==false){
+                                         console.log("\nEMPTY:",q.title)
+
                     var  newProblem=new Problem({
                       title:q.title,
                       difficulty:q.difficulty,
                       acRate:q.acRate,
-                      frontendQuestionId:q.frontendQuestionId
+                      frontendQuestionId:q.frontendQuestionId,
+                      page:req.params.page
                       
                      })
                     try {
@@ -2233,6 +2302,7 @@ app.get("/titles/:page", (req, res) => {
                     }catch(err1){
                       console.log(err1)
                     }
+                  }
                   }
                  // const goodProb=await Problem.find({"title":q.title,"difficulty":{$exists:true}})
 
@@ -2281,7 +2351,7 @@ app.get("/titles/:page", (req, res) => {
               
               }
             } catch {
-              console.log("no problems");
+              //console.log("no problems");
             }
           }
         });
@@ -2309,6 +2379,9 @@ app.get("/titles/:page", (req, res) => {
               var count=0
               if (problems != null) {
                 problems.map(async(q) => {
+                  if(q.paidOnly==false){
+                    console.log("MUST PAY:"+q.title)
+                  }
                   const tags=q.topicTags.map((t)=>{
                     return t.name
                   })
@@ -2326,6 +2399,7 @@ app.get("/titles/:page", (req, res) => {
                   })
                   const prob=await Problem.findOne({$and:[{"title":q.title}]})
                   if(prob!=null){
+                    if(q.paidOnly==false){
                   //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
                  // console.log(prob.difficulty," ",q.acRate)
                  if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
@@ -2372,6 +2446,7 @@ app.get("/titles/:page", (req, res) => {
                   console.log("\n\n")
                   const updateP=await Problem.find({title:prob.title})
                   updates.push(updateP)
+                }
                 }
                   }else{
                     console.log("\nEMPTY:",q.title)
@@ -2460,13 +2535,512 @@ app.get("/titles/:page", (req, res) => {
   }
     setTimeout(()=>{
       
-      res.json({success:true,updatesLength:updates.length,newProblemsLength:newProblems.length,length:arrr.length,updates:updates,newProblems:newProblems,arr:arrr})
+      //res.json({success:true,updatesLength:updates.length,newProblemsLength:newProblems.length,length:arrr.length,updates:updates,newProblems:newProblems,arr:arrr})
     },10000)
   
   })();
 });
 
+app.get("/generate-titles-function",async(req,res)=>{
+  axios.get("http://localhost:3022/problem-page").then((response)=>{
+    const page=response.data.lastPage.page+1
+    console.log(page)
 
+    
+  (async (page) => {
+    const arrr=[]
+    const updates=[]
+    const newProblems=[]
+
+    const allproblems=[]
+    const browser = await puppeteer.launch({
+      headless: true,
+      defaultViewport: false,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    console.log("grabbing all httprequest from browser");
+    const site = await browser.newPage();
+
+    const getData = async (response) => {
+      const c = await response.text();
+      return c;
+    };
+    if(req.params.page!=1 && req.params.page!=null){
+    await page.goto(
+      "https://leetcode.com/problemset/all/?page=" + page
+    );
+    site.on("response", async (response) => {
+      if (response.url() == "https://leetcode.com/graphql/") {
+        const data = await getData(response).then(async (response) => {
+          const info = await JSON.parse(response).data;
+          //console.log(info)
+          var i=0
+          if (info != null) {
+            arrr.push(info)
+            const p = info.problemsetQuestionList;
+            try {
+             
+              const problems = p.questions;
+              var count=0
+              if (problems != null) {
+               // res.json(problems)
+         
+                problems.map(async(q) => {
+                  console.log(q.title)
+                  const pp=await Problem.findOne({"title":q.title})
+                  if(q.paidOnly && pp!=null){
+                    const del=await Problem.deleteOne({"title":q.title})
+                    console.log("DELETED:",q.title,del)
+                  }
+                  console.log(q.paidOnly)
+          if(q.paidOnly==false){
+                
+            
+                  const tags=q.topicTags.map((t)=>{
+                    return t.name
+                  })
+                  //console.log(tags)
+                  tags.map(async(t)=>{
+                    try{
+                    const tag=new ProblemTopicTag({
+                      name:t
+                    })
+                    const saveTag=await tag.save()
+                    console.log("new tag:",saveTag)
+                  }catch(err){
+                   // console.log(err)
+                  }
+                  })
+                  const prob=await Problem.findOne({"title":q.title})
+                  
+                  if(prob!=null){
+                       if(q.paidOnly){
+              console.log("MUST PAY:"+q.title)
+              const del=await Problem.deleteOne({"title":q.title})
+              console.log("deleted",q.title,del)
+            }
+                  //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
+                 // console.log(prob.difficulty," ",q.acRate)
+                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null || prob.page==null){
+                  if(prob.page==null){
+                    const page=await Problem.updateOne({"title":prob.title},{
+                      $set:{"page":page}
+                    })
+                    console.log("updating page for:",q.title,page)
+                  }
+                  if(prob.acRate==null){
+                    const acRate=await Problem.updateOne({"title":prob.title},{
+                      $set:{"acRate":q.acRate}
+                    })
+                    console.log("acRate update:",prob.title," ",acRate)
+                  }
+                  if(prob.difficulty==null){
+                    const difficulty=await Problem.updateOne({"title":prob.title},{
+                      $set:{"difficulty":q.difficulty}
+                    })
+                    console.log("difficulty update:",prob.title," ",difficulty)
+
+                  }
+                  if(prob.frontendQuestionId==null){
+                    const frontend=await Problem.updateOne({"title":prob.title},{
+                      $set:{"frontendQuestionId":q.frontendQuestionId}
+                    })
+                   console.log("frontendId update:",prob.title," ",frontend)
+
+                  }
+                  if(prob.tags.length==0 || prob.topicTags.length==0){
+                    tags.map(async(t)=>{
+                      if(prob.topicTags.length==0){
+                      const topicTag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"topicTags":t}
+                      })
+                      console.log("topictags update:",prob.title,topicTag)
+
+                    }
+                      if(prob.tags.length==0){
+                      const ptag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"tags":t}
+                      })
+                      console.log("tags update:",prob.title,ptag)
+
+                    }
+                     // console.log(problem.title,ptag)
+                    }) 
+
+                  }
+                  console.log("\n\n")
+                  const updateP=await Problem.find({title:prob.title})
+                  updates.push(updateP)
+                }
+                }else{
+                  console.log("CREATING NEW PROBLEM",q.title)
+                  var  newProblem=new Problem({
+                    title:q.title,
+                    difficulty:q.difficulty,
+                    acRate:q.acRate,
+                    frontendQuestionId:q.frontendQuestionId,
+                    page:page
+                    
+                   })
+                  try {
+                    const saved= await newProblem.save()
+                    console.log("success")
+                    console.log(saved)
+
+                    tags.map(async(t)=>{
+                      const topicTag=await Problem.updateOne({"title":newProblem.title},{
+                        $push:{"topicTags":t}
+                      })
+
+                    
+                      const ptag=await Problem.updateOne({"title":newProblem.title},{
+                        $push:{"tags":t}
+                      })
+
+                     // console.log(problem.title,ptag)
+                    }) 
+                    newProblems.push(saved)
+                  }catch(err1){
+                    console.log(err1)
+                  }
+                }
+                  }else{
+                    if(q.paidOnly==false){
+                                         console.log("\nEMPTY:",q.title)
+
+                    var  newProblem=new Problem({
+                      title:q.title,
+                      difficulty:q.difficulty,
+                      acRate:q.acRate,
+                      frontendQuestionId:q.frontendQuestionId,
+                      page:page
+                      
+                     })
+                    try {
+                      const saved= await newProblem.save()
+                      console.log("success")
+                      console.log(saved)
+
+                      tags.map(async(t)=>{
+                        const topicTag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"topicTags":t}
+                        })
+  
+                      
+                        const ptag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"tags":t}
+                        })
+  
+                       // console.log(problem.title,ptag)
+                      }) 
+                      newProblems.push(saved)
+                    }catch(err1){
+                      console.log(err1)
+                    }
+                  }
+                  }
+       
+                });
+
+              
+              
+              }
+            } catch {
+              //console.log("no problems");
+            }
+          }
+        });
+        //console.log(data)
+      }
+    });
+  }else{
+    
+    await page.goto(
+      "https://leetcode.com/problemset/all/" 
+    );
+    page.on("response", async (response) => {
+      console.log()
+      if (response.url() == "https://leetcode.com/graphql/") {
+        const data = await getData(response).then(async (response) => {
+          const info = await JSON.parse(response).data;
+          //console.log(info)
+          var i=0
+          if (info != null) {
+            arrr.push(info)
+            const p = info.problemsetQuestionList;
+            try {
+             
+              const problems = p.questions;
+              var count=0
+              if (problems != null) {
+                problems.map(async(q) => {
+                  if(q.paidOnly==false){
+                    console.log("MUST PAY:"+q.title)
+                  }
+                  const tags=q.topicTags.map((t)=>{
+                    return t.name
+                  })
+                  //console.log(tags)
+                  tags.map(async(t)=>{
+                    try{
+                    const tag=new ProblemTopicTag({
+                      name:t
+                    })
+                    const saveTag=await tag.save()
+                    console.log(saveTag)
+                  }catch(err){
+
+                  }
+                  })
+                  const prob=await Problem.findOne({$and:[{"title":q.title}]})
+                  if(prob!=null){
+                    if(q.paidOnly==false){
+                  //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
+                 // console.log(prob.difficulty," ",q.acRate)
+                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
+                  if(prob.acRate==null){
+                    const acRate=await Problem.updateOne({"title":prob.title},{
+                      $set:{"acRate":q.acRate}
+                    })
+                    console.log("acRate update:",prob.title," ",acRate)
+                  }
+                  if(prob.difficulty==null){
+                    const difficulty=await Problem.updateOne({"title":prob.title},{
+                      $set:{"difficulty":q.difficulty}
+                    })
+                    console.log("difficulty update:",prob.title," ",difficulty)
+
+                  }
+                  if(prob.frontendQuestionId==null){
+                    const frontend=await Problem.updateOne({"title":prob.title},{
+                      $set:{"frontendQuestionId":q.frontendQuestionId}
+                    })
+                   console.log("frontendId update:",prob.title," ",frontend)
+
+                  }
+                  if(prob.tags.length==0 || prob.topicTags.length==0){
+                    tags.map(async(t)=>{
+                      if(prob.topicTags.length==0){
+                      const topicTag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"topicTags":t}
+                      })
+                      console.log("topictags update:",prob.title,topicTag)
+
+                    }
+                      if(prob.tags.length==0){
+                      const ptag=await Problem.updateOne({"title":prob.title},{
+                        $push:{"tags":t}
+                      })
+                      console.log("tags update:",prob.title,ptag)
+
+                    }
+                     // console.log(problem.title,ptag)
+                    }) 
+
+                  }
+                  console.log("\n\n")
+                  const updateP=await Problem.find({title:prob.title})
+                  updates.push(updateP)
+                }
+                }
+                  }else{
+                    console.log("\nEMPTY:",q.title)
+                    var  newProblem=new Problem({
+                      title:q.title,
+                      difficulty:q.difficulty,
+                      acRate:q.acRate,
+                      frontendQuestionId:q.frontendQuestionId
+                      
+                     })
+                    try {
+                      const saved= await newProblem.save()
+                      console.log("success")
+                      console.log(saved)
+
+                      tags.map(async(t)=>{
+                        const topicTag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"topicTags":t}
+                        })
+  
+                      
+                        const ptag=await Problem.updateOne({"title":newProblem.title},{
+                          $push:{"tags":t}
+                        })
+  
+                       // console.log(problem.title,ptag)
+                      }) 
+                      newProblems.push(saved)
+                    }catch(err1){
+                      console.log(err1)
+                    }
+                  }
+             
+                });
+              }
+            } catch {
+              console.log("no problems");
+            }
+          }
+        });
+        //console.log(data)
+      }
+    });
+  }
+    setTimeout(()=>{
+      axios.get("http://localhost:3022/generate-links-function/"+page).then((response)=>{
+        console.log(response.data)
+        if(response.data.success){
+            axios.get("http://localhost:3022/generate-prompts-function/"+page).then((response)=>{
+              console.log(response.data)
+            })
+        }
+      })
+      //res.json({success:true,updatesLength:updates.length,newProblemsLength:newProblems.length,length:arrr.length,updates:updates,newProblems:newProblems,arr:arrr})
+    },1000)
+  
+  })();
+  })
+})
+app.get("/generate-prompts-function/:page",async(req,res)=>{
+  const page=req.params.page
+  (async () => {
+    const generate = async (r) => {
+      const browser = await puppeteer.launch({
+        headless: true,
+        defaultViewport: false,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      console.log("grabbing all httprequest from browser");
+      const site = await browser.newPage();
+
+      const getData = async (response) => {
+        
+        var c= await response.text();
+        return c;
+      };
+      console.log(r.link)
+
+      await site.goto(r.link);
+      site.on("response", async (response) => {
+        if (response.url() == "https://leetcode.com/graphql/") {
+          const data = await getData(response).then(async (response) => {
+            const info = await JSON.parse(response).data;
+            // console.log(info)
+            if (info != null) {
+              const p = info.question;
+
+              try {
+                if (p != null) {
+                  //console.log(Object.keys(p))
+                }
+                const content = p.content;
+                if (content != null) {
+                  //console.log(content)
+                  const jsdom = require("jsdom");
+                  const { JSDOM } = jsdom;
+                  
+                  const dom = new JSDOM(
+                    "<!DOCTYPE html><body id='body'>" + content + "</body>"
+                  );
+
+                  console.log("content:",dom.window.document.getElementById("body").textContent);
+                  const update=await Problem.updateOne({"title":r.title},{
+                    $set:{"prompt":dom.window.document.getElementById("body").textContent}
+                  })
+                  console.log(update)
+                  if(update.acknowledged){
+
+                  }
+              
+
+
+           
+
+                }
+              } catch {
+               // console.log("no problems");
+              }
+            }
+          });
+        }
+      });
+    };
+    const results=await Problem.find({$and:[{"prompt":{$exists:false}},{"page":page},{"link":{$exists:true}}]})
+          console.log(results.length+" empty prompts")
+         // generate(results[0]);
+        const number=Math.floor(Math.random()*100)
+          generate(results[number])
+          generate(results[number+5])
+          generate(results[number+10])
+          generate(results[number+15])
+
+          //generate(results[6])
+         // generate(results[1].link)
+          // generate(results[2].link)
+          // generate(results[3].link)
+
+
+
+        
+  })();
+
+
+    
+
+})
+app.get("/generate-links-function/:page",async(req,res)=>{
+  const base = "https://leetcode.com/problems/";
+  var i=0;
+  const updated=[]
+  const results= await Problem.find({$and:[{"prompt":{$exists:false}},{"page":req.params.page}]})
+   if(results.length>0){
+      results.map(async(q) => {
+      
+        const title = q.title;
+        if (title.substring(0, 1) != " " && q.link==null) {
+          console.log("creating link for "+title)
+          var end = title //.substring(1, title.length);
+          end = end.toLowerCase();
+          end = end.replace(/\s/g, "-");
+          end = end.replace(/{([])}/g, "");
+          end.replace("---","-")
+          var link = base + end;
+          console.log(link,"\n")
+     
+
+          
+          try{
+            const  val=await Problem.updateOne({$and:[{"title":title}]},{
+              $set:{"link":link}
+             })
+             updated.push({title:title,update:val})
+
+           // console.log("success")
+            if(i>=results.length-1){
+             // res.json({success:true,updated:updated,success:true})
+            }
+            i++
+          }catch(err1){
+            res.json(err1)
+          }
+        }else{
+          console.log("no updates for links")
+        }
+ 
+      });
+    }
+      setTimeout(()=>{
+        res.json({success:true,updated:updated,success:true})
+
+      },8000)
+})
+app.get("/fix-link",async(req,res)=>{
+  console.log("HI")
+  const update=await Problem.updateOne({"link":"https://leetcode.com/problems/implement-rand10()-using-rand7()"},{
+    $set:{"link":"https://leetcode.com/problems/implement-rand10-using-rand7"}
+  })
+  console.log(update)
+})
 app.get("/parse-info/:page",(req,res)=>{
   const problems=data.data.problemsetQuestionList.questions
 
@@ -2549,7 +3123,6 @@ app.get("/create-links", async(req, res) => {
   const results= await Problem.find({"prompt":{$exists:false}})
    
       results.map(async(q) => {
-        console.log(q.title)
       
         const title = q.title;
         if (title.substring(0, 1) != " " && q.link==null) {
@@ -2558,6 +3131,9 @@ app.get("/create-links", async(req, res) => {
           end = end.toLowerCase();
           end = end.replace(/\s/g, "-");
           end = end.replace(/{([])}/g, "");
+          end = end.replace("---","-");
+          end=end.replace("()","")
+
           var link = base + end;
           console.log(link,"\n")
      
@@ -2577,6 +3153,8 @@ app.get("/create-links", async(req, res) => {
           }catch(err1){
             res.json(err1)
           }
+        }else{
+          console.log("no updates for links")
         }
         /*if (title.substring(0, 1) != " ") {
           var end = title;
@@ -2620,12 +3198,23 @@ app.get("/all-question-tags",async(req,res)=>{
 })
 
 app.get("/graphql",async(req,res)=>{
-  const https=require('http')
+  const https=require('https')
 
   const options = {
+    authority:"leetcode.com",
     scheme:"https",
     "Remote Address":"[2606:4700:20::681a:965]:443",
+    "Referrer Policy":"strict-origin-when-cross-origin",
     method: 'POST',
+    payload:{
+      operationName:"questionContent",
+      query:"\n    query questionContent($titleSlug: String!) {\n  question(titleSlug: $titleSlug) {\n    content\n    mysqlSchemas\n    dataSchemas\n  }\n}\n    ",
+      variables:{
+        titleSlug:"median-of-two-sorted-arrays"
+      }
+
+
+    },
     headers: {
    
 
@@ -2659,13 +3248,15 @@ app.get("/graphql",async(req,res)=>{
       "dmaJHldCfSGV3WbxfGJN04mZ1XQOIkXdPhvYf7B4lLPic5bJpSfE1lW3qcO7HCOm"
     },
   };
-  const requ = https.request("https://leetcode.com/graphql/",
+  const requ = https.get("https://leetcode.com/graphql/",
   options, (resu) => {
     console.log("here")
     let data = '';
-    console.log(`statusCode: ${resu.statusCode}`);
+    console.log("statusCode:",resu);
+    
   
     resu.on('data', (d) => {
+      console.log(data)
       data += d;
     });
     resu.on('end', () => {
@@ -2674,149 +3265,221 @@ app.get("/graphql",async(req,res)=>{
   });
   
   requ.on('error', (error) => {
-    console.error(error);
+    console.error("ERROR:",error);
   });
 
 })
-app.get("/create-prompts",async(req,res)=>{
 
-    
-      (async () => {
-        const arr=[]
+app.post("/generate-problem-info",async(req,res)=>{
+  (async () => {
+    const generate = async () => {
+      const r=req.body.title
+      const browser = await puppeteer.launch({
+        headless: true,
+        defaultViewport: false,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      console.log("grabbing all httprequest from browser");
+      const page = await browser.newPage();
 
-        const generate = async (r) => {
-          console.log(r.prompt)
-          if(r.prompt==null){
-          const browser = await puppeteer.launch({
-            headless: true,
-            defaultViewport: false,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-          });
-          console.log("grabbing all httprequest from browser");
-          const page = await browser.newPage();
-    
-          const getData = async (response) => {
-            
-            var c= await response.text();
-            return c;
-          };
-          
-          console.log(r.title)
-          await page.goto(r.link);
-          console.log(r.link)
-          page.on("response", async (response) => {
-            arr.push(response.url())
-            if(response.url().includes("https://leetcode.com/graphql/")){
-          console.log(Object.keys(response))
-            }
-            
-            const content=await page.content()
-            
-           //console.log(Object.keys(content))
-           
-           //res.json({length:content.length,content:content})
-              const $=cheerio.load(content)
-              var t = $('html *').contents().map(function() {
-                return (this.type === 'text') ? $(this).text() : '';
-            }).get().join(' ');
-            
-            //  console.log(container);#qd-content > div.h-full.flex-col.ssg__qd-splitter-primary-w > div > div > div > div.flex.h-full.w-full.overflow-y-auto.rounded-b > div > div > div.px-5.pt-4.__web-inspector-hide-shortcut__ > div.xFUwe
-            /*  var paragraphs = $('div [id="qd-content]').toArray().map(p => {
-              //  console.log($(p).text())
-               //console.log($.html(p),"\n\n");
-               const $$ =cheerio.load($.html(p))
-                return
-            });*/
-         var container=$("div [id='qd-content']").text()
-         //console.log(container)
-       
-            // console.log($('div.uFUwe'))
-              
-           // console.log(paragraphs.length)
- 
-             // console.log(container)
-              //console.log(content)            
-           /* if (response.url().includes("https://leetcode.com/graphql/")) {
-              const data = await getData(response).then(async (response) => {
-               // console.log(info)
-                  try{
-                   // let response=response.url()
-                // console.log(Object.keys(info))
+      const getData = async (response) => {
+        
+        var c= await response.text();
+        return c;
+      };
+      const link=await Problem.findOne({"title":r}).link
+      await page.goto(link);
+      console.log(link)
+      page.on("response", async (response) => {
+        if (response.url() == "https://leetcode.com/graphql/") {
+          const data = await getData(response).then(async (response) => {
+            const info = await JSON.parse(response).data;
+            // console.log(info)
+            if (info != null) {
+              const p = info.question;
 
-                
-                  try {
-                    
-                    let info = await JSON.parse(response).data;
-                   // console.log(reponse.data())
-                    let p = info.question;
+              try {
+                if (p != null) {
+                  //console.log(Object.keys(p))
+                }
+                const content = p.content;
+                if (content != null) {
+                  //console.log(content)
+                  const jsdom = require("jsdom");
+                  const { JSDOM } = jsdom;
                   
-                    
-                    
-                    if (p != null) {
-                      console.log(p)
+                  const dom = new JSDOM(
+                    "<!DOCTYPE html><body id='body'>" + content + "</body>"
+                  );
 
-                     // console.log(Object.keys(p))
+                  console.log("content:",dom.window.document.getElementById("body").textContent);
+                  const update=await Problem.updateOne({"title":r},{
+                    $set:{"prompt":dom.window.document.getElementById("body").textContent}
+                  })
+                  console.log(update)
+                  if(update.acknowledged){
 
-
-                      //console.log("\n\n\n FOUND!!!!!!!!!!!!!!!")
-                      //console.log(p)
-                    
-                    
-                    //console.log(content)
-                    
-                    }if(Object.keys(p).includes("content")){
-
-                      const content = p.content;
-                      console.log("\n\n\n FOUND!!!!!!!!!!!!!!!")
-
-
-                      const examples=p.exampleTestcaseList
-                      console.log(content)
-                      //console.log(content)
-                      const jsdom = require("jsdom");
-                      const { JSDOM } = jsdom;
-                      
-                      const dom = new JSDOM(
-                        "<!DOCTYPE html><body id='body'>" + content + "</body>"
-                      );
-    
-                      console.log(
-                        dom.window.document.getElementById("body").textContent
-                      );
-
-                    }
-                  } catch {
-                   // console.log("no problems");
                   }
-                
-              }catch(err){
-                console.log(err)
+                  /*
+                  db.query("update heroku_29594a13b7b8a31.problems set prompt=? where link=?",[dom.window.document.getElementById("body").textContent,r.link],(err,results)=>{
+                    if(err){
+                      console.log(err)
+                    }else{
+                      console.log(results)
+                    }
+
+                  })
+                  */
+
+
+           
+
+                }
+              } catch {
+               // console.log("no problems");
               }
-              });
             }
-            */
-            
           });
         }
-        };
-        const problems=await Problem.find({$and:[{"prompt":null}]})
-        console.log(problems.length+" empty prompts")
-        generate(problems[0])
-        generate(problems[1])
-        generate(problems[2])
+      });
+    };
+    const results=await Problem.find({$and:[{"prompt":{$exists:false}},{"link":{$exists:true}}]})
+          console.log(results.length+" empty prompts")
+         // generate(results[0]);
+        const number=Math.floor(Math.random()*100)
+          generate(results[number])
+          generate(results[number+5])
+          generate(results[number+10])
+          generate(results[number+15])
 
-        setTimeout(()=>{
-          res.json(arr)
-        },10000)
-  
-      })();
+          //generate(results[6])
+         // generate(results[1].link)
+          // generate(results[2].link)
+          // generate(results[3].link)
+
+
+
+        
+  })();
+
+})
+app.get("/create-prompts",async(req,res)=>{
+  (async (r) => {
+    const generate = async (r) => {
+      const browser = await puppeteer.launch({
+        headless: true,
+        defaultViewport: false,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      console.log("grabbing all httprequest from browser");
+      const page = await browser.newPage();
+
+      const getData = async (response) => {
+        
+        var c= await response.text();
+        return c;
+      };
+      console.log(r.link)
+
+      await page.goto(r.link);
+      page.on("response", async (response) => {
+        if (response.url() == "https://leetcode.com/graphql/") {
+          const data = await getData(response).then(async (response) => {
+            const info = await JSON.parse(response).data;
+            // console.log(info)
+            if (info != null) {
+              const p = info.question;
+
+              try {
+                if (p != null) {
+                  //console.log(Object.keys(p))
+                }
+                const content = p.content;
+                if (content != null) {
+                  //console.log(content)
+                  const jsdom = require("jsdom");
+                  const { JSDOM } = jsdom;
+                  
+                  const dom = new JSDOM(
+                    "<!DOCTYPE html><body id='body'>" + content + "</body>"
+                  );
+
+                  console.log("content:",dom.window.document.getElementById("body").textContent);
+                  const update=await Problem.updateOne({"title":r.title},{
+                    $set:{"prompt":dom.window.document.getElementById("body").textContent}
+                  })
+                  console.log(update)
+                  if(update.acknowledged){
+
+                  } 
+                  /*
+                  db.query("update heroku_29594a13b7b8a31.problems set prompt=? where link=?",[dom.window.document.getElementById("body").textContent,r.link],(err,results)=>{
+                    if(err){
+                      console.log(err)
+                    }else{
+                      console.log(results)
+                    }
+
+                  })
+                  */
+
+
+           
+
+                }
+              } catch {
+               // console.log("no problems");
+              }
+            }
+          });
+        }
+      });
+    };
+    const results=await Problem.find({$and:[{"prompt":{$exists:false}},{"link":{$exists:true}}]})
+          console.log(results.length+" empty prompts")
+         // generate(results[0]);
+        const number=Math.floor(Math.random()*100)
+        console.log(number)
+          generate(results[number])
+          //generate(results[number+5])
+          //generate(results[number+8])
+
+
+          setTimeout(()=>{
+            var ps = require('ps-node');
+
+            ps.lookup({
+            command: 'node',
+            arguments: '--debug',
+            }, function(err, resultList ) {
+            if (err) {
+                throw new Error( err );
+            }
+            
+            resultList.forEach(function( process ){
+                if( process ){
+            
+                    console.log( 'PID: %s, COMMAND: %s, ARGUMENTS: %s', process.pid, process.command, process.arguments );
+                    }
+                });
+            });
+          },4000)
+          //generate(results[6])
+         // generate(results[1].link)
+          // generate(results[2].link)
+          // generate(results[3].link)
+
+
+
+        
+  })();
 
 
     
 
   
 })
-
+var ps = require('ps-node');
 app.get("/try-click",async(req,res)=>{
   const browser = await puppeteer.launch({
     headless: true,
