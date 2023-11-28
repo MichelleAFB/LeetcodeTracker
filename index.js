@@ -32,7 +32,9 @@ const {data}=require("./data");
 const { $Size } = require("sift");
 const ProblemTopicTag = require("./models/ProblemTopicTags");
 const ProblemPage = require("./models/LeetcodeProblemPages");
-const clust=require("cluster");
+const cluster=require("cluster");
+const { URL, parse } = require('url');
+
 const { Number } = require("core-js");
 morgan.token('id', (req) => { //creating id token
   return req.id
@@ -2213,6 +2215,14 @@ app.get("/titles/:page", (req, res) => {
                     })
                    console.log("frontendId update:",prob.title," ",frontend)
 
+
+                  }
+                  if(prob.page==null){
+                    const page=await Problem.updateOne({"title":prob.title},{
+                      $set:{"page":req.params.page}
+                    })
+                    console.log("page update:",prob.title,page)
+
                   }
                   if(prob.tags.length==0 || prob.topicTags.length==0){
                     tags.map(async(t)=>{
@@ -2230,6 +2240,7 @@ app.get("/titles/:page", (req, res) => {
                       console.log("tags update:",prob.title,ptag)
 
                     }
+                    
                      // console.log(problem.title,ptag)
                     }) 
 
@@ -2244,7 +2255,8 @@ app.get("/titles/:page", (req, res) => {
                     title:q.title,
                     difficulty:q.difficulty,
                     acRate:q.acRate,
-                    frontendQuestionId:q.frontendQuestionId
+                    frontendQuestionId:q.frontendQuestionId,
+                    page:req.params.page
                     
                    })
                   try {
@@ -2540,9 +2552,49 @@ app.get("/titles/:page", (req, res) => {
   
   })();
 });
+app.get("/try-url",async(req,res)=>{
 
+  (async (page) => {
+    var found=false
+
+    const arrr=[]
+    const updates=[]
+    const newProblems=[]
+
+    const allproblems=[]
+    const browser = await puppeteer.launch({
+      headless: true,
+      defaultViewport: false,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    console.log("grabbing all httprequest from browser");
+    const site = await browser.newPage();
+
+    const getData = async (response) => {
+      const c = await response.text();
+      return c;
+    };
+     site.goto(
+      "https://leetcode.com/problems/two-sum" 
+    ).then(()=>{
+      site.on("response", async (response) => {
+        console.log((response).url())
+        if(response.url()==="https:leetcode.com/graphql"){
+          found=true
+        }
+      })
+    }).catch((err)=>{
+      console.log("ERR:",err)
+    })
+    setTimeout(()=>{
+      console.log("\nFOUND:",found)
+    },4000)
+    
+  
+})()
+})
 app.get("/generate-titles-function",async(req,res)=>{
-  axios.get("http://localhost:3022/problem-page").then((response)=>{
+  axios.get("https://leetcodetracker.onrender.com/problem-page").then((response)=>{
     const page=response.data.lastPage.page+1
     console.log(page)
 
@@ -2887,10 +2939,10 @@ app.get("/generate-titles-function",async(req,res)=>{
     });
   }
     setTimeout(()=>{
-      axios.get("http://localhost:3022/generate-links-function/"+page).then((response)=>{
+      axios.get("https://leetcodetracker.onrender.com/generate-links-function/"+page).then((response)=>{
         console.log(response.data)
         if(response.data.success){
-            axios.get("http://localhost:3022/generate-prompts-function/"+page).then((response)=>{
+            axios.get("https://leetcodetracker.onrender.com/generate-prompts-function/"+page).then((response)=>{
               console.log(response.data)
             })
         }
@@ -2905,6 +2957,7 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
   const page=req.params.page
   (async () => {
     const generate = async (r) => {
+      var found=false
       const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: false,
@@ -2923,6 +2976,7 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
       await site.goto(r.link);
       site.on("response", async (response) => {
         if (response.url() == "https://leetcode.com/graphql/") {
+          found=true
           const data = await getData(response).then(async (response) => {
             const info = await JSON.parse(response).data;
             // console.log(info)
@@ -2962,6 +3016,9 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
               }
             }
           });
+          setTimeout(()=>{
+              console.log("FOUND:",found)
+          },10000)
         }
       });
     };
@@ -2969,6 +3026,16 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
           console.log(results.length+" empty prompts")
          // generate(results[0]);
         const number=Math.floor(Math.random()*100)
+
+        const work=cluster.fork()
+        const work1=cluster.fork()
+        const work2=cluster.fork()
+        const work3=cluster.fork()
+        const work4=cluster.fork()
+        const work5=cluster.fork()
+
+
+
           generate(results[number])
           generate(results[number+5])
           generate(results[number+10])
@@ -2988,6 +3055,11 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
     
 
 })
+
+app.get("/check",async(req,res)=>{
+  const p=await Problem.find({"page":10})
+console.log(p.length)
+})
 app.get("/generate-links-function/:page",async(req,res)=>{
   const base = "https://leetcode.com/problems/";
   var i=0;
@@ -3004,6 +3076,15 @@ app.get("/generate-links-function/:page",async(req,res)=>{
           end = end.replace(/\s/g, "-");
           end = end.replace(/{([])}/g, "");
           end.replace("---","-")
+          end=end.replace("`","")
+          end=end.replace("()","")
+          end=end.replace("`","")
+          end=end.replace("---","-")
+          end=end.replace("(","")
+          end=end.replace(")","")
+          end=end.replace(":","")
+
+
           var link = base + end;
           console.log(link,"\n")
      
@@ -3036,8 +3117,8 @@ app.get("/generate-links-function/:page",async(req,res)=>{
 })
 app.get("/fix-link",async(req,res)=>{
   console.log("HI")
-  const update=await Problem.updateOne({"link":"https://leetcode.com/problems/implement-rand10()-using-rand7()"},{
-    $set:{"link":"https://leetcode.com/problems/implement-rand10-using-rand7"}
+  const update=await Problem.updateOne({"link":"https://leetcode.com/problems/insert-delete-getrandom-o(1)"},{
+    $set:{"link":"https://leetcode.com/problems/insert-delete-getrandom-o1"}
   })
   console.log(update)
 })
@@ -3120,12 +3201,12 @@ app.get("/create-links", async(req, res) => {
   const base = "https://leetcode.com/problems/";
   var i=0;
   const updated=[]
-  const results= await Problem.find({"prompt":{$exists:false}})
+  const results= await Problem.find({})
    
       results.map(async(q) => {
       
         const title = q.title;
-        if (title.substring(0, 1) != " " && q.link==null) {
+        if (title.substring(0, 1) != " ") {
           console.log("creating link for "+title)
           var end = title //.substring(1, title.length);
           end = end.toLowerCase();
@@ -3133,6 +3214,17 @@ app.get("/create-links", async(req, res) => {
           end = end.replace(/{([])}/g, "");
           end = end.replace("---","-");
           end=end.replace("()","")
+          end=end.replace("`","")
+          end=end.replace("---","-")
+          end=end.replace("(","")
+          end=end.replace(")","")
+          end=end.replace(":","")
+
+
+
+        
+          
+
 
           var link = base + end;
           console.log(link,"\n")
@@ -3140,10 +3232,12 @@ app.get("/create-links", async(req, res) => {
 
           
           try{
-            const  val=await Problem.updateOne({$and:[{"title":title}]},{
-              $set:{"link":link}
-             })
-             updated.push({title:title,update:val})
+         
+          const  val=await Problem.updateOne({$and:[{"title":title}]},{
+            $set:{"link":link}
+           })
+           updated.push({title:title,update:val})
+        
 
            // console.log("success")
             if(i>=results.length-1){
@@ -3363,11 +3457,64 @@ app.post("/generate-problem-info",async(req,res)=>{
   })();
 
 })
+function randomNumber(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+app.get("/fix-tripe",async(req,res)=>{
+  const problems=await Problem.find({})
+  problems.map(async(p)=>{
+    if(p.link.includes("---")){
+      const revision=p.link.replace("---","-")
+      const update=await Problem.updateOne({"title":p.title},{
+        $set:{"link":revision}
+      })
+      console.log(p.link,": ",revision)
+    }
+    if(p.link.includes("(")){
+      const revision=p.link.replace("(","")
+      const update=await Problem.updateOne({"title":p.title},{
+        $set:{"link":revision}
+      })
+      console.log(p.link,": ",revision)
+    }
+    if(p.link.includes(")")){
+      const revision=p.link.replace(")","")
+      const update=await Problem.updateOne({"title":p.title},{
+        $set:{"link":revision}
+      })
+      console.log(p.link,"         ",revision)
+    }
+    //console.log("\n\n",p.link.substring(29,p.link.length-1))
+    //console.log(p.link.substring(0,29))
+    if(p.link.substring(29,p.link.length).includes(":")){
+      const base="https://leetcode.com/problems/"
+      const end=p.link.substring(29,p.link.length).replace(":","")
+      const revision=base+end
+      console.log("\n\n"+revision)
+      const update=await Problem.updateOne({"title":p.title},{
+        $set:{"link":revision}
+      })
+      console.log("revision",update)
+
+    }
+  
+    
+    
+    
+
+
+  })
+})
+
+var validUrl = require('valid-url');
+
 app.get("/create-prompts",async(req,res)=>{
-  (async (r) => {
+  (async (r,i) => {
     const generate = async (r) => {
+ 
       const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         defaultViewport: false,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       });
@@ -3379,11 +3526,15 @@ app.get("/create-prompts",async(req,res)=>{
         var c= await response.text();
         return c;
       };
-      console.log(r.link)
 
-      await page.goto(r.link);
+      try{
+     // console.log(r.link)
+
+      await page.goto(r.link)
       page.on("response", async (response) => {
         if (response.url() == "https://leetcode.com/graphql/") {
+
+
           const data = await getData(response).then(async (response) => {
             const info = await JSON.parse(response).data;
             // console.log(info)
@@ -3404,24 +3555,17 @@ app.get("/create-prompts",async(req,res)=>{
                     "<!DOCTYPE html><body id='body'>" + content + "</body>"
                   );
 
-                  console.log("content:",dom.window.document.getElementById("body").textContent);
+                 // console.log("content:",dom.window.document.getElementById("body").textContent);
                   const update=await Problem.updateOne({"title":r.title},{
                     $set:{"prompt":dom.window.document.getElementById("body").textContent}
                   })
                   console.log(update)
                   if(update.acknowledged){
-
+                    i++
+                    console.log(",",i ," prompts created\n")
+                    //page.close()
                   } 
-                  /*
-                  db.query("update heroku_29594a13b7b8a31.problems set prompt=? where link=?",[dom.window.document.getElementById("body").textContent,r.link],(err,results)=>{
-                    if(err){
-                      console.log(err)
-                    }else{
-                      console.log(results)
-                    }
-
-                  })
-                  */
+             
 
 
            
@@ -3434,36 +3578,38 @@ app.get("/create-prompts",async(req,res)=>{
           });
         }
       });
+    }catch(err){
+    }
     };
     const results=await Problem.find({$and:[{"prompt":{$exists:false}},{"link":{$exists:true}}]})
           console.log(results.length+" empty prompts")
          // generate(results[0]);
-        const number=Math.floor(Math.random()*100)
+         //console.log(results,"\n\n")
+        const number=Math.floor(randomNumber(0,results.length-8))
+
         console.log(number)
-          generate(results[number])
-          //generate(results[number+5])
-          //generate(results[number+8])
+        var i=0
+
+        if(results.length>0){
+
+           generate(results[number],i)
+           generate(results[number+1],i)
+            generate(results[number+2],i)
+            generate(results[number+3],i)
+            setTimeout(()=>{
+              generate(results[number+4],i)
+              generate(results[number+5],i)
+               generate(results[number+6],i)
+               generate(results[number+7],i)
+
+            },7000)
+
+   
+        }else{
+          res.json({success:true,created:results.length})
+        }
 
 
-          setTimeout(()=>{
-            var ps = require('ps-node');
-
-            ps.lookup({
-            command: 'node',
-            arguments: '--debug',
-            }, function(err, resultList ) {
-            if (err) {
-                throw new Error( err );
-            }
-            
-            resultList.forEach(function( process ){
-                if( process ){
-            
-                    console.log( 'PID: %s, COMMAND: %s, ARGUMENTS: %s', process.pid, process.command, process.arguments );
-                    }
-                });
-            });
-          },4000)
           //generate(results[6])
          // generate(results[1].link)
           // generate(results[2].link)
@@ -3482,15 +3628,19 @@ app.get("/create-prompts",async(req,res)=>{
 var ps = require('ps-node');
 app.get("/try-click",async(req,res)=>{
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     defaultViewport: false,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   console.log("grabbing all httprequest from browser");
   const page = await browser.newPage();
 
- await  page.goto("https://leetcode.com/problemset/all/")
+ await  page.goto("https://www.jewishvirtuallibrary.org/comprehensive-listing-of-terrorism-victims-in-israel")
  page.on("response", async(response)=>{
+  console.log(response.url(),"\n\n")
+  let rows = await page.$$eval(' tr', row => row);
+  console.log(rows)
+
    
 //console.log(Object.keys(r))
   try{
@@ -3504,15 +3654,20 @@ app.get("/try-click",async(req,res)=>{
   }
  })
 
+ 
+
 })
+
 //GOOD
-app.get("/generate-prompts", (req, res) => {
+app.get("/rate-prompts", (req, res) => {
   (async () => {
     const generate = async (r) => {
       const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
+        executablePath: `/path/to/Chrome`,
         defaultViewport: false,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        args: ["--lang=en-US,en", '--no-sandbox', '--disable-setuid-sandbox', '--disable-extensions']
+
       });
       console.log("grabbing all httprequest from browser");
       const page = await browser.newPage();
