@@ -1638,13 +1638,17 @@ var janCount=0;
   })
   var decCount=0;
   dec.map((a)=>{
-    novCount+=a.problems.length
+    decCount+=a.problems.length
+    console.log("dec:"+decCount)
     decDates.push(a.day)
   })
 
   
   console.log(julCount,augCount,sepCount,octCount,novCount)
-  res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,problems:mayDates},{month:"June",problem:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
+  setTimeout(()=>{
+    //res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,problems:mayDates},{month:"June",problem:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
+
+  },2000)
 
 
 
