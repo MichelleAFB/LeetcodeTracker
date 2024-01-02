@@ -15,6 +15,9 @@ const problemsSchema=new mongoose.Schema({
   page:{
     type:Number
   },
+  leetcode_hints:{
+    type:Array
+  },
   link:{
     type:String,
     required:false
@@ -32,6 +35,9 @@ const problemsSchema=new mongoose.Schema({
   tags:{
     type:Array
 },
+level:{
+  type:String
+},
 examples:{
   type:Array,
   default:[]
@@ -46,7 +52,12 @@ examples:{
   },
   topicTags:{
     type:Array
+  },hints:{
+    type:Array
+  },user_times:{
+    type:Object
   }
+  
 })
 
 problemsSchema.plugin(uniqueValidator)
