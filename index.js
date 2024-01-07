@@ -3898,8 +3898,12 @@ function find(s,prefix, suffix) {
 	}
 	return s;
 };
+
+
+
 app.get("/get-solutions",async(req,res)=>{
 
+  const { executablePath } = require('puppeteer'); 
 
   const puppeteerExtra = require('puppeteer-extra');
 const Stealth = require('puppeteer-extra-plugin-stealth');
@@ -3912,22 +3916,21 @@ puppeteerExtra.use(Stealth());
   (async (r) => {
     const generate = async (r) => {
       
- 
+      const pathToExtension = require('path').join(__dirname, '2captcha-solver');
+
       const browser = await puppeteerExtra.launch({
        // ignoreDefaultArgs: ['--disable-extensions'],
-   
-
         headless:false,
-        defaultViewport: null,
         args: [
-          '--disable-web-security',
-          '--disable-features=IsolateOrigins,site-per-process'
+          /*`--disable-extensions-except=${pathToExtension}`,*/
+         /* `--load-extension=${pathToExtension}`,*/
         ],
+        executablePath: executablePath(),
         slowMo:10,
 
       });
       console.log("grabbing all httprequest from browser");
-      const requestId = await initiateCaptchaRequest(apiKey);
+     // const requestId = await initiateCaptchaRequest(apiKey);
  
       const page = await browser.newPage();
      /* await page.setUserAgent(
@@ -3948,15 +3951,19 @@ puppeteerExtra.use(Stealth());
        // console.log(response.url())
        if(responded==false ){
         responded=true
+        setTimeout(async()=>{
+
         await page.type('#id_login', "mirchoellebadu@gmail.com");
         await page.type('#id_password', "Mirchoella22");
         // click and wait for navigation
        
-        await page.click('#signin_btn')
         setTimeout(async()=>{
-          await page.click("#recaptcha_signin_checkbox")
+          await page.click('#signin_btn')
+
+         
           const key="6ae6a0104c7414ceb3bbf1bb62b534de"
           setTimeout(async()=>{
+            //await page.click("#recaptcha_signin_checkbox")
 
             const elementHandle = await page.$('iframe');
             const src = await (await elementHandle.getProperty('src')).jsonValue();
@@ -3964,15 +3971,44 @@ puppeteerExtra.use(Stealth());
             const dataKey=getStringBetween(src,"k=","&co")
             console.log("\n\n",dataKey)
             setTimeout(()=>{
-              axios.post(`https://2captcha.com/in.php?key=${key}&method=userrecaptcha&googlekey=${dataKey}&pageurl=${"https://leetcode.com/accounts/login"}&json=1`).then(async(response)=>{
+              axios.post(`https://2captcha.com/in.php?key=${key}&googlekey=${"6LfnTEApAAAAAJjSto6edYwxj4WOTRrnq09NIRfI"}&method=userrecaptcha&googlekey=${dataKey}&pageurl=${"https://leetcode.com/accounts/login"}&json=1`).then(async(response)=>{
                 console.log(response.data)
                 const request=response.data.request
+           
+               // await page.$eval('#g-recaptcha-response', e => e.setAttribute("display", "block"))
+              // add(request)
+               // const r= await page.type('#g-recaptcha-response', request);
+            //await page.$eval('#g-recaptcha-response', (el, value) => el.value = value, request);
 
-                await page.$eval('#g-recaptcha-response', e => e.setAttribute("display", "visible"))
+
+
                 setTimeout(async()=>{
-                  await page.type('#g-recaptcha-response', request);
+                  
+                
+              
+                
+               
+                 console.log("SUCCESS TYPING")
+                 axios.get(`https://2captcha.com/res.php?key=${key}&action=get&json=1&id=${request}`).then(async(response)=>{
+                  console.log("this response:",response.data)
+                  setTimeout(async()=>{
+                    //await page.waitForSelector("#g-recaptcha-response")
+                    await page.$eval('#g-recaptcha-response', (el, value) => el.value = value, response.data.request);
 
-                },1000)
+                  },1000)
+                    setTimeout(async()=>{
+                      await page.click('#signin_btn')
+                      console.log("CLICK")
+                     },10000)
+                 })
+              
+
+             
+                // console.log("value:",val,Object.keys(element))
+     
+
+
+                },20000)
 
 
             })
@@ -3982,50 +4018,21 @@ puppeteerExtra.use(Stealth());
 
             
 
-        },1000)
-       //
-        //await page.waitForSelector('#recaptcha-signin-checkbox');
-        console.log("exist")
+        },2600)
+    
 
 
-     /* const f=await page.click(`[title=${src}]`)
-      page.on('response',async (response)=>{
-        const ess=await response
-        console.log(ess)
-      })*/
-
-    // Get the `src` property to verify we have the iframe
-       // const  src="https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LdBX8MUAAAAAAI4aZHi1C59OJizaJTvPNvWH2wz&co=aHR0cHM6Ly9sZWV0Y29kZS5jb206NDQz&hl=en&v=u-xcq3POCWFlCr3x8_IPxgPu&size=normal&cb=5cf6wkw74iho"
-        const iframe = await page.$$('iframe');
-        const frame=await page.frames(iframe);
-          //console.log(frame)
-
-          frame.map((f)=>{
-           // console.log("\n",f.childFrames())
-            try{
-              const ff=f.childFrames()
-              ff.map(async(f)=>{
-                const fr=await page.$(`#${f.id}`)
-               // console.log(fr,"\n\n")
-              })
-            }catch(err){
-              console.log(err)
-            }
-          })
-
-          //await page.waitForNavigation()
-          console.log('New Page URL:', page.url());
+   
 
         
         
           
             
         
-         
+      },1000)
+
             
       }
-        
-      
       });
     
     }catch(err){
