@@ -3981,24 +3981,27 @@ puppeteerExtra.use(Stealth());
             //await page.$eval('#g-recaptcha-response', (el, value) => el.value = value, request);
 
 
-
+              try{
                 setTimeout(async()=>{
-                  
-                
-              
-                
-               
                  console.log("SUCCESS TYPING")
+
+                 
                  axios.get(`https://2captcha.com/res.php?key=${key}&action=get&json=1&id=${request}`).then(async(response)=>{
                   console.log("this response:",response.data)
                   setTimeout(async()=>{
-                    //await page.waitForSelector("#g-recaptcha-response")
+                    await page.waitForSelector("#g-recaptcha-response")
                     await page.$eval('#g-recaptcha-response', (el, value) => el.value = value, response.data.request);
 
-                  },1000)
+                  },3000)
                     setTimeout(async()=>{
+                      await page.waitForSelector("#signin_button")
+
                       await page.click('#signin_btn')
                       console.log("CLICK")
+                      await page.waitForNavigation()
+                      setTimeout(async()=>{
+                        await page.$eval('li [text()="Problems"').click()
+                      },1000)
                      },10000)
                  })
               
@@ -4008,7 +4011,11 @@ puppeteerExtra.use(Stealth());
      
 
 
-                },20000)
+                },25000)
+
+              }catch(err){
+                console.log("ERROR: SHOULD BE ON PAGE")
+              }
 
 
             })
