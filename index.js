@@ -3899,6 +3899,9 @@ function find(s,prefix, suffix) {
 
 
 
+
+
+
 app.get("/get-solutions",async(req,res)=>{
 
   const { executablePath } = require('puppeteer'); 
@@ -3973,83 +3976,65 @@ puppeteerExtra.use(Stealth());
               axios.post(`https://2captcha.com/in.php?key=${key}&googlekey=${"6LfnTEApAAAAAJjSto6edYwxj4WOTRrnq09NIRfI"}&method=userrecaptcha&googlekey=${dataKey}&pageurl=${"https://leetcode.com/accounts/login"}&json=1`).then(async(response)=>{
                 console.log(response.data)
                 const request=response.data.request
+
+                await page.$eval('#g-recaptcha-response', e => e.setAttribute("display", "visible"))
                 setTimeout(async()=>{
+                  await page.type('#g-recaptcha-response', request);
 
-                 console.log("SUCCESS TYPING")
-               
-                 axios.get(`https://2captcha.com/res.php?key=${key}&action=get&json=1&id=${request}`).then(async(response)=>{
-                  console.log("this response:",response.data)
-                  if(response.data.request.length<25){
-            
-                    console.log("NOT READY")
-
-                    setTimeout(async(page)=>{
-
-                      var i=0
-                     await getRequest(page,key,request,i)
-                     },3000)
-                  }else{
-                  setTimeout(async(page)=>{
-                    await page.waitForSelector("#g-recaptcha-response")
-                    await page.$eval('#g-recaptcha-response', (el, value) => el.value = value, response.data.request);
-
-                  },1000)
-                    setTimeout(async()=>{
-                      await page.click('#signin_btn')
-                      console.log("CLICK")
-
-                      await page.waitForNavigation()
-                      setTimeout(async()=>{
-                        try{
-                        await  page.goto("https://leetcode.com/problemset/all")//page.click('xpath=//*[@id="leetcode-navbar"]/div[1]/ul/li[2]/a');
-                        console.log("href clicked")
-           
-                        }catch(err){
-                          setTimeout(async()=>{
-                          const pages=await browser.pages()
-                          console.log(pages,"\n\n")
-                          const hrefsCategoriesDeduped = new Set(await page.evaluate(
-                            () => Array.from(
-                              document.querySelectorAll('a[href]'),
-                              a => a.href
-                            )
-                          ));
-
-                          console.log(hrefsCategoriesDeduped)
-                          },3000)
-
-                        }
-
-                      },7000)
-                     },10000)
-                    }
-                 })
-                 
-                },25000)
+                },1000)
 
 
             })
             },2000)
-          },3500)
+          },2500)
 
 
             
 
-        },2600)
-    
+        },1000)
+       //
+        //await page.waitForSelector('#recaptcha-signin-checkbox');
+        console.log("exist")
 
 
-   
+     /* const f=await page.click(`[title=${src}]`)
+      page.on('response',async (response)=>{
+        const ess=await response
+        console.log(ess)
+      })*/
+
+    // Get the `src` property to verify we have the iframe
+       // const  src="https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LdBX8MUAAAAAAI4aZHi1C59OJizaJTvPNvWH2wz&co=aHR0cHM6Ly9sZWV0Y29kZS5jb206NDQz&hl=en&v=u-xcq3POCWFlCr3x8_IPxgPu&size=normal&cb=5cf6wkw74iho"
+        const iframe = await page.$$('iframe');
+        const frame=await page.frames(iframe);
+          //console.log(frame)
+
+          frame.map((f)=>{
+           // console.log("\n",f.childFrames())
+            try{
+              const ff=f.childFrames()
+              ff.map(async(f)=>{
+                const fr=await page.$(`#${f.id}`)
+               // console.log(fr,"\n\n")
+              })
+            }catch(err){
+              console.log(err)
+            }
+          })
+
+          //await page.waitForNavigation()
+          console.log('New Page URL:', page.url());
 
         
         
           
             
         
-      },1000)
-
+         
             
       }
+        
+      
       });
     
     }catch(err){

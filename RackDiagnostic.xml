@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="34.01" TargetName="RackDiagnostic" TargetType="Program" ContainsContext="true" Owner="Jeff Hines" ExportDate="Fri Feb 02 10:29:26 2024" ExportOptions="References NoRawData L5KData DecoratedData Context Dependencies ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Context" Name="Practice">
+<Programs Use="Context">
+<Program Use="Target" Name="RackDiagnostic" TestEdits="false" MainRoutineName="Main" Disabled="false" UseAsFolder="false">
+<Tags/>
+<Routines>
+<Routine Name="Main" Type="RLL">
+<RLLContent>
+<Rung Number="0" Type="N">
+<Text>
+<![CDATA[JSR(r001_RIO001,2,?,?,?);]]>
+</Text>
+</Rung>
+<Rung Number="1" Type="N">
+<Text>
+<![CDATA[;]]>
+</Text>
+</Rung>
+</RLLContent>
+</Routine>
+<Routine Name="r001_RIO001" Type="RLL">
+<RLLContent>
+<Rung Number="0" Type="N">
+<Text>
+<![CDATA[CPLX_Module(RIO002_S00,RIO002_S00_Data,RIO002_R1S00,RIO002,0,??,1,??);]]>
+</Text>
+</Rung>
+</RLLContent>
+</Routine>
+<Routine Name="r002_RIO002" Type="RLL">
+<RLLContent>
+<Rung Number="0" Type="N">
+<Text>
+<![CDATA[CPLX_Module(RIO002_S00,RIO002_S00_Data,RIO002_R1S00,RIO002,0,??,1,??);]]>
+</Text>
+</Rung>
+</RLLContent>
+</Routine>
+</Routines>
+</Program>
+</Programs>
+</Controller>
+</RSLogix5000Content>
+RackDiagnostic_Program4.xml
+Displaying RackDiagnostic_Program4.xml.
