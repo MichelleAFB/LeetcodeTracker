@@ -3772,7 +3772,7 @@ app.get("/create-prompts",async(req,res)=>{
       console.log("try")
     }
     };
-  const results=await Problem.find({$or:[{$and:[{"link":{$exists:true}},{hints:{$exists:false}},/*{"prompt":{$exists:false}}*/]}/*,{$and:[{"link":{$exists:true}},{"leetcode_hints":{$exists:false}}]}*/]})
+  const results=await Problem.find({$or:[{$and:[{"link":{$exists:true}},{"prompt":{$exists:false}}]}]})
           console.log(results.length+" empty prompts")
          // generate(results[0]);
          //console.log(results,"\n\n")
@@ -3832,10 +3832,8 @@ app.get("/create-prompts",async(req,res)=>{
   
 })
 
-const request = require('request-promise-native');
-const poll = require('promise-poller').default;
 const apiKey="6LfnTEApAAAAAJjSto6edYwxj4WOTRrnq09NIRfI"
-
+/*
 async function initiateCaptchaRequest(apiKey) {
   const formData = {
     method: 'userrecaptcha',
@@ -3859,7 +3857,7 @@ async function pollForRequestResults(key, id, retries = 30, interval = 1500, del
     retries
   });
 }
-/*<div id="recaptcha_signin_checkbox" class="css-1j8liaq"><div style="width: 304px; height: 78px;"><div><iframe title="reCAPTCHA" width="304" height="78" role="presentation" name="a-fs5l0bcavfcl" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox" src="https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&amp;k=6LdBX8MUAAAAAAI4aZHi1C59OJizaJTvPNvWH2wz&amp;co=aHR0cHM6Ly9sZWV0Y29kZS5jb206NDQz&amp;hl=en&amp;v=u-xcq3POCWFlCr3x8_IPxgPu&amp;size=normal&amp;cb=ssg76okplm1z"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div></div>*/
+//<div id="recaptcha_signin_checkbox" class="css-1j8liaq"><div style="width: 304px; height: 78px;"><div><iframe title="reCAPTCHA" width="304" height="78" role="presentation" name="a-fs5l0bcavfcl" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox" src="https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&amp;k=6LdBX8MUAAAAAAI4aZHi1C59OJizaJTvPNvWH2wz&amp;co=aHR0cHM6Ly9sZWV0Y29kZS5jb206NDQz&amp;hl=en&amp;v=u-xcq3POCWFlCr3x8_IPxgPu&amp;size=normal&amp;cb=ssg76okplm1z"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div></div>
 function requestCaptchaResults(apiKey, requestId) {
   const url = `http://2captcha.com/res.php?key=${apiKey}&action=get&id=${requestId}&json=1`;
   return async function() {
@@ -3877,7 +3875,7 @@ function requestCaptchaResults(apiKey, requestId) {
 app.post("/add-user-execution-time",async(req,res)=>{
   const user=req.body.user
 })
-
+*/
 
 function find(s,prefix, suffix) {
 	var i = s.indexOf(prefix);
@@ -3898,8 +3896,12 @@ function find(s,prefix, suffix) {
 	}
 	return s;
 };
+
+
+
 app.get("/get-solutions",async(req,res)=>{
 
+  const { executablePath } = require('puppeteer'); 
 
   const puppeteerExtra = require('puppeteer-extra');
 const Stealth = require('puppeteer-extra-plugin-stealth');
@@ -3912,22 +3914,21 @@ puppeteerExtra.use(Stealth());
   (async (r) => {
     const generate = async (r) => {
       
- 
+      const pathToExtension = require('path').join(__dirname, '2captcha-solver');
+
       const browser = await puppeteerExtra.launch({
        // ignoreDefaultArgs: ['--disable-extensions'],
-   
-
         headless:false,
-        defaultViewport: null,
         args: [
-          '--disable-web-security',
-          '--disable-features=IsolateOrigins,site-per-process'
+          /*`--disable-extensions-except=${pathToExtension}`,*/
+         /* `--load-extension=${pathToExtension}`,*/
         ],
+        executablePath: executablePath(),
         slowMo:10,
 
       });
       console.log("grabbing all httprequest from browser");
-      const requestId = await initiateCaptchaRequest(apiKey);
+     // const requestId = await initiateCaptchaRequest(apiKey);
  
       const page = await browser.newPage();
      /* await page.setUserAgent(
@@ -3948,84 +3949,107 @@ puppeteerExtra.use(Stealth());
        // console.log(response.url())
        if(responded==false ){
         responded=true
+        setTimeout(async()=>{
+
         await page.type('#id_login', "mirchoellebadu@gmail.com");
         await page.type('#id_password', "Mirchoella22");
         // click and wait for navigation
        
-        await page.click('#signin_btn')
         setTimeout(async()=>{
-          await page.click("#recaptcha_signin_checkbox")
+          await page.click('#signin_btn')
+
+         
           const key="6ae6a0104c7414ceb3bbf1bb62b534de"
+      
           setTimeout(async()=>{
+            //await page.click("#recaptcha_signin_checkbox")
 
             const elementHandle = await page.$('iframe');
             const src = await (await elementHandle.getProperty('src')).jsonValue();
-            console.log(src)
+        
             const dataKey=getStringBetween(src,"k=","&co")
-            console.log("\n\n",dataKey)
+         
             setTimeout(()=>{
-              axios.post(`https://2captcha.com/in.php?key=${key}&method=userrecaptcha&googlekey=${dataKey}&pageurl=${"https://leetcode.com/accounts/login"}&json=1`).then(async(response)=>{
+              axios.post(`https://2captcha.com/in.php?key=${key}&googlekey=${"6LfnTEApAAAAAJjSto6edYwxj4WOTRrnq09NIRfI"}&method=userrecaptcha&googlekey=${dataKey}&pageurl=${"https://leetcode.com/accounts/login"}&json=1`).then(async(response)=>{
                 console.log(response.data)
                 const request=response.data.request
-
-                await page.$eval('#g-recaptcha-response', e => e.setAttribute("display", "visible"))
                 setTimeout(async()=>{
-                  await page.type('#g-recaptcha-response', request);
 
-                },1000)
+                 console.log("SUCCESS TYPING")
+               
+                 axios.get(`https://2captcha.com/res.php?key=${key}&action=get&json=1&id=${request}`).then(async(response)=>{
+                  console.log("this response:",response.data)
+                  if(response.data.request.length<25){
+            
+                    console.log("NOT READY")
+
+                    setTimeout(async(page)=>{
+
+                      var i=0
+                     await getRequest(page,key,request,i)
+                     },3000)
+                  }else{
+                  setTimeout(async(page)=>{
+                    await page.waitForSelector("#g-recaptcha-response")
+                    await page.$eval('#g-recaptcha-response', (el, value) => el.value = value, response.data.request);
+
+                  },1000)
+                    setTimeout(async()=>{
+                      await page.click('#signin_btn')
+                      console.log("CLICK")
+
+                      await page.waitForNavigation()
+                      setTimeout(async()=>{
+                        try{
+                        await  page.goto("https://leetcode.com/problemset/all")//page.click('xpath=//*[@id="leetcode-navbar"]/div[1]/ul/li[2]/a');
+                        console.log("href clicked")
+           
+                        }catch(err){
+                          setTimeout(async()=>{
+                          const pages=await browser.pages()
+                          console.log(pages,"\n\n")
+                          const hrefsCategoriesDeduped = new Set(await page.evaluate(
+                            () => Array.from(
+                              document.querySelectorAll('a[href]'),
+                              a => a.href
+                            )
+                          ));
+
+                          console.log(hrefsCategoriesDeduped)
+                          },3000)
+
+                        }
+
+                      },7000)
+                     },10000)
+                    }
+                 })
+                 
+                },25000)
 
 
             })
             },2000)
-          },2500)
+          },3500)
 
 
             
 
-        },1000)
-       //
-        //await page.waitForSelector('#recaptcha-signin-checkbox');
-        console.log("exist")
+        },2600)
+    
 
 
-     /* const f=await page.click(`[title=${src}]`)
-      page.on('response',async (response)=>{
-        const ess=await response
-        console.log(ess)
-      })*/
-
-    // Get the `src` property to verify we have the iframe
-       // const  src="https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LdBX8MUAAAAAAI4aZHi1C59OJizaJTvPNvWH2wz&co=aHR0cHM6Ly9sZWV0Y29kZS5jb206NDQz&hl=en&v=u-xcq3POCWFlCr3x8_IPxgPu&size=normal&cb=5cf6wkw74iho"
-        const iframe = await page.$$('iframe');
-        const frame=await page.frames(iframe);
-          //console.log(frame)
-
-          frame.map((f)=>{
-           // console.log("\n",f.childFrames())
-            try{
-              const ff=f.childFrames()
-              ff.map(async(f)=>{
-                const fr=await page.$(`#${f.id}`)
-               // console.log(fr,"\n\n")
-              })
-            }catch(err){
-              console.log(err)
-            }
-          })
-
-          //await page.waitForNavigation()
-          console.log('New Page URL:', page.url());
+   
 
         
         
           
             
         
-         
+      },1000)
+
             
       }
-        
-      
       });
     
     }catch(err){
@@ -4413,3 +4437,223 @@ app.get("/problems", async(req, res) => {
   res.json({success:true,length:problems.length,problems:problems})
 });
 
+
+
+
+app.post("/add-rung",async(req,res)=>{
+
+  const fs=require("fs")
+const readline = require('readline');
+const sys=require("process")
+var XMLSerializerserializer = require('xmlserializer');
+
+
+var str=""
+const routineNames=[]
+const Programs=[]
+var newRoutine
+const programName=req.body.program
+const panel=req.body.panel
+const slot=req.body.slot
+const card=req.body.card
+function createCard(card){
+  
+  if(card=="IB16"){
+    return "DI16"
+  }
+  else if(card=="OB16"){
+    return "DO16"
+  }else {
+    return card
+  }
+
+
+}
+var rack=req.body.rack
+
+const lines=fs.readFile(programName+'.xml', (err, inputD) => {
+    var currLength=0
+      
+       // inputD.toString()
+      const lines= inputD.toString().split("\n")
+      const letters=inputD.toString()
+      var xmldoc = require('xmldoc');
+      var document = new xmldoc.XmlDocument(inputD);
+    var newRoutine
+      var input=document.toStringWithIndent()
+
+      // console.log(input)
+        //console.log(document.children[1].children)
+        var i=0
+        var position=0
+        document.children[1].children.map((r)=>{
+        
+          try{
+        
+          if(r.name=="Programs"){
+            const programs=r
+          
+            var program=r.children
+            var addedChildren=false
+           // console.log("---------------------PROGRAM--------------------")
+           //console.log(program)
+           //console.log("--------------PROGRAM CHILDREN",program)
+            if(program[1].attr.Name=="RackDiagnostics"){
+              var children=program[1].children
+            
+             // console.log("-------------------------Routine"+program[1].attr.Name+"------------------------------")
+              if(children[1].children){
+                var tags=children[1]
+                //console.log(children)
+                var routines=children[3].children
+            
+                routines.map((r)=>{
+              
+                try{
+                  if(r.attr!=null){
+              
+                   if(r.attr.Name.toUpperCase()==panel.toUpperCase()){
+                  
+
+                  r.children[1].children.map((m)=>{
+                    
+                      if(m.attr!=null ){
+                      
+                        addedChildren=true
+                          var input=createCard(card)
+                          var slotNumber=slot > 9? slot:'0'+slot.toString()
+                          var rackNumber=rack.toString()
+                          const IO= (input=="IB16" || input=="IY8" || input =="IF81" || input=="IF8IH")?"I":"O"     
+                    
+                        m.children[m.children.length]={
+                          name: 'Text',
+                          attr: {},
+                          val: '\r\n' +
+                            'CPLX_'+input+'('+panel.toUpperCase()+'_S'+ slotNumber+','+panel.toUpperCase()+'_S'+slotNumber+'_Data,'+panel.toUpperCase()+'_R'+rackNumber+'S'+slotNumber+','+panel.toUpperCase()+'_R'+rackNumber+'S'+slotNumber+':'+slot+':'+  IO+','+panel.toUpperCase()+'_S'+slotNumber+'_Chan,CommonDiagnostics,'+panel.toUpperCase()+','+slot+','+rackNumber+');\r\n',
+                          children: [
+                            { text: '\r\n' },
+                             {
+                              cdata: 'CPLX_'+input+'('+panel.toUpperCase()+'_S'+slotNumber+','+panel.toUpperCase()+'_S'+slotNumber+'_Data,'+panel.toUpperCase()+'_R'+rackNumber+'S'+slotNumber+','+panel.toUpperCase()+'_R'+rackNumber+'S'+slotNumber+':'+slot+':I,'+panel.toUpperCase()+'_S'+slotNumber+'_Chan,CommonDiagnostics,'+panel.toUpperCase()+','+slot+','+rackNumber+');'      
+                            },
+                             { text: '\r\n' }
+                          ],
+                          firstChild:  { text: '\r\n' },
+                          lastChild: { text: '\r\n' },
+                          line: 69934,
+                          column: 6,
+                          position: 2983941,
+                          startTagPosition: 2983936
+                        }
+                        m.children[m.children.length+1]={ text: '\r\n' }
+                        console.log("\n\nSUCCESS")
+                    
+                        m.children.map((c)=>{
+                          if(c.name=="Text"){
+                          console.log(c,"\n\n")
+                          }
+                     
+                          try{
+
+                          }catch(err){
+
+                          }
+                   
+                        })
+                      }
+                    })
+                  }
+                    console.log("\n\n-------END:"+r.name+"--------------")
+
+              
+                  }
+                  }catch(err){
+                    console.log(err)
+                  }
+                })
+
+              }
+            }
+
+            }
+        }catch(err){
+            
+          }
+        })
+        var controller=document.children //THIS IS WHERE THE CONTROLLER OBJECT LIVES
+       
+       console.log("\n\nCONTROLLER:")
+       //console.log(controller)
+      
+       var programs=controller[1].children
+       /*console.log("\n\nPROGRAMS:")
+       console.log(programs)*/
+
+       const allPrograms=programs[1].children
+       var exist=allPrograms.filter((p)=>{
+        if(p.name!=null){
+        
+          if(p.name==sys.argv[2]){
+            return true
+          }
+        }
+       })
+
+   
+       var textIndex=0
+       var index=0
+    allPrograms.map((p)=>{
+
+      if(textIndex==0 && index<allPrograms.length && allPrograms[index+1]!=null){
+  
+        const program={name:allPrograms[index+1].attr.Name,text:allPrograms[index],routines:allPrograms[index+1]}
+        Programs.push(program)
+        index=index+2
+        textIndex=1
+      try{
+       
+         
+         if(program.name==program){
+        
+          var routineIndex=3
+     
+          while(routineIndex<req.body.length){
+             var rIndex=0
+
+             program.routines.children[3].children.map((r)=>{
+              console.log(r)
+              
+             var routineFound=  program.routines.children[3].children.filter((r)=>{
+        
+              if(r.attr!=null){
+          
+            }
+            })
+            console.log("ROUTINE FOUND:"+routineFound)
+
+                if(r.attr!=null){
+            
+              }
+              })
+              routineIndex++
+            }
+          }
+      
+    }catch(err){
+
+    }
+      }else{
+        textIndex=0
+        
+      }
+    })
+})
+
+
+
+
+setTimeout(()=>{
+  console.log("\n\n\n",newRoutine)
+  res.json(newRoutine)
+
+},8000)
+})

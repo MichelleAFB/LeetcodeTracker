@@ -1,0 +1,25 @@
+for child in root:
+  #print({x.tag for x in root.findall(child.tag+"/*")})
+
+  elements = root.findall(child.tag+"/*")
+  for e in elements:
+
+    if(str(e.tag)=="Programs"):
+        program=e.find(".//Program")
+        if(program!= None):
+            #print(program.tag)
+            #print(program.get("Name"))
+            #print(e.attrib)
+      
+        rll=e.findall(".//RLLContent")[0]
+        rungs=rll.findall(".//Rung")
+        
+        for ee in rungs:
+            el = ET.Element('<Comment>HELLO MICHELLE</Comment>')   # creating a new element/xml-node
+            #ee.appendChild(el)
+           # print(el)
+            #print(ee.attrib["Number"])
+            print("\n\n")
+
+        
+        #print("\n\n")
