@@ -3901,7 +3901,7 @@ function find(s,prefix, suffix) {
 
 
 
-
+/*
 app.get("/get-solutions",async(req,res)=>{
 
   const { executablePath } = require('puppeteer'); 
@@ -3923,8 +3923,8 @@ puppeteerExtra.use(Stealth());
        // ignoreDefaultArgs: ['--disable-extensions'],
         headless:false,
         args: [
-          /*`--disable-extensions-except=${pathToExtension}`,*/
-         /* `--load-extension=${pathToExtension}`,*/
+          /*`--disable-extensions-except=${pathToExtension}`,
+         /* `--load-extension=${pathToExtension}`,
         ],
         executablePath: executablePath(),
         slowMo:10,
@@ -3934,8 +3934,8 @@ puppeteerExtra.use(Stealth());
      // const requestId = await initiateCaptchaRequest(apiKey);
  
       const page = await browser.newPage();
-     /* await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36')*/
+      await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36')
 
       const getData = async (response) => {
         
@@ -3997,11 +3997,11 @@ puppeteerExtra.use(Stealth());
         console.log("exist")
 
 
-     /* const f=await page.click(`[title=${src}]`)
+      const f=await page.click(`[title=${src}]`)
       page.on('response',async (response)=>{
         const ess=await response
         console.log(ess)
-      })*/
+      })
 
     // Get the `src` property to verify we have the iframe
        // const  src="https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LdBX8MUAAAAAAI4aZHi1C59OJizaJTvPNvWH2wz&co=aHR0cHM6Ly9sZWV0Y29kZS5jb206NDQz&hl=en&v=u-xcq3POCWFlCr3x8_IPxgPu&size=normal&cb=5cf6wkw74iho"
@@ -4024,16 +4024,10 @@ puppeteerExtra.use(Stealth());
 
           //await page.waitForNavigation()
           console.log('New Page URL:', page.url());
-
-        
-        
-          
-            
-        
-         
+  
             
       }
-        
+    
       
       });
     
@@ -4046,6 +4040,7 @@ puppeteerExtra.use(Stealth());
   })();
 
 })
+*/
 var ps = require('ps-node');
 
 
