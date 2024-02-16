@@ -28,7 +28,7 @@ const StreakGroup=require("./models/StreakGroup");
 const { log } = require("console");
 const morgan = require('morgan');
 const Challenge = require("./models/Challenge");
-const {data}=require("./data");
+
 const { $Size } = require("sift");
 const ProblemTopicTag = require("./models/ProblemTopicTags");
 const ProblemPage = require("./models/LeetcodeProblemPages");
