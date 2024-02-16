@@ -290,7 +290,7 @@
     "read-excel-file": "^5.7.1",
     "readable-stream": "^2.3.7",
     "readdirp": "^3.6.0",
- 
+    "request": "^2.88.2",
     "retry-as-promised": "^6.1.0",
     "rimraf": "^3.0.2",
     "safe-buffer": "^5.1.2",
