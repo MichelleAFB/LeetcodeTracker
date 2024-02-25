@@ -2363,6 +2363,43 @@ app.get("/problem-page",async(req,res)=>{
     res.json({success:true,lastPage:page[page.length-1]})
   },1000)
 })
+
+
+app.get("/add-info-to-problem/:id",async(req,res)=>{
+  const problem=await Problem.findOne({"title":req.body.title})
+  console.log(problem)
+
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    defaultViewport: false,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  console.log("grabbing all httprequest from browser");
+  const page = await browser.newPage();
+  await page.goto(
+    problem.link
+  );
+  page.on("response", async (response) => {
+    const getData = async (response) => {
+      const c = await response.text();
+      return c;
+    };
+    if (response.url() == "https://leetcode.com/graphql/") {
+      const data = await getData(response).then(async (response) => {
+        const info = await JSON.parse(response).data;
+        try{
+         
+          //console.log(info.question)
+          //console.log("\n\n")
+        }catch(err){
+          
+        }
+      })
+    }
+  })
+
+})
 /************************************************************************************************************************************************************************************************************************************************************ */
 //GOOD
 
@@ -2413,6 +2450,7 @@ var i
       "https://leetcode.com/problemset/all/?page=" + req.params.page
     );
     page.on("response", async (response) => {
+
       if (response.url() == "https://leetcode.com/graphql/") {
         const data = await getData(response).then(async (response) => {
           const info = await JSON.parse(response).data;
