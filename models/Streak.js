@@ -4,7 +4,8 @@ const StreakSchema= new mongoose.Schema({
   day:{
     type:String,
     required:true,
-    unique:true
+    unique:false
+
   },
   problems:[
     
@@ -15,7 +16,7 @@ const StreakSchema= new mongoose.Schema({
   },
   userId:{
     type:String,
-    required:false
+    required:true
   }
 })
 

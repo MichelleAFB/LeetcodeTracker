@@ -2138,16 +2138,22 @@ app.post("/sort-problems",async(req,res)=>{
   },2000)
 
 })
+
+app.get("/get-problem",async(req,res)=>{
+  
+})
 app.get("/sort-streaks/:userId",async(req,res)=>{
  // console.log(req.params.userId)
   //console.log(req.body)
-  const groups=await StreakGroup.find({$and:[{"userId":parseInt(req.params.userId)}]})
+  console.log(typeof(req.params.userId))
+  const groups=await StreakGroup.find({$and:[{"userId":typeof(req.params.userId)=="string"?req.params.userId:parseInt(req.params.userId)}]})
 
   const streaksArr=[]
   groups.map(async(g)=>{
+    console.log(g.id)
     const arr=[]
-    const streaks=await Streak.find({$and:[{"group":g.id},{"userId":parseInt(req.params.userId)}]})
-   // console.log(streaks)
+    const streaks=await Streak.find({$and:[{"group":g.id},{"userId":typeof(req.params.userId)=="string"?req.params.userId:parseInt(req.params.userId)}]})
+    console.log(streaks)
     streaks.map((s)=>{
       
       arr.push({day:s.day,problems:s.problems})
