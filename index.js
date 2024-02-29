@@ -2106,27 +2106,26 @@ function merge(l,m,r,arr){
 return arr
 }
 
+app.post("/update-challenge",async(req,res)=>{
+  const challenge=req.body.challenge
+  const endDate=req.body.endDate
+  const update=await Challenge.findOne({"_id":challenge._id})
+  console.log(update)
+  const updated=await Challenge.updateOne({"_id":challenge._id},{
+    $set:{"endDate":endDate}
+  })
+  console.log(updated)
+  if(updated.acknowledged==true){
+    res.json({success:true,acknowledge:updated})
+  }
+})
 
 
 app.post("/sort-problems",async(req,res)=>{
   const problems=req.body.problems
   
   const newProblems=[]
- /* problems.map((p)=>{
-    
-    var min = problems.reduce(function (a, b) { return new Date(a.last) <= new Date(b.last)   ? a : b; }); 
-    console.log(min," ",problems.indexOf(min))
-    problems.splice(problems.indexOf(min),1)
-    newProblems.push(min)
 
-  })
-  while(problems.length>0){
-        var min = problems.reduce(function (a, b) { return new Date(a.last) <= new Date(b.last)   ? a : b; }); 
-
-    problems.splice(problems.indexOf(min),1)
-    newProblems.push(min)
-  }
-  */
  console.log(problems.length-1)
  var r=problems.length-1
  console.log(r)
@@ -2158,7 +2157,14 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
       
       arr.push({day:s.day,problems:s.problems})
     })
-    streaksArr.push(arr)
+    setTimeout(()=>{
+      streaksArr.push(arr)
+      if(arr.length>1){
+        streaksArr.push(arr)
+
+      }
+    },100)
+ 
    
   })
   setTimeout(()=>{
@@ -2172,7 +2178,7 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
       res.json({success:true,streaks:streaksArr})
 
     })
-  },600)
+  },1000)
 })
 
 app.get("/s",async(req,res)=>{
@@ -2644,6 +2650,10 @@ var i
                      // const saved= await newProblem.save()
                       console.log("success")
                       //console.log(saved)
+                      const tags=q.topicTags.map((t)=>{
+                        return t.name})
+                      if(tags!=null){
+                     
 
                       tags.map(async(t)=>{
                         const topicTag=await Problem.updateOne({"title":newProblem.title},{
@@ -2656,10 +2666,11 @@ var i
                         })
   
                        // console.log(problem.title,ptag)
-                      }) 
-                      newProblems.push(saved)
+                      })
+                    }
+                      //newProblems.push(saved)
                     }catch(err1){
-                      console.log("not added")
+                      console.log("not added",err1)
                     }
                   }
                   }
@@ -2819,6 +2830,9 @@ var i
                       const saved= await newProblem.save()
                       console.log("success")
                       console.log(saved)
+                      const tags=q.topicTags.map((t)=>{
+                        return t.name
+                      })
 
                       tags.map(async(t)=>{
                         const topicTag=await Problem.updateOne({"title":newProblem.title},{
@@ -3963,7 +3977,7 @@ app.get("/create-prompts",async(req,res)=>{
       console.log("try")
     }
     };
-  const results=await Problem.find({$or:[{$and:[{"link":{$exists:true}},{"prompt":{$exists:false}}]}]})
+  const results=await Problem.find({$and:[{"link":{$exists:true}},{"prompt":{$exists:false}}]})
           console.log(results.length+" empty prompts")
          // generate(results[0]);
          //console.log(results,"\n\n")
