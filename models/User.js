@@ -13,6 +13,9 @@ const userSchema= new mongoose.Schema({
     type:String,
     required:true
   },
+  username:{
+    type:String
+  },
   email:{
     type:String,
     required:true
@@ -68,6 +71,14 @@ const userSchema= new mongoose.Schema({
   },
   subscription_Id:{
     type:String
+  },
+  followers:{
+    type:Array,
+    default:[]
+  },
+  following:{
+    type:Array,
+    default:[]
   }
   
 })

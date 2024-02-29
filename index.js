@@ -2138,8 +2138,87 @@ app.post("/sort-problems",async(req,res)=>{
 
 })
 
-app.get("/get-problem",async(req,res)=>{
-  
+app.post("/follow-user/:followed/:follower",async(req,res)=>{
+  const follower=await User.findOne({"username":req.params.follower})
+  const followed=await User.findOne({"username":req.params.followed})
+  console.log(follower,followed)
+  if(follower!=null && followed!=null){
+    if(follower.following!=null){
+    const follow=await User.updateOne({"userId":follower.userId},{
+      $push:{
+        "following":{followedSince:new Date(),user:followed.userId,username:req.params.followed}
+      }
+    })
+  }else{
+    const follow=await User.updateOne({"userId":follower.userId},{
+      $set:{
+        "following":[{followedSince:new Date(),user:followed.userId,username:req.params.followed}]
+      }
+    })
+
+  }
+  if(followed.followers!=null){
+    const addfollower=await User.updateOne({"userId":followed.userId},{
+      $push:{
+        "followers":{followedSince:new Date(),user:follower.userId,username:req.params.follower}
+      }
+    })
+  }else{
+    const addfollower=await User.updateOne({"userId":followed.userId},{
+      $set:{
+        "followers":[{followedSince:new Date(),user:follower.userId,username:req.params.follower}]
+      }
+    })
+
+  }
+    res.json({success:true})
+
+    
+  }
+})
+app.get("/username-available/:id/:username",async(req,res)=>{
+  const user=await User.findOne({"username":req.params.username})
+  if(user==null){
+    res.json({success:true,available:true})
+  }else{
+    res.json({success:true,available:false})
+
+  }
+
+})
+app.post("/set-username/:id/:username",async(req,res)=>{
+  const user=await User.findOne({"userId":req.params.id.toString()})
+  const ourUser=req.body.user
+  console.log(user)
+  if(user!=null){
+  const setUserName=await User.updateOne({"_id":user.id},{
+    $set:{
+      "username":req.params.username
+    }
+  })
+  if(setUserName.acknowledged){
+    const newUser=await User.findOne({"userId":req.params.id.toString()})
+    res.json({success:true,user:newUser})
+  }
+  }else{
+    console.log(ourUser)
+    const added=new User({
+      lastname: ourUser.lastname,
+      emailVerified: false,
+      online: ourUser.online,
+      timezone: ourUser.timezone,
+      onlock: ourUser.onlock,
+      firstname:ourUser.firstname,
+      lastLogin: ourUser.lastLogin,
+      userId: ourUser.userId,
+      password: ourUser.password,
+      email: ourUser.email,
+      username:req.params.username
+    })
+    const save=await added.save()
+   
+    res.json({success:false,err:"User not found.",save:save})
+  }
 })
 app.get("/sort-streaks/:userId",async(req,res)=>{
  // console.log(req.params.userId)
@@ -2158,12 +2237,12 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
       arr.push({day:s.day,problems:s.problems})
     })
     setTimeout(()=>{
-      streaksArr.push(arr)
+    
       if(arr.length>1){
         streaksArr.push(arr)
 
       }
-    },100)
+    },50)
  
    
   })
@@ -4247,6 +4326,7 @@ puppeteerExtra.use(Stealth());
 })
 */
 var ps = require('ps-node');
+const User = require("./models/User");
 
 
 
