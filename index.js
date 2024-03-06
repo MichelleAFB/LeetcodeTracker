@@ -2171,7 +2171,8 @@ app.post("/follow-user/:followed/:follower",async(req,res)=>{
     })
 
   }
-    res.json({success:true})
+  const returnUser=await User.findOne({"username":req.params.follower})
+    res.json({success:true,user:returnUser})
 
     
   }
@@ -2216,8 +2217,9 @@ app.post("/set-username/:id/:username",async(req,res)=>{
       username:req.params.username
     })
     const save=await added.save()
-   
-    res.json({success:false,err:"User not found.",save:save})
+   if(save!=null){
+    res.json({success:true,err:"User not found.Added new user.",save:save,user:save})
+   }
   }
 })
 app.get("/sort-streaks/:userId",async(req,res)=>{
