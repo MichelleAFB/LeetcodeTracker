@@ -2188,6 +2188,7 @@ app.get("/username-available/:id/:username",async(req,res)=>{
 
 })
 app.post("/set-username/:id/:username",async(req,res)=>{
+  console.log("\n\nHI")
   const user=await User.findOne({"userId":req.params.id.toString()})
   const ourUser=req.body.user
   console.log(user)
