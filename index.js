@@ -1263,6 +1263,50 @@ const getAllPrevStreaks=async(req,dates,streaks)=>{
     }
   })
 }
+
+app.post("/delete-challenge",async(req,res)=>{
+  const challenge=req.body.challenge
+  console.log(challenge)
+  const found=await Challenge.findOne({$and:[{"title":challenge.title},{"userId":challenge.userId}]})
+  console.log(found)
+  const user=await User.findOne({"userId":challenge.userId})
+ if(user!=null){
+  const challenges=user.challenges
+ const keep= challenges.filter((c)=>{
+    if(challenge.title!=c.title){
+      return c
+    }
+  })
+  console.log(user.currentChallenge.endDate,challenge.endDate.toString())
+  if(user.currentChallenge.title==challenge.title && (user.currentChallenge.endDate.toString()==challenge.endDate.toString())){
+    console.log("MAtch")
+    const removeCurrentChallenge=await User.updateOne({"userId":challenge.userId},{"currentChallenge":null})
+  }
+  
+  const update=await User.updateOne({"_id":user.id},{
+    "challenges":keep
+  })
+  const updatedUser=await User.findOne({"userId":user.userId})
+  res.json({success:true,user:updatedUser})
+  
+ }
+ 
+
+  if(found!=null){
+    const deleted=await Challenge.deleteOne({"_id":found._id})
+    console.log(deleted)
+    try{
+    if(deleted.acknowledge){
+      res.json({success:true,deleted:deleted})
+    }else{
+      res.json({success:true,message:"No challenge existed"})
+    }
+  }catch(err){
+
+  }
+  }
+  
+})
 app.get("/get-current-challenge/:userId",async(req,res)=>{
   const streaks=[]
   var currentChallenge
@@ -1546,7 +1590,7 @@ var janCount=0;
   /*********** */
   const aprDates=[]
   const apr=await Streak.find({
-    $and:[{"userId":req.params.id},{"day":{$regex:"Mar"}},{"day":{$regex:date.getFullYear().toString()}}]
+    $and:[{"userId":req.params.id},{"day":{$regex:"Apr"}},{"day":{$regex:date.getFullYear().toString()}}]
   })
   var aprCount=0;
   apr.map((a)=>{
