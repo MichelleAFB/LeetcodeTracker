@@ -2271,21 +2271,26 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
  // console.log(req.params.userId)
   //console.log(req.body)
   console.log(typeof(req.params.userId))
+  var totalCorrectLength=0
+  var totalLength=0
   const groups=await StreakGroup.find({$and:[{"userId":typeof(req.params.userId)=="string"?req.params.userId:parseInt(req.params.userId)}]})
-
+  groups.map((g)=>{
+    console.log(g.days.length)
+   totalCorrectLength=totalCorrectLength+g.days.length
+  })
   const streaksArr=[]
   groups.map(async(g)=>{
     console.log(g.id)
     const arr=[]
     const streaks=await Streak.find({$and:[{"group":g.id},{"userId":typeof(req.params.userId)=="string"?req.params.userId:parseInt(req.params.userId)}]})
-    console.log(streaks)
+    console.log(streaks.length)
     streaks.map((s)=>{
       
       arr.push({day:s.day,problems:s.problems})
     })
     setTimeout(()=>{
     
-     
+      totalLength=arr.length+totalLength
         streaksArr.push(arr)
 
       
@@ -2301,10 +2306,10 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
       }
     })
     setTimeout(()=>{
-      res.json({success:true,streaks:streaksArr})
+      res.json({success:true,streaksLength:totalLength,correctStreaksLength:totalCorrectLength,streaks:streaksArr})
 
     })
-  },1000)
+  },2500)
 })
 
 app.get("/s",async(req,res)=>{
