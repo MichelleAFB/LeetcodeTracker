@@ -1737,7 +1737,7 @@ app.get("/monthCharts/:id/:year",async(req,res)=>{
    /*********** */
    const aprDates=[]
    const apr=await Streak.find({
-     $and:[{"userId":req.params.id},{"day":{$regex:"Mar"}},{"day":{$regex:date.getFullYear().toString()}}]
+     $and:[{"userId":req.params.id},{"day":{$regex:"Apr"}},{"day":{$regex:date.getFullYear().toString()}}]
    })
    var aprCount=0;
    apr.map((a)=>{
