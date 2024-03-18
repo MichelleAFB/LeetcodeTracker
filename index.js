@@ -2285,10 +2285,10 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
     })
     setTimeout(()=>{
     
-      if(arr.length>1){
+     
         streaksArr.push(arr)
 
-      }
+      
     },50)
  
    
