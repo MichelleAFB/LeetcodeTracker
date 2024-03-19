@@ -2543,6 +2543,184 @@ app.get("/add-info-to-problem/:id",async(req,res)=>{
   })
 
 })
+
+app.post("/leetcode-problem-from-url/",async(req,res)=>{
+  
+
+  const pathToExtension = require('path').join(__dirname, '2captcha-solver');
+  const { executablePath } = require('puppeteer'); 
+
+  const puppeteerExtra = require('puppeteer-extra');
+const Stealth = require('puppeteer-extra-plugin-stealth');
+  puppeteerExtra.use(Stealth());
+  const browser = await puppeteerExtra.launch({
+    headless: false,
+    defaultViewport: false,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    // ignoreDefaultArgs: ['--disable-extensions'],
+            headless:false,
+            args: [
+              `--disable-extensions-except=${pathToExtension}`,
+              `--load-extension=${pathToExtension}`,
+            ],
+            executablePath: executablePath(),
+            slowMo:10,
+  });
+  console.log("grabbing all httprequest from browser");
+  const page = await browser.newPage();
+  await page.goto(
+    req.body.url
+  );
+  const key="6ae6a0104c7414ceb3bbf1bb62b534de"
+      function getStringBetween(str,start,end){
+        const result = str.match(new RegExp(start + "(.*)" + end));
+
+        return result[1];
+      
+      }
+  setTimeout(async()=>{
+    try{
+    await page.click("iframe")
+   
+    const elementHandle = await page.$('iframe');
+   
+    const src = await (await elementHandle.getProperty('src')).jsonValue();
+    }catch(err){
+
+    }
+
+    //const dataKey=getStringBetween(src,"k=","&co")
+   //.log(src)
+  page.on("response", async (response) => {
+ 
+    const getData = async (response) => {
+      const c = await response.text();
+      return c;
+    };
+    if (response.url() == "https://leetcode.com/graphql/") {
+     setTimeout(async()=>{
+         await page.click('[data-layout-path="/ts0/tb2"]')
+         console.log("CLICKED")
+     },2000)
+      const data = await getData(response).then(async (response) => {
+        const info = await JSON.parse(response).data;
+        try{
+         
+          
+          if(info.question!=null){
+            try{
+            var lengthR=JSON.parse(info.question.stats).acRate
+            lengthR=Number(lengthR.toString().substring(0,4))
+         
+            var title=req.body.url.split("/")
+            const updateAcRate=await Problem.updateOne({"titleSlug":title[4]},{
+              $set:{"acRate":lengthR}
+            })
+          }catch(err){
+            
+          }
+
+           
+           var title=req.body.url.split("/")
+            try{
+              var title=req.body.url.split("/")
+           const q=info.question
+             if(info.question.titleSlug==title[4]){
+              try{
+                const updateSlug=await Problem.updateOne({"title":req.body.title},{
+                  $set:{"titleSlug":info.question.titleSlug}
+                })
+                console.log(updateSlug)
+              }catch(err){
+
+              }
+             
+              try{
+                if(q.isPaidOnly==false){
+                const newProblem=new Problem({
+                  title:q.title,
+                  frontendQuestionId:q.frontendQuestionId,
+                  difficulty:q.difficulty,
+                  level:q.difficulty,
+                  titleSlug:q.titleSlug,
+                  link:req.body.url
+                })
+                const save=await newProblem.save()
+              
+              }
+              }catch(err){
+
+              }
+             }
+            }catch(err){
+             
+            }
+            try{
+          
+            const $=cheerio.load(info.question.content)
+           
+            const updatePrompt=await Problem.updateOne({"titleSlug":title[4]},{
+              $set:{"prompt":$("html *").text()}
+            })
+             console.log(JSON.parse(info.question.stats))
+          
+           // console.log(updateAcRate)
+           
+            }catch(err){
+
+            }
+            try{
+
+            }catch(err){
+
+            }
+            if(info.question.topicTags!=null){
+              console.log(info.question.topicsTags)
+              const tags=info.question.topicTags.map((f)=>{
+               
+                return f.name
+              })
+              console.log(tags)
+              var updateTags=await Problem.updateOne({"titleSlug":title[4]},{
+                $set:{"topicTags":tags}
+              })
+              var updateTags=await Problem.updateOne({"titleSlug":title[4]},{
+                $set:{"tags":tags}
+              })
+            }
+          
+           
+           
+
+          }
+        
+          //console.log("\n\n")
+        }catch(err){
+          
+        }
+      })
+    }
+  })
+
+},4000)
+setTimeout(async()=>{
+  console.log("\n\n",req.body.url)
+  const found=await Problem.findOne({"link":req.body.url})
+  res.json({success:true,problem:found})
+},6000)
+})
+
+app.get("/titleslugs-existing",async(req,res)=>{
+  const problems=await Problem.find({})
+  var i=0;
+
+    axios.post("http://localhost:3022/leetcode-problem-from-url",{url:problems[0].link,title:problems[0].title}).then((response)=>{
+      console.log(response.data)
+    
+    })
+ 
+  
+})
 /************************************************************************************************************************************************************************************************************************************************************ */
 //GOOD
 
@@ -2567,8 +2745,9 @@ app.get("/pages",async(req,res)=>{
   })
 
 })
-app.get("/titles/:page", (req, res) => {
 
+app.get("/titles/:page", (req, res) => {
+//use title slug to create link
 var i
   (async () => {
     const arrr=[]
@@ -4227,7 +4406,7 @@ function find(s,prefix, suffix) {
 			s = s.substring(0, i);
 		}
 		else {
-		  return '';
+		  return '';G2547
 		}
 	}
 	return s;
@@ -4236,8 +4415,8 @@ function find(s,prefix, suffix) {
 
 
 
-
 /*
+
 app.get("/get-solutions",async(req,res)=>{
 
   const { executablePath } = require('puppeteer'); 
@@ -4259,8 +4438,8 @@ puppeteerExtra.use(Stealth());
        // ignoreDefaultArgs: ['--disable-extensions'],
         headless:false,
         args: [
-          /*`--disable-extensions-except=${pathToExtension}`,
-         /* `--load-extension=${pathToExtension}`,
+          `--disable-extensions-except=${pathToExtension}`,
+          `--load-extension=${pathToExtension}`,
         ],
         executablePath: executablePath(),
         slowMo:10,
@@ -4376,10 +4555,10 @@ puppeteerExtra.use(Stealth());
   })();
 
 })
-*/
+
 var ps = require('ps-node');
 const User = require("./models/User");
-
+*/
 
 
 //GOOD
@@ -4631,14 +4810,9 @@ axios.get("http://localhost:3022/titles/"+req.params.page).then((response)=>{
 
 })
 
-app.get("/get-problems",(req,res)=>{
-  olddb.query("select * from leetcode.problems where prompt is not null && difficulty is not null",(err,results)=>{
-    if(err){
-      console.log(err)
-    }else{
-      res.json({success:true,problems:results})
-    }
-  })
+app.post("/get-problem",async(req,res)=>{
+  const problem=await Problem.findOne({"title":req.body.title})
+  res.json({success:true,problem:problem})
 })
 
 /****************************FIXES****************** */

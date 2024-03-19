@@ -12,6 +12,9 @@ const problemsSchema=new mongoose.Schema({
     type:Number,
     required:false,
   },
+  titleSlug:{
+    type:String,
+  },
   page:{
     type:Number
   },
