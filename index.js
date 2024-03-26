@@ -1263,6 +1263,82 @@ const getAllPrevStreaks=async(req,dates,streaks)=>{
     }
   })
 }
+app.get("/set-group-challenge-current/:userId",async(req,res)=>{
+  const groupChallenges=await GroupChallenge.find({"userId":req.params.userId})
+  if(groupChallenges.length>0){
+    groupChallenges.map((c)=>{
+      console.log(c.startDate,c.endDate)
+    })
+  }else{
+    res.json({success:true,challenges:[]})
+  }
+
+})
+
+app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
+  const caseString=req.body.case //CREATE_GROUP_CHALLENGE_REQUEST
+  const user=req.body.user
+  console.log(req.body)
+  if(caseString=="CREATE_GROUP_CHALLENGE_FOR_CREATOR"){
+    const newChallenge=req.body.challenge
+
+    const updateUser=await User.updateOne({"userId":user.userId},{
+      $set:{
+       groupChallenges:user.groupChallenges
+      }
+    })
+    const curr=new Date()
+    const current=new Date(newChallenge.startDate.seconds*1000)<=curr<=new Date(newChallenge.endDate.seconds*1000)
+   console.log(current)
+     const addNewChallenge=new GroupChallenge({
+      challengeId:newChallenge.challengeId,
+        userId:user.userId,
+        title:newChallenge.title,
+        no_questions:newChallenge.no_questions,
+        startDate:new Date(newChallenge.startDate),
+        endDate:new Date(newChallenge.endDate),
+        length:newChallenge.length,
+        initialPasses:newChallenge.intialPasses,
+        current: current? true:false,
+        passes:newChallenge.passes,
+        success:true,
+        usedPasses:0,
+        selectedContestants:newChallenge.selectedContestants,  
+    })
+
+    const save=await addNewChallenge.save()
+    const find=await User.findOne({"userId":user.userId})
+    res.json({success:true,challenge:save,user:find})
+    
+    
+   
+  }
+  if(caseString=="CREATE_GROUP_CHALLENGE_REQUEST"){
+    try{
+    const find=await User.findOne({"userId":user.userId})
+    const updateContestant=await User.updateOne({"userId":user.userId},{
+      $set:{
+        notifications:user.notifications,
+        allNotifications:user.allNotifications,
+        groupChallengeRequests:user.groupChallengeRequests,
+        hasNewNotifications:true
+      }
+    })
+    console.log(updateContestant)
+    const update=await User.findOne({"userId":user.userId})
+    console.log(update)
+    if(update.acknowledged){
+      res.json({success:true,user:user})
+    }else{
+      res.json({success:false,user:user})
+    }
+  }catch(err){
+    console.log(err)
+  }
+   
+  }
+
+})
 
 app.post("/delete-challenge",async(req,res)=>{
   const challenge=req.body.challenge
@@ -4248,8 +4324,39 @@ app.get("/fix-tripe",async(req,res)=>{
   })
 })
 
+app.get("/number",async(req,res)=>{
+  const problems=await Problem.find({})
+  const all=problems.filter((d)=>{
+    if(d.prompt==null){
+      return d
+    }else if(d.prompt.length<10){
+      return d
+    }
+  })
+  res.json({length:all.length,p:all})
+})
 var validUrl = require('valid-url');
-
+function parseHTML(str){
+  console.log("PARSEING-----------------")
+  var start=0
+  var end=start;
+  while(end<str.length){
+    console.log(str.substring(start,1))
+    if(str.substring(start,1)=='<' || str.substring(start,1)=="<"){
+      
+      while(str.substring(end,1)!='>'){
+        end++;
+        if(str.substring(end,1)=='>'){
+          console.log(str.substring(start,end+1))
+        }
+      }
+    }
+    start++
+  }
+}const jsdom=require("jsdom");
+const User = require("./models/User");
+const GroupChallenge = require("./models/GroupChallenge");
+const {JSDOM}=jsdom
 app.get("/create-prompts",async(req,res)=>{
   (async (r,i) => {
     const generate = async (r) => {
@@ -4303,21 +4410,24 @@ app.get("/create-prompts",async(req,res)=>{
             //console.log(html)
          
               const $=cheerio.load(html)
+             
               const para=$("div ")//[class='flexlayout__tabset_content']
               //console.log(Object.keys(para[0].attribs),para[0].attribs,"\n\n")
               if(para[0].children!=null){
-              para[0].children((c)=>{
-                
+               
+              const c=para[0].children[0]
+              console.log("\n\n\n",c.text(),"n\n\n")
+                parseHTML(c.text().toString())
                 if(c.text()!=null){
                
                 console.log("HEREEEEE")
              
                   try{
-                 console.log("\n\n\n",typeof(c.text()),"n\n\n")
-                    var ch=c.text().toString().replace("<.*?>", "")
-                    ch=ch.replace("<","")
-                    ch=ch.replace(">","")
-                   // console.log("\n\n\n\nHETE",ch,"\n\n")
+                 //console.log("\n\n\n",typeof(c.text()),"n\n\n")
+                    var ch=c.text().replace(/<.*?>/, "")
+                    ch=ch.replace(/</,"")
+                    ch=ch.replace(/>/,"")
+                    console.log("\n\n\n\nHETE",ch,"\n\n")
                  
                 
                   }catch{
@@ -4325,7 +4435,7 @@ app.get("/create-prompts",async(req,res)=>{
                   }
                 }
 
-              })
+            
             }
             }catch(err){
 
@@ -4350,6 +4460,7 @@ app.get("/create-prompts",async(req,res)=>{
                   const dom = new JSDOM(
                     "<!DOCTYPE html><body id='body'>" + content + "</body>"
                   );
+                 // console.log(dom.textContent())
 
                 //console.log("content:",dom.window.document.getElementById("body").textContent);
                  const update=await Problem.updateOne({"title":r.title},{
@@ -4358,7 +4469,7 @@ app.get("/create-prompts",async(req,res)=>{
                   if(update.acknowledged){
                     i++
                     console.log(",",i ," prompts created\n")
-                    console.log(update)
+                    //console.log(update)
                     if(i==3){
                       try{
                       res.json({success:true,updated:i})
@@ -4395,7 +4506,30 @@ app.get("/create-prompts",async(req,res)=>{
               }
               try{
                 const content = p.content;
-                console.log(content)
+                const jsdom = require("jsdom");
+                const { JSDOM } = jsdom;
+              try{
+                if(content!=null){
+                  var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                
+                  var ch=content
+            
+                  const dom = new JSDOM(
+                    "<!DOCTYPE html><body id='body'>" + content + "</body>"
+                  );
+
+                console.log("content:",dom.window.document.getElementById("body").outerHTML);
+                  parseHTML(ch)
+                 // ch=ch.replace(/<.*?>/, "")
+                 // console.log("\n\n\n\n\n\n\nlenght",ch)
+             
+               // ch=ch.replace("<","")
+               // ch=ch.replace(">","")
+                 //console.log(ch)
+                }
+              }catch(err){
+                console.log(err)
+              }
                 if (content != null && r.prompt==null) {
                   //console.log(content)
                   const jsdom = require("jsdom");
@@ -4405,8 +4539,8 @@ app.get("/create-prompts",async(req,res)=>{
                     "<!DOCTYPE html><body id='body'>" + content + "</body>"
                   );
 
-                //console.log("content:",dom.window.document.getElementById("body").textContent);
-                 const update=await Problem.updateOne({"title":r.title},{
+                console.log("content:",dom.window.document.getElementById("body").outerHTML);
+                /* const update=await Problem.updateOne({"title":r.title},{
                     $set:{"prompt":dom.window.document.getElementById("body").textContent}
                   })
                   if(update.acknowledged){
@@ -4422,6 +4556,7 @@ app.get("/create-prompts",async(req,res)=>{
                     }
 
                   } 
+                  */
                   
              
 
@@ -4430,7 +4565,7 @@ app.get("/create-prompts",async(req,res)=>{
 
                 }
               }catch(err){
-
+                console.log(err)
               }
                 const hint=p.hints
 
@@ -4459,7 +4594,7 @@ app.get("/create-prompts",async(req,res)=>{
       console.log("try")
     }
     };
-  const results=await Problem.find({})
+  const results=await Problem.find({"prompt":null})
           console.log(results.length+" empty prompts")
           var i=0
           results.map((p)=>{

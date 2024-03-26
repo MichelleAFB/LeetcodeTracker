@@ -42,6 +42,25 @@ const userSchema= new mongoose.Schema({
   type:String,
   required:true
 },
+notifications:{
+  type:Array
+},
+allNotifications:{
+  type:Array
+},
+currentGroupChallenge:{
+  type:Object
+},
+groupChallenges:{
+type:Array
+},
+groupChallengeRequests:{
+  type:Array
+},
+hasNewNotifications:{
+  type:Boolean,
+  default:false
+},
   currentChallenge:{
     type:Object,
     default:null
