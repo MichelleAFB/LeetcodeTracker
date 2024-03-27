@@ -1275,10 +1275,80 @@ app.get("/set-group-challenge-current/:userId",async(req,res)=>{
 
 })
 
+function findIndex(arr,e){
+  console.log(arr)
+  var i=0
+  const index=arr.map((a)=>{
+    if(a.userId==e.userId){
+      return i
+    }
+    i++
+  })
+  return index.length>0?index[0]:-1
+}
+
 app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
   const caseString=req.body.case //CREATE_GROUP_CHALLENGE_REQUEST
   const user=req.body.user
   console.log(req.body)
+  if(caseString=="CONTESTANT_GROUP_CHALLENGE_ACCEPTED"){
+    const groupChallenge=req.body.groupChallenge
+    const found=await GroupChallenge.findOne({"challengeId":groupChallenge.challengeId})
+    const contestants=found.selectedContestants
+    var contestant=req.body.user
+    var index=findIndex(contestants,contestant)
+    if(index!=-1){
+      const ids=groupChallenge.selectedContestants.map((c)=>{
+        return c.userId
+       })
+      contestants[index]=contestant
+      setTimeout(async()=>{
+        const update=await GroupChallenge.updateOne({"challengeId":groupChallenge.challengeId},{
+          $set:{"selectedContestants":contestants,"hasAccepted":true}
+        })
+        if(found.allUserIds==null){
+          const update=await GroupChallenge.updateOne({"challengeId":groupChallenge.challengeId},{
+            $set:{"allUserIds":ids}
+          })
+        }
+        console.log(update)
+        if(update.acknowledged){
+          var challenge=await GroupChallenge.findOne({"challengeId":groupChallenge.challengeId})
+
+          res.json({success:true,groupChallenge:challenge})
+        }
+      },100)
+    }
+  }
+  if(caseString=="CONTESTANT_GROUP_CHALLENGE_REJECTED"){
+    const groupChallenge=req.body.groupChallenge
+    const found=await GroupChallenge.findOne({"challengeId":groupChallenge.challengeId})
+    const contestants=found.selectedContestants
+    var contestant=req.body.user
+    var index=findIndex(contestants,contestant)
+    if(index!=-1){
+      const ids=groupChallenge.selectedContestants.map((c)=>{
+        return c.userId
+       })
+      contestants[index]=contestant
+      setTimeout(async()=>{
+        const update=await GroupChallenge.updateOne({"challengeId":groupChallenge.challengeId},{
+          $set:{"selectedContestants":contestants}
+        })
+        if(found.allUserIds==null){
+          const update=await GroupChallenge.updateOne({"challengeId":groupChallenge.challengeId},{
+            $set:{"allUserIds":ids}
+          })
+        }
+        console.log(update)
+        if(update.acknowledged){
+          var challenge=await GroupChallenge.findOne({"challengeId":groupChallenge.challengeId})
+
+          res.json({success:true,groupChallenge:challenge})
+        }
+      },100)
+    }
+  }
   if(caseString=="CREATE_GROUP_CHALLENGE_FOR_CREATOR"){
     const newChallenge=req.body.challenge
 
@@ -1290,6 +1360,9 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
     const curr=new Date()
     const current=new Date(newChallenge.startDate.seconds*1000)<=curr<=new Date(newChallenge.endDate.seconds*1000)
    console.log(current)
+   const ids=newChallenge.selectedContestants.map((c)=>{
+    return c.userId
+   })
      const addNewChallenge=new GroupChallenge({
       challengeId:newChallenge.challengeId,
         userId:user.userId,
@@ -1303,7 +1376,8 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
         passes:newChallenge.passes,
         success:true,
         usedPasses:0,
-        selectedContestants:newChallenge.selectedContestants,  
+        selectedContestants:newChallenge.selectedContestants,
+        allUserIds:ids  
     })
 
     const save=await addNewChallenge.save()

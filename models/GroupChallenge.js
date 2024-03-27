@@ -5,6 +5,13 @@ const groupChallengeSchema= new mongoose.Schema({
     challengeId:{
         type:Number
     },
+    hasAccepted:{
+        type:Boolean,
+        default:false
+    },
+    allUserIds:{
+        type:Array
+    },
   userId:{
     type:String,
     required:true
