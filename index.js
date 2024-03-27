@@ -3843,6 +3843,7 @@ app.get("/generate-titles-function",async(req,res)=>{
   })();
   })
 })
+/*
 app.get("/generate-prompts-function/:page",async(req,res)=>{
   const page=req.params.page
   (async () => {
@@ -3880,7 +3881,7 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
                 const content = p.content;
                 if (content != null) {
                   //console.log(content)
-                  const jsdom = require("jsdom");
+                  //const jsdom = require("jsdom");
                   const { JSDOM } = jsdom;
                   
                   const dom = new JSDOM(
@@ -3945,6 +3946,7 @@ app.get("/generate-prompts-function/:page",async(req,res)=>{
     
 
 })
+*/
 
 app.get("/check",async(req,res)=>{
   const p=await Problem.find({"page":10})
@@ -4254,7 +4256,7 @@ app.get("/graphql",async(req,res)=>{
   });
 
 })
-
+/*
 app.post("/generate-problem-info",async(req,res)=>{
   (async () => {
     const generate = async () => {
@@ -4290,7 +4292,7 @@ app.post("/generate-problem-info",async(req,res)=>{
                 const content = p.content;
                 if (content != null) {
                   //console.log(content)
-                  const jsdom = require("jsdom");
+                  //const jsdom = require("jsdom");
                   const { JSDOM } = jsdom;
                   
                   const dom = new JSDOM(
@@ -4305,7 +4307,7 @@ app.post("/generate-problem-info",async(req,res)=>{
                   if(update.acknowledged){
 
                   }
-                  /*
+                 
                   db.query("update heroku_29594a13b7b8a31.problems set prompt=? where link=?",[dom.window.document.getElementById("body").textContent,r.link],(err,results)=>{
                     if(err){
                       console.log(err)
@@ -4314,7 +4316,7 @@ app.post("/generate-problem-info",async(req,res)=>{
                     }
 
                   })
-                  */
+                  
 
 
            
@@ -4348,6 +4350,7 @@ app.post("/generate-problem-info",async(req,res)=>{
   })();
 
 })
+*/
 function randomNumber(min, max) {
   return Math.random() * (max - min) + min;
 }
@@ -4427,10 +4430,10 @@ function parseHTML(str){
     }
     start++
   }
-}const jsdom=require("jsdom");
+}//const jsdom=require("jsdom");
 const User = require("./models/User");
 const GroupChallenge = require("./models/GroupChallenge");
-const {JSDOM}=jsdom
+/*const {JSDOM}=jsdom
 app.get("/create-prompts",async(req,res)=>{
   (async (r,i) => {
     const generate = async (r) => {
@@ -4528,7 +4531,7 @@ app.get("/create-prompts",async(req,res)=>{
                 //console.log(content)
                 if (content != null && r.prompt==null) {
                   //console.log(content)
-                  const jsdom = require("jsdom");
+                  //const jsdom = require("jsdom");
                   const { JSDOM } = jsdom;
                   
                   const dom = new JSDOM(
@@ -4580,7 +4583,7 @@ app.get("/create-prompts",async(req,res)=>{
               }
               try{
                 const content = p.content;
-                const jsdom = require("jsdom");
+                //const jsdom = require("jsdom");
                 const { JSDOM } = jsdom;
               try{
                 if(content!=null){
@@ -4606,7 +4609,7 @@ app.get("/create-prompts",async(req,res)=>{
               }
                 if (content != null && r.prompt==null) {
                   //console.log(content)
-                  const jsdom = require("jsdom");
+                  //const jsdom = require("jsdom");
                   const { JSDOM } = jsdom;
                   
                   const dom = new JSDOM(
@@ -4630,7 +4633,7 @@ app.get("/create-prompts",async(req,res)=>{
                     }
 
                   } 
-                  */
+                  
                   
              
 
@@ -4692,7 +4695,7 @@ app.get("/create-prompts",async(req,res)=>{
             generate(results[number+2],i)
             generate(results[number+3],i)
             generate(results[number+4],i)
-            generate(results[number+5],i)*/
+            generate(results[number+5],i)
 
 
             setTimeout(()=>{
@@ -4701,7 +4704,7 @@ app.get("/create-prompts",async(req,res)=>{
               /*generate(results[number+4],i)
               generate(results[number+5],i)
                generate(results[number+6],i)
-               generate(results[number+7],i)*/
+               generate(results[number+7],i)
               }catch(err){
                 console.log("caught")
               }
@@ -4728,14 +4731,9 @@ app.get("/create-prompts",async(req,res)=>{
 
 
         
-  })();
-
-
-    
-
-  
+  })(); 
 })
-
+*/
 const apiKey="6LfnTEApAAAAAJjSto6edYwxj4WOTRrnq09NIRfI"
 /*
 async function initiateCaptchaRequest(apiKey) {
@@ -4951,6 +4949,7 @@ const User = require("./models/User");
 
 
 //GOOD
+/*
 app.get("/rate-prompts", (req, res) => {
   (async () => {
     const generate = async (r) => {
@@ -4986,7 +4985,7 @@ app.get("/rate-prompts", (req, res) => {
                 if (content != null) {
                   console.log(content)
                   //console.log(content)
-                  const jsdom = require("jsdom");
+                  //const jsdom = require("jsdom");
                   const { JSDOM } = jsdom;
                   
                   const dom = new JSDOM(
@@ -5004,7 +5003,7 @@ app.get("/rate-prompts", (req, res) => {
                     }
 
                   })
-                  */
+                  
 
            
 
@@ -5033,7 +5032,7 @@ const results=await Problem.find({"prompt":{$exists:false}})
 
   })();
 });
-
+*/
 app.get("/generate-problemIds", (req, res) => {
   (async () => {
     const generate = async (r) => {
