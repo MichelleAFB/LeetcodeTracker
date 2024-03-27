@@ -10,6 +10,10 @@ const StreakGroupSchema= new mongoose.Schema({
   active:{
     type:Boolean,
     default:true
+  },
+  min_questions:{
+    type:Number,
+    default:1
   }
 })
 
