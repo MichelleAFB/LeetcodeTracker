@@ -64,6 +64,15 @@ const groupChallengeSchema= new mongoose.Schema({
   },
   selectedContestants:{
     type: Array
+  },
+  status:{
+    type:String,
+    default:"OPEN"
+
+  },
+  lastUpdated:{
+    type:Date,
+    default:new Date()
   }
 })
 

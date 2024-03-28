@@ -868,7 +868,7 @@ if(streakToday.length==0){
 })
 */
 app.get("/generate-min-questions",async(req,res)=>{
-  
+
 })
 app.post("/add-to-streak",async(req,res)=>{
   console.log("HI")
@@ -908,23 +908,47 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         //check if streak already exist
         var streakExist=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
         streakExist=streakExist[0]
+        var yesterdayStreak=await Streak.findOne({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.body.userId}]})
         if(streakExist!=null){
           console.log("STREAK TODAY EXISTS")
           //add-problem to streak
          console.log("streakExist:"+streakExist)
          if(Object.keys(req.body.problem).includes("problem")){
-          const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
-          {$set:{"min_questions":streakGroup.min_questions==null?streakExist.problems.length:Math.min(streakGroup.min_questions,streakExist.problems.length)}})
+          console.log(streakGroup)
+          if(yesterdayStreak!=null){
+            var streakGroup=await StreakGroup.findOne({$and:[{"_id":yesterdayStreak.group}]})
 
-          const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
-          {$push:{"problems":req.body.problem.problem}})
-          var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
-          res.json({success:true,updatedStreak:updateStreak,streak:streak})
+            console.log("ADDING To GROUP DAYS ARRAY:919")
+            const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+            {$push:{"problems":req.body.problem.problem}})
+            var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
+            const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
+            {$set:{"min_questions":streakGroup.min_questions==null?streak.problems.length:Math.min(streakGroup.min_questions,streak.problems.length)}})
+
+            res.json({success:true,updatedStreak:updateStreak,streak:streak})
+
+          }else{
+            var streakGroup=await StreakGroup.findOne({$and:[{"_id":streakExist.group}]})
+
+            console.log("ADDING To GROUP DAYS ARRAY:919")
+            const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+            {$push:{"problems":req.body.problem.problem}})
+            var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
+            const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
+            {$set:{"min_questions":streakGroup.min_questions==null?streak.problems.length:Math.min(streakGroup.min_questions,streak.problems.length)}})
+
+            res.json({success:true,updatedStreak:updateStreak,streak:streak})
+
+          }
+        
 
          }else if(!Object.keys(req.body.problem).includes("problem")){
           const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$push:{"problems":req.body.problem}})
-          var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
+          var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
+          const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
+          {$set:{"min_questions":streakGroup.min_questions==null?streak.problems.length:Math.min(streakGroup.min_questions,streak.problems.length)}})
+
           res.json({success:true,updatedStreak:updateStreak,streak:streak})
 
          }
@@ -936,8 +960,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           //check if streak can be added to a streak group
           console.log(yesterday.toString().substring(0,15))
           console.log(typeof(req.body.userId))
-          var yesterdayStreak=await Streak.find({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.body.userId}]})
-          yesterdayStreak=yesterdayStreak[0]
+          var yesterdayStreak=await Streak.findOne({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.body.userId}]})
+          yesterdayStreak=yesterdayStreak
           console.log(yesterdayStreak)
           if(yesterdayStreak!=null){
             
@@ -952,8 +976,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   //if streakGroup doesnt have day
               const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
               {$push:{"days":req.body.day}})
+              console.log("ADDING To GROUP DAYS ARRAY:956")
               const updateMin=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
-              {$set:{"min_questions":streakGroup.min_questions==null?yesterdayStreak.problems.length:Math.min(streakGroup.min_questions,yesterdayStreak.problems.length)}})
+              {$set:{"min_questions":streakGroup.min_questions==null?1:Math.min(streakGroup.min_questions,yesterdayStreak.problems.length)}})
               console.log("UPDATING STREAKGROUP:" +streakGroup._ID)
               console.log("CREATE NEW STREAK")
               console.log(updateStreakGroup)
@@ -974,6 +999,11 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 group:streakGroup._id,
                 problems:[req.body.problem]
               })
+              const updateMin=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
+              {$set:{"min_questions":streakGroup.min_questions==null?1:Math.min(streakGroup.min_questions,yesterdayStreak.problems.length)}})
+
+
+              console.log("ADDING STREAK:978")
               const save=await newStreak.save()
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
 
@@ -1009,6 +1039,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                 console.log(update)
                 const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
+                const updateMin=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
+                {$set:{"min_questions":streakGroup.min_questions==null?updatedStreak.problems.length:Math.min(streakGroup.min_questions,updatedStreak.problems.length)}})
+  
                 const updateStreakGroup=await StreakGroup.find({$and:[{"userId":req.body.userId},{"_id":streakGroup._id}]})
                 res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
   
@@ -1027,6 +1060,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               min_questions:1
 
             })
+            console.log("ADDING STREAK:1032")
             const addGroup=await newGroup.save()
             if(!Object.keys(req.body.problem).includes("problem")){
             const newStreak=new Streak({
@@ -1035,6 +1069,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               group:addGroup._id,
               problems:[req.body.problem]
             })
+            console.log("ADDING STREAK:1040")
             const addStreak=newStreak.save()
                         res.json({success:true,streak:newStreak,streakGroup:addGroup})
 
@@ -1045,6 +1080,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               group:addGroup._id,
               problems:[req.body.problem.problem]
             })
+            console.log("ADDING STREAK:1051")
             const addStreak=newStreak.save()
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
 
@@ -1125,6 +1161,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 group:streakGroup._id,
                 problems:[req.body.problem]
               })
+              console.log("ADDING STREAK:1132")
               const save=await newStreak.save()
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
             }else if(streakGroup.problems.includes(req.body.day)){
@@ -1134,6 +1171,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 group:streakGroup._id,
                 problems:[req.body.problem]
                 })
+             
                const save=await newStreak.save()
                res.json({success:true,streak:save,streakGroup:streakGroup})
 
@@ -1148,6 +1186,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               days:[req.body.day]
             })
             const addGroup=await newGroup.save()
+            console.log("ADDING STREAK:1157")
 
             const newStreak=new Streak({
               day:req.body.day,
@@ -1155,6 +1194,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               group:addGroup._id,
               problems:[req.body.problem]
             })
+           
             const addStreak=newStreak.save()
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
             //create new streakgroup and new streak
@@ -1388,6 +1428,7 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
         current: current? true:false,
         passes:newChallenge.passes,
         success:true,
+        lastUpedate:new Date(),
         usedPasses:0,
         selectedContestants:newChallenge.selectedContestants,
         allUserIds:ids  
@@ -1435,6 +1476,40 @@ app.get("/get-user-group-challenges/:userId",async(req,res)=>{
 
 })
 
+app.post("/add-trevor",async(req,res)=>{
+  var trevor={
+    "challengeId": 17946,
+    "userId": "Bq02JQzmhI3lNCKko9BW",
+    "success": true,
+    "passes": "1",
+    "initialPasses": "1",
+    "username": "_trevor.am_",
+    "firstname": "Trevor",
+    "lastname": "Myers",
+    "createdBy": "2322",
+    "approved": true,
+    "dateApproved":new Date(),
+    "denied": false
+}
+  /*
+  const challenge=await GroupChallenge.updateOne({"challengeId":17946},{
+    $push:{"selectedContestants":trevor}
+  })
+  const user=await User.updateOne({"firstname":"Trevor"},{
+    $push:{"groupChallengeRequests":trevor}
+  })
+  console.log(user,challenge)
+  */
+
+})
+
+app.get("/notifications",async(req,res)=>{
+  const d=await User.findOne({"userId":"gs0K9MxVoU8nNDnfkwem"})
+  console.log(d)
+  res.json(d)
+})
+
+//DECLARE Challenge closed at the end, more cost declare streak open at close
 app.get("/get-current-group-challenge/:userId",async(req,res)=>{
   const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { "$in" : [req.params.userId]} }]})
   const currentChallenges=[]
@@ -1442,6 +1517,8 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+  var yesterday=new Date()
+   yesterday=new Date(yesterday.setDate(yesterday.getDate()-1))
   if(all.length>0){
     all.map((a)=>{
       if((new Date(a.startDate)<= curr<= new Date(a.endDate))){
@@ -1458,7 +1535,7 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
           }
         })
         if(approved.includes(true)){
-          console.log("EVERY OTHER CHILD")
+          
             currentChallenges.push(a)  
         }
       }
@@ -1466,40 +1543,347 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
     })
   }
   setTimeout(()=>{
+
     var lastUpdated=new Date()
-    currentChallenges.map((c)=>{
+   
+    currentChallenges.map(async(c)=>{
+     
+     console.log(typeof(yesterday), typeof(new Date(c.endDate)))
+      if(c.userId!=req.params.userId && ((c.startDate <= yesterday <= c.endDate) || (yesterday.toString().substring(0,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
       c.selectedContestants.map(async(s)=>{
         if(s.userId==req.params.userId){
-          console.log("MATCH")
+          
           if(c.lastUpdated==null){
             c.lastUpdated=lastUpdated
           }else{
             var last=new Date(c.lastUpdated)
             if(last.toString().substring(0,15)==curr.toString().substring(0,15)){
+              const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[last.toString().substring(0,15)]}}]})
+              
               //res.json
             }else{
-              if(curr>=last){
-                const yesterdayStreak=await Streak.findOne({"day":last.toString().substring(0,15)})
+              const yesterdayStreak=await Streak.findOne({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.params.userId}]})
+              
+              if(yesterdayStreak!=null){
+                const yesterdayStreakGroup=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[yesterday.toString().substring(0,15)]}}]})
+                if(yesterdayStreakGroup!=null){
+                  
+                    if(!yesterdayStreakGroup.days.includes(c.startDate.toString().substring(0,15)) ){
+                        //update challenge//res.json
+                        console.log("DOES NOT CONTAIN STARTDATE OR ENDDATE")
 
-                if(yesterdayStreak!=null){
-                    console.log("no questions",c.no_questions)
-                    console.log(yesterdayStreak)
-                    const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[last.toString().substring(0,15)]}}]})
+                    }
+                    if(!yesterdayStreakGroup.days.includes(c.endDate.toString().substring(0,15)) && new Date().toString().substring(0,15)!= c.endDate.toString().substring(0,15) && new Date()> c.endDate){
+                      //update cha;;enge res.json
+                      console.log("DOES NOT CONTAIN STARTDATE OR ENDDATE")
+                    }
+                    yesterdayStreakGroup.days.map(async(b)=>{
+                      if(b!=new Date().toString().substring(0,15)){
+                      var day=b.split(" ")
+                      day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
+                      console.log(day)
+                      const streak=await Streak.findOne({$and:[{"userId":req.params.userId},{"day":day.toString().substring(0,15)}]})
+                      if(streak!=null){
+                        if(day.toString().substring(0,15)==c.startDate.toString().substring(0,15)){
+                          if(streak.problems.length<c.no_questions){
+                            console.log("Fail: completed "+streak.problems.length+" required "+c.no_questions+ " on "+day)
+                          }
+                          
+                               
+                        }else if(day.toString().substring(0,15)==c.endDate.toString().substring(0,15)){
+                          if(streak.problems.length<c.no_questions){
+                            console.log("Fail: completed "+streak.problems.length+" required "+c.no_questions+ " on "+day)
+                          }
+                          
+                         
+                        }else if(c.startDate<=day<=c.endDate){
+                          if(streak.problems.length<c.no_questions){
+                            console.log("Fail: completed "+streak.problems.length+" required "+c.no_questions+ " on "+day)
+                          }
+                        }
+                          
+                      }else{
+                        console.log("EXCEPTION:(1563) NO streak exist for day")
+                      }
+                    }
+                      
+                      
 
-                  }else{
-                  //fail the contestant and give them a reanking
+                    })
+
+                }else{
+                  //CASE 2) A) B) IMPOSSIBLE
+                  console.log("EXCEPTION")
+
                 }
+              }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
+                 /**CHALLENGE STARTED TODAY */
+                 //do nothing
               }
+              // last time we check was in the past
+              //1.streak today exists?
+                /**
+                 * CASE 1) today date within challenge range
+                    *
+                  
+                CASE 2) today date NOT within challenge range
+                    *   CASE 2)A) yesterday date within challenge date range
+                              // CASE 2) A) streak yesterday exist
+                                   ///CASE 2) A) A) streak GROUP with yesterday in it exists
+                        *                   1) check if group.day includes challenge startDate
+                                                  CASE 2)A)A)A):group.days includes startDate go on
+                                                  CASE 2)A)A)B):group.days DOES NOT includes startDate 
+                                                      *FAIL UPDATE
+                                            2)CASE 2)A)A)A) today greater than end date and challenge status open
+                                                  CASE 2)A)A)A)A) if group.days includes end
+                                                      #go on
+                                                  CASE 2)A)A)A)B
+                                                      #fail chalenge
+                                            for each day within challenge date range has sufficient number of questions,set the min no_questions
+
+                        *           ///CASE 2) A) B) streak group with yesterday DOES NOT exists(SHOULD BE IMPOSSIBLE)
+                        *      
+                        *          
+
+                              // CASE 2) B) streak yesterday DOES NOT exist
+                                  #fail user 
+                                  ##if all users are checked out set winner
+                        *     
+                          #finalize challenge winners and close status, create variable closed out for challenge
+                    * 
+                    *    CASE 2)B) yesterday date NOT challenge date range(challenge should be closed out IMPOSSIBLE)
+                    *                
+                 */
+          
+
             }
             //streakday=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
           }
         }
       })
+    }else{
+      if(c.userId==req.params.userId && ((c.startDate <= yesterday <= c.endDate) || (yesterday.toString().substring(0,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
+          console.log("HERE")
+
+          if(c.userId==req.params.userId){
+            
+            if(c.lastUpdated==null){
+              c.lastUpdated=lastUpdated
+            }else{
+              var last=new Date(c.lastUpdated)
+              if(last.toString().substring(0,15)==curr.toString().substring(0,15)){
+                const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[last.toString().substring(0,15)]}}]})
+                
+                //res.json
+              }else{
+                const yesterdayStreak=await Streak.findOne({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.params.userId}]})
+                
+                if(yesterdayStreak!=null){
+                  const yesterdayStreakGroup=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[yesterday.toString().substring(0,15)]}}]})
+                  if(yesterdayStreakGroup!=null){
+                    
+                      if(!yesterdayStreakGroup.days.includes(c.startDate.toString().substring(0,15)) ){
+                          //update challenge//res.json
+                          console.log("DOES NOT CONTAIN STARTDATE OR ENDDATE")
+  
+                      }
+                      if(!yesterdayStreakGroup.days.includes(c.endDate.toString().substring(0,15)) && new Date().toString().substring(0,15)!= c.endDate.toString().substring(0,15) && new Date()> c.endDate){
+                        //update cha;;enge res.json
+                        console.log("DOES NOT CONTAIN STARTDATE OR ENDDATE")
+                      }
+                      yesterdayStreakGroup.days.map(async(b)=>{
+                        if(b!=new Date().toString().substring(0,15)){
+                        var day=b.split(" ")
+                        day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
+                     
+                        const streak=await Streak.findOne({$and:[{"userId":req.params.userId},{"day":day.toString().substring(0,15)}]})
+                        if(streak!=null){
+                          if(day.toString().substring(0,15)==c.startDate.toString().substring(0,15)){
+                            console.log("day "+day.toString().substring(0,15)+ " has "+streak.problems.length)
+                            if(streak.problems.length<c.no_questions){
+                              console.log("Fail: completed "+streak.problems.length+" required "+c.no_questions+ " on "+day)
+                            }
+                            
+                                 
+                          }else if(day.toString().substring(0,15)==c.endDate.toString().substring(0,15)){
+                            console.log("day "+day.toString().substring(0,15)+ " has "+streak.problems.length)
+
+                            if(streak.problems.length<c.no_questions){
+                              console.log("Fail: completed "+streak.problems.length+" required "+c.no_questions+ " on "+day)
+                            }
+                            
+                           
+                          }else if(c.startDate<=day<=c.endDate){
+                            console.log("day "+day.toString().substring(0,15)+ " has "+streak.problems.length)
+
+                            if(streak.problems.length<c.no_questions){
+                              console.log("Fail: completed "+streak.problems.length+" required "+c.no_questions+ " on "+day)
+                            }
+                          }
+                            
+                        }else{
+                          console.log("EXCEPTION:(1563) NO streak exist for day")
+                        }
+                      }
+                        
+                        
+  
+                      })
+  
+                  }else{
+                    //CASE 2) A) B) IMPOSSIBLE
+                    console.log("EXCEPTION")
+  
+                  }
+                }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
+                   /**CHALLENGE STARTED TODAY */
+                   //do nothing
+                }
+                // last time we check was in the past
+                //1.streak today exists?
+                  /**
+                   * CASE 1) today date within challenge range
+                      *
+                    
+                  CASE 2) today date NOT within challenge range
+                      *   CASE 2)A) yesterday date within challenge date range
+                                // CASE 2) A) streak yesterday exist
+                                     ///CASE 2) A) A) streak GROUP with yesterday in it exists
+                          *                   1) check if group.day includes challenge startDate
+                                                    CASE 2)A)A)A):group.days includes startDate go on
+                                                    CASE 2)A)A)B):group.days DOES NOT includes startDate 
+                                                        *FAIL UPDATE
+                                              2)CASE 2)A)A)A) today greater than end date and challenge status open
+                                                    CASE 2)A)A)A)A) if group.days includes end
+                                                        #go on
+                                                    CASE 2)A)A)A)B
+                                                        #fail chalenge
+                                              for each day within challenge date range has sufficient number of questions,set the min no_questions
+  
+                          *           ///CASE 2) A) B) streak group with yesterday DOES NOT exists(SHOULD BE IMPOSSIBLE)
+                          *      
+                          *          
+  
+                                // CASE 2) B) streak yesterday DOES NOT exist
+                                    #fail user 
+                                    ##if all users are checked out set winner
+                          *     
+                            #finalize challenge winners and close status, create variable closed out for challenge
+                      * 
+                      *    CASE 2)B) yesterday date NOT challenge date range(challenge should be closed out IMPOSSIBLE)
+                      *                
+                   */
+            
+  
+              }
+              //streakday=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
+            }
+          }
+       
+      }
+    }
     })
     res.json({success:true,length:currentChallenges.length,groupChallenges:currentChallenges})
-  },300)
+  },500)
 
 })
+
+app.post("/update-group-challenge-status/:userId",async(req,res)=>{
+const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { "$in" : [req.params.userId]} }]})
+const currentChallenges=[]
+const curr=new Date()
+var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+"Aug","Sep","Oct","Nov","Dec"];
+var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+if(all.length>0){
+  all.map((a)=>{
+    if((new Date(a.startDate)<= curr<= new Date(a.endDate)) && a.hasAccepted){
+    if(req.params.userId==a.userId){
+      
+        currentChallenges.push(a)
+       
+
+    }else{
+      const approved=a.selectedContestants.map((s)=>{
+        
+        if(s.approved && req.params.userId==s.userId){
+          return true
+        }
+      })
+      if(approved.includes(true)){
+        console.log("EVERY OTHER CHILD")
+          currentChallenges.push(a)  
+      }
+    }
+    }
+  })
+}
+setTimeout(()=>{
+
+  var lastUpdated=new Date()
+ 
+  currentChallenges.map((c)=>{
+   
+    const owner=c.allUserIds.map((c)=>{
+      if(c==req.params.userId){
+        return true
+      }
+    })
+    if(c.userId!=req.params.userId){
+    c.selectedContestants.map(async(s)=>{
+      if(s.userId==req.params.userId){
+        console.log("MATCH")
+        if(c.lastUpdated==null){
+          c.lastUpdated=lastUpdated
+        }else{
+          var last=new Date(c.lastUpdated)
+          if(last.toString().substring(0,15)==curr.toString().substring(0,15)){
+            const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[last.toString().substring(0,15)]}}]})
+            console.log("group:",group)
+            //res.json
+          }else{
+            // last time we check was in the past
+            //1.streak today exists?
+              /**
+               * CASE 1) today date within challenge range
+                  *
+                
+              CASE 2) today date NOT within challenge range
+                  *   CASE 2)A) yesterday date within challenge date range
+                            // CASE 2) A) streak yesterday exist
+                                 ///CASE 2) A) A) streak GROUP with yesterday in it exists
+                      *                   for each day within challenge date range has sufficient number of questions,set the min no_questions
+
+                      *           ///CASE 2) A) B) streak group with yesterday DOES NOT exists(SHOULD BE IMPOSSIBLE)
+                      *      
+                      *          
+
+                            // CASE 2) B) streak yesterday DOES NOT exist
+                                #fail user 
+                                ##if all users are checked out set winner
+                      *     
+                        #finalize challenge winners and close status, create variable closed out for challenge
+                  * 
+                  *    CASE 2)B) yesterday date NOT challenge date range(challenge should be closed out IMPOSSIBLE)
+                  *                
+               */
+          const today=new Date().toString().substring(0,15)
+          const streakToday=await Streak.findOne({$and:[{"userId":req.params.userId},{"day":today}]})
+
+          }
+          //streakday=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
+        }
+      }
+    })
+  }else{
+    console.log("THIS IS OWNER----\n")
+  }
+  })
+  res.json({success:true,length:currentChallenges.length,groupChallenges:currentChallenges})
+},500)
+
+})
+
 
 app.post("/delete-challenge",async(req,res)=>{
   const challenge=req.body.challenge

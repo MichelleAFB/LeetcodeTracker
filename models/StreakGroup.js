@@ -13,7 +13,7 @@ const StreakGroupSchema= new mongoose.Schema({
   },
   min_questions:{
     type:Number,
-    default:1
+    
   }
 })
 
