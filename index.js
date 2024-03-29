@@ -1511,7 +1511,8 @@ app.get("/notifications",async(req,res)=>{
 
 //DECLARE Challenge closed at the end, more cost declare streak open at close
 app.get("/get-current-group-challenge/:userId",async(req,res)=>{
-  const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { "$in" : [req.params.userId]} }]})
+  const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { $in : [req.params.userId]} }]})
+ console.log(all)
   const currentChallenges=[]
   const curr=new Date()
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
@@ -1548,8 +1549,10 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
    
     currentChallenges.map(async(c)=>{
      
-     console.log(typeof(yesterday), typeof(new Date(c.endDate)))
-      if(c.userId!=req.params.userId && ((c.startDate <= yesterday <= c.endDate) || (yesterday.toString().substring(0,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
+     console.log("yesterday:"+yesterday)
+     console.log("start:"+c.startDate)
+     console.log(" end:"+c.endDate)
+      if(c.userId!=req.params.userId && ((c.startDate <= yesterday <= c.endDate) ||(yesterday.toString().substring(0,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
       c.selectedContestants.map(async(s)=>{
         if(s.userId==req.params.userId){
           
@@ -1618,7 +1621,7 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
                 }
               }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
                  /**CHALLENGE STARTED TODAY */
-                 //do nothing
+                 console.log("NO YESTERDAY STREAK")
               }
               // last time we check was in the past
               //1.streak today exists?
