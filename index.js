@@ -921,6 +921,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             console.log("ADDING To GROUP DAYS ARRAY:919")
             const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
             {$push:{"problems":req.body.problem.problem}})
+            const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
             var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
             const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
             {$set:{"min_questions":streakGroup.min_questions==null?streak.problems.length:Math.min(streakGroup.min_questions,streak.problems.length)}})
@@ -933,6 +935,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             console.log("ADDING To GROUP DAYS ARRAY:919")
             const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
             {$push:{"problems":req.body.problem.problem}})
+            const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
             var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
             const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
             {$set:{"min_questions":streakGroup.min_questions==null?streak.problems.length:Math.min(streakGroup.min_questions,streak.problems.length)}})
@@ -945,6 +949,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
          }else if(!Object.keys(req.body.problem).includes("problem")){
           const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$push:{"problems":req.body.problem}})
+          const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
           var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
           const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
           {$set:{"min_questions":streakGroup.min_questions==null?streak.problems.length:Math.min(streakGroup.min_questions,streak.problems.length)}})
@@ -990,7 +996,10 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 group:streakGroup._id,
                 problems:[req.body.problem.problem]
               })
+              
               const save=await newStreak.save()
+              const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
             }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
               const newStreak=new Streak({
@@ -1005,6 +1014,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
               console.log("ADDING STREAK:978")
               const save=await newStreak.save()
+              const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
 
             }
@@ -1027,6 +1038,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 
                 console.log(update)
                 const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
+                const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
                 const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
                 {$set:{"min_questions":streakGroup.min_questions==null?streakExist.problems.length:Math.min(streakGroup.min_questions,streakExist.problems.length)}})
       
@@ -1037,6 +1050,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 const update=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":req.body.day}]},{
                   $push:{"problems":req.body.problem}
                 })
+                const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
                 console.log(update)
                 const updatedStreak=await Streak.find({$and:[{"userId":req.body.userId},{"day":req.body.day}]})
                 const updateMin=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
@@ -1082,6 +1097,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             })
             console.log("ADDING STREAK:1051")
             const addStreak=newStreak.save()
+
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
 
           }
@@ -1133,6 +1149,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           console.log("streakExist:"+streakExist)
           const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$push:{"problems":req.body.problem}})
+          const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
           var streak=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
           res.json({success:true,updatedStreak:updateStreak,streak:streak})
 
@@ -1163,6 +1181,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               })
               console.log("ADDING STREAK:1132")
               const save=await newStreak.save()
+              const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
             }else if(streakGroup.problems.includes(req.body.day)){
                 const newStreak=new Streak({
@@ -1196,6 +1216,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             })
            
             const addStreak=newStreak.save()
+            const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          {$set:{"timeLastAdded":new Date()}})
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
             //create new streakgroup and new streak
           }
@@ -1512,7 +1534,7 @@ app.get("/notifications",async(req,res)=>{
 //DECLARE Challenge closed at the end, more cost declare streak open at close
 app.get("/get-current-group-challenge/:userId",async(req,res)=>{
   const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { $in : [req.params.userId]} }]})
- console.log(all)
+ console.log("challenge length:"+all.length)
   const currentChallenges=[]
   const curr=new Date()
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
@@ -1553,6 +1575,7 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
      console.log("start:"+c.startDate)
      console.log(" end:"+c.endDate)
       if(c.userId!=req.params.userId && ((c.startDate <= yesterday <= c.endDate) ||(yesterday.toString().substring(0,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
+        console.log("CONTESTANT")
       c.selectedContestants.map(async(s)=>{
         if(s.userId==req.params.userId){
           
@@ -1622,6 +1645,10 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
               }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
                  /**CHALLENGE STARTED TODAY */
                  console.log("NO YESTERDAY STREAK")
+              }else{
+                console.log("No Streak from yesterday FAIL")
+                const updatedS=s
+                console.log(s)
               }
               // last time we check was in the past
               //1.streak today exists?
@@ -1665,8 +1692,8 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
         }
       })
     }else{
-      if(c.userId==req.params.userId && ((c.startDate <= yesterday <= c.endDate) || (yesterday.toString().substring(0,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
-          console.log("HERE")
+      if(c.userId==req.params.userId && ((c.startDate <= yesterday <= c.endDate) || (yesterday.toString().substring(80,15)== c.endDate.toString().substring(0,15)) || (yesterday.toString().substring(0,15)== c.startDate.toString().substring(0,15)))){
+          console.log("CONTESTANT")
 
           if(c.userId==req.params.userId){
             
@@ -1741,6 +1768,9 @@ app.get("/get-current-group-challenge/:userId",async(req,res)=>{
                 }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
                    /**CHALLENGE STARTED TODAY */
                    //do nothing
+                   console.log("NO STREAK")
+                }else{
+                  console.log("NO STREAK FROM YESTERDAY FAIL")
                 }
                 // last time we check was in the past
                 //1.streak today exists?
