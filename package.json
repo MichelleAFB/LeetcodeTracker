@@ -142,6 +142,7 @@
     "gaxios": "^5.0.1",
     "gcp-metadata": "^5.0.0",
     "generate-function": "^2.3.1",
+    "geo-tz": "^8.0.2",
     "get-intrinsic": "^1.1.2",
     "get-stream": "^5.2.0",
     "get-uri": "^3.0.2",

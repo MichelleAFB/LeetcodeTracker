@@ -28,6 +28,9 @@ const groupChallengeSchema= new mongoose.Schema({
     type:Date,
     required:true
   },
+  userStats:{
+    type:Object,
+  },
   no_questions:{
     type:Number,
     required:true,

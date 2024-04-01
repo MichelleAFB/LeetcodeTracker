@@ -22,6 +22,7 @@ const StreakSchema= new mongoose.Schema({
     type:Date,
     default:new Date()
   }
+  
 })
 
 const Streak=mongoose.model("Streak",StreakSchema)
