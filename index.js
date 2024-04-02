@@ -2501,6 +2501,10 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   curr.setDate(curr.getDate()- 1)
                 }
                 if(curr<g.startDate || curr.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
+                  const user=await User.findOne({"userId":streak.userId})
+                  streak.username=user.username
+                  streak.firstname=user.firstname
+                  streak.lastname=user.lastname
                   streaks.push({day:valid,streak:streak})
                   allStreaks.push({streaks:streaks,challenge:g})
                  
