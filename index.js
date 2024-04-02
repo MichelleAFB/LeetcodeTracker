@@ -1311,14 +1311,13 @@ app.get("/save-trevor-problem",async(req,res)=>{
   res.json(streak)
 })
 app.post("/fix-time-last",async(req,res)=>{
-  const { find } = require('geo-tz')
 
   const streaks=await Streak.find({timeLastAdded:{$ne:null}})
   console.log(streaks)
   const curr=new Date()
   console.log(req.body)
 
-  
+  /*
   streaks.map(async(s)=>{
     
     if(s.timeLastAdded!=null){
@@ -1354,6 +1353,7 @@ app.post("/fix-time-last",async(req,res)=>{
       }
     }
   })
+  */
 })
 app.post("/create-new-challenge",async(req,res)=>{
 
@@ -1754,12 +1754,12 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
           if(new Date().toString().substring(0,15)!=date.toString().substring(0,15)){
           if(streak==null){
 
-          allStreak[user.userId]={userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]!=null?c.selectedContestants[m]:null}
+          allStreak[user.userId]={approved:user.approved,userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]!=null?c.selectedContestants[m]:null}
           }else if(streak.problems.length<c.no_questions){
             allStreak[user.userId]={userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]}
           }
           else{
-            allStreak[user.userId]={userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]}
+            allStreak[user.userId]={approved:user.approved,userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]}
           }
         }
         
@@ -1782,25 +1782,8 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
   },3000)
 })
 
-app.get("/add-user-stats",async(req,res)=>{
-  const groups=await GroupChallenge.find({})
-  groups.map(async(g)=>{
-    const user=await User.findOne({"userId":g.userId})
-    const stats={
-      passes:g.passes,
-      username:user.username,
-      firstname:user.firstname,
-      lastname:user.lastname,
-      approved:true,
-      challengeId:g.challengeId,
-      success:true
-    }
-    const update=await GroupChallenge.updateOne({"challengeId":g.challengeId},{
-      $set:{"userStats":stats}
-    })
-    console.log(update)
-  })
-})
+
+
 
 app.post("/organize-group-challenges/:userId", async(req,res)=>{
   const allFailure=[]
@@ -1810,10 +1793,13 @@ app.post("/organize-group-challenges/:userId", async(req,res)=>{
       const failures=[]
       //console.log(Object.keys(c))
       const group=await GroupChallenge.findOne({"challengeId":c.challengeId})
+      var index=0 
+   
+      if(group.lastUpdated==null || group.lastUpdated.toString().substring(0,15)!= new Date().toString().substring(0,15)){
       Object.keys(c.users).forEach(async(key,index)=>{
         const currUser=c.users[key]
         if(currUser.hasStreak){
-          if(currUser.streak.problems.length<c.no_questions && new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
+          if(currUser.approved && currUser.streak.problems.length<c.no_questions && new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
             console.log(currUser.day.toString().substring(0,15)+":"+currUser.firstname+" FAILS  for "+c.title)
             
             failures.push(currUser)
@@ -1821,84 +1807,179 @@ app.post("/organize-group-challenges/:userId", async(req,res)=>{
             
           }
         }else{
-          if( new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
+          if(currUser.approved && new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
           console.log(currUser.day.toString().substring(0,15)+":"+currUser.firstname+" FAILS  for "+c.title)
           failures.push(currUser)
           }
         }
-        if(index==c.allUserIds.length-1 && failures.length>1){
-          const firstLoser=await findFirstLoser(failures,group)
-          console.log("first:",firstLoser)
+       
+        if(index==c.allUserIds.length-1){
+          if(failures.length>1){
+           
+            console.log("first:",firstLoser)
+            
+           
+              while(failures.length>0){
+                const firstLoser=await findFirstLoser(failures,group)
 
-          if(firstLoser!=null){
-          if(firstLoser.userId!=req.params.userId ){
+               if(firstLoser!=null){
+                console.log("length:",failures.length)
+
+                var i=0
+                failures.map((f)=>{
+                  if(f.userId==firstLoser.userId){
+                   console.log("spliced:",failures.splice(i,1))
+                  }else{
+                    return f
+                  }
+                  i++
+                }) 
+                if(firstLoser.userId!=req.params.userId ){
+                  const changeIndex=findContestantIndex(group.selectedContestants,firstLoser)
+                  if(changeIndex!=-1){
+                   group.selectedContestants[changeIndex].success=false
+                    if(group.selectedContestants[changeIndex].passes==0){
+                      group.selectedContestants[changeIndex].success=false
+                      group.selectedContestants[changeIndex].dateFailed=new Date()
+                      const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                        "includesFailure":true,
+                        "selectedContestants":group.selectedContestants,
+                        "lastUpdated":new Date()
+                      })
+                    }else{
+                      group.selectedContestants[changeIndex].passes--
+                      const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                        "selectedContestants":group.selectedContestants,
+                        "lastUpdated":new Date()
+                      })
+                      
+                    }
+                  }
+      
+                }else{
+
+                console.log("CHANGE OWNER SIZE GREATER TAHN 1")
+                
+                 // console.log(group.userStats)
+                  var stats=group.userStats
+                  if(stats.passes==0){
+                    group.includesFailure=true
+                    stats.success=false
+                    stats.dateFailed=new Date()
+                    group.userStats=stats
+                    const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                      "includesFailure":true,
+                      "userStats":stats,
+                      "lastUpdated":new Date()
+                    })
+                  }else{
+                    stats.passes--
+                    group.userStats=stats 
+                    const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                  
+                      "userStats":group.userStats,
+                      "lastUpdated":new Date()
+                    })
+                             
+                  }
+                }
+                
+         
+              }else{
+                console.log("EXCEPTION: failures"+failures.length)
+                break;
+              }
+            }
+              
+      
+          }else if(failures.length==1){
+            
+           
+           
+            
+            //console.log("first:",firstLoser)
+           
+             while(failures.length>0){
+              const firstLoser=failures[0]
+                if(firstLoser!=null){
+              console.log("length:",failures.length)
+              var i=0
+              failures.map((f)=>{
+                if(f.userId==firstLoser.userId){
+                  console.log("spliced:",failures.splice(i,1))
+                }else{
+                  return f
+                } 
+                i++
+              })
+              console.log("length:",failures.length)
+            if(req.params.userId!=firstLoser.userId){
             const changeIndex=findContestantIndex(group.selectedContestants,firstLoser)
             if(changeIndex!=-1){
-             group.selectedContestants[changeIndex].success=false
-             console.log("CHANGED",group.selectedContestants[changeIndex])
-            }
+             
+  
+              if(group.selectedContestants[changeIndex].passes==0){
+                group.includesFailure=true
 
-          }else{
-          //group.selectedContestants[changeIndex].success=false
-           console.log("CHANGE OWNER")
+              group.selectedContestants[changeIndex].success=false
+              group.selectedContestants[changeIndex].dateFailed=new Date()
+              const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                "includesFailure":true,
+                "selectedContestants":group.selectedContestants,
+                "lastUpdated":new Date()
+              })
+              }else{
+                group.selectedContestants[changeIndex].passes--
+                const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                  "selectedContestants":group.selectedContestants,
+                  "lastUpdated":new Date()
+                })
+  
+  
+              }
+            }
+            }else{
+              console.log("CHANGE OWNER SIZE 1")
+              //console.log(group.userStats)
+              var stats=group.userStats
+              if(stats.passes==0){
+                stats.success=false
+                stats.dateFailed=new Date()
+                group.userStats=stats
+                const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                  "includesFailure":true,
+                  "userStats":stats,
+                  "lastUpdated":new Date()
+                })
+
+              }else{
+                stats.passes--
+                group.userStats=stats
+                const update=await GroupChallenge.updateOne({"challengeId":group.challengeId},{
+                  "userStats":stats,
+                  "lastUpdated":new Date()
+                })
+                
+              }
+
+            }
           
-            console.log(group.userStats)
-            var stats=group.userStats
-            if(stats.passes==0){
-              stats.success=false
-              stats.dateFailed=new Date()
             }else{
-              stats.passes--
-              
-            }
-           
-
-          }
-        }else{
-          console.log("EXCEPTION")
-        }
-        }else if(index==c.allUserIds.length-1 && failures.length==1){
-          const firstLoser=await findFirstLoser(failures,group)
-          console.log("first:",firstLoser)
-          if(firstLoser!=null){
-          if(req.params.userId!=firstLoser.userId){
-          const changeIndex=findContestantIndex(group.selectedContestants,firstLoser)
-          if(changeIndex!=-1){
-            console.log("CHANGINDEX:",changeIndex)
-
-            if(group.selectedContestants[changeIndex].passes==0){
-            group.selectedContestants[changeIndex].success=false
-            group.selectedContestants[changeIndex].dateFailed=new Date()
-            }else{
-              group.selectedContestants[changeIndex].passes--
-
-
+              console.log("EXCEPTION: failures "+failures.length)
+              break
             }
           }
-          }else{
-            console.log("CHANGE OWNER")
-            console.log(group.userStats)
-            var stats=group.userStats
-            if(stats.passes==0){
-              stats.success=false
-              stats.dateFailed=new Date()
-              group.userStats=stats
-            }else{
-              stats.passes--
-              group.userStats=stats
-              
-            }
-
-
-            //change
-
+          
           }
-        }else{
-          console.log("EXCEPTION")
         }
-        }
+        
+     
+        index++
+       
+  
       
       })
+    }
       
     })
   })
@@ -1908,9 +1989,7 @@ function coinFlip(min, max) {
   var a=Math.floor(Math.random() * (max - min) + min);
   return a/*>1? 1:0*/
 }
-console.log(coinFlip(0,2))
-console.log(coinFlip(0,2))
-console.log(coinFlip(0,2))
+
 
  async function findFirstLoser(failures,groupChallenge){
   const firstLoser=failures.reduce(async(a,b)=> {
@@ -1971,6 +2050,23 @@ console.log(coinFlip(0,2))
   })
   return firstLoser
 }
+/**if s in names and s!=d.get("Name"):
+						 	 	  #print(names.index(s))
+						 	 	  if "XIC" in text or "XIC" in comment:
+						 	 	  	  print(comment)
+							 	 	  index=names.index(s)
+							 	 	  data.append({"element":d.get("Name"),"usedBy":s}) 
+                    
+                    	 for s in str:
+						 	 s=s.replace("-","_")
+						 	 v=None
+						 	 if s in names and s!=d.get("Name"):
+						 	 	  #print(names.index(s))
+						 	 	  if "XIC" in text or "XIC" in comment:
+						 	 	  	  print(comment)
+							 	 	  index=names.index(s)
+							 	 	  data.append({"element":d.get("Name"),"usedBy":s})*/
+/*
 app.post("/get-current-group-challenge/:userId",async(req,res)=>{
   const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { $in : [req.params.userId]} }]})
   const other=await GroupChallenge.find({ allUserIds: { $in : [req.params.userId]} })
@@ -2142,7 +2238,7 @@ if(req.body.others){
   
                   }
                 }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
-                   /**CHALLENGE STARTED TODAY */
+                 
                    console.log("NO YESTERDAY STREAK")
                 }else{
                   console.log("Fail completed 0 required "+c.no_questions+ " on "+day.toString().substring(0,15)+" for CHALLENGE, "+c.title + " for "+user.firstname)
@@ -2223,6 +2319,7 @@ if(req.body.others){
 
 
 }
+
   if(req.body.mine){
     setTimeout(()=>{
       console.log("OWNER")
@@ -2308,7 +2405,7 @@ if(req.body.others){
     
                     }
                   }else if( new Date().toString().substring(0,15)==c.startDate.toString().substring(0,15)){
-                     /**CHALLENGE STARTED TODAY */
+                     
                      //do nothing
                      console.log("NO STREAK")
                   }else{
@@ -2327,6 +2424,289 @@ if(req.body.others){
   }
  
 
+})
+*/
+app.get("/get-all-group-challenges/:userId",async(req,res)=>{
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+"Aug","Sep","Oct","Nov","Dec"];
+var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+  const groups=await GroupChallenge.find({$or:[{"userId":req.params.userId},{"allUserIds":{$in:[req.params.userId]}}]})
+  var index=0
+ const allStreaks=[]
+  groups.map(async(g)=>{
+    
+    var startDate=new Date(g.startDate)
+   
+    var stopDate=new Date(g.startDate)
+    stopDate.setDate(stopDate.getDate()-1)
+  
+
+  
+    const streaks=[]
+    var found=false
+    const contestant=g.selectedContestants.map((c)=>{
+      if(c.userId==req.params.userId && c.approved){
+        return true
+      }
+    })
+    const owner=g.userId==req.params.userId? true:false
+     
+
+    if(owner || contestant.includes(true)){
+      var curr=new Date(g.endDate.setDate(g.endDate.getDate()))
+      curr=new Date(curr)
+    while(curr>=stopDate && curr.toString().substring(0,15)!=stopDate.toString().substring(0,15) ){
+       
+          var i=0 
+          const others=g.allUserIds.filter((f)=>{
+            if(f!=req.params.userId){
+              return f
+            }
+          })
+          others.push(g.userId)
+          others.filter((f)=>{
+            if(f!=null){
+              return f
+            }
+          })
+          console.log(others)
+
+
+          const streakGroup=await StreakGroup.findOne({$and:[{$in:[curr.toString().substring(0,15)]},{"userId":req.params.userId}]})
+         
+          if(streakGroup!=null ){ 
+            //console.log(streakGroup)
+            for(var i=streakGroup.days.length-1;i>=0;i--){
+              var d=streakGroup.days[i]
+              var streakday=d.split(" ")
+              var valid=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
+              console.log(valid)
+              if(valid>stopDate){
+              curr=new Date(valid.toString().split(" ")[3],monthnum[months.indexOf(valid.toString().split(" ")[1])-1],valid.toString().split(" ")[2])
+
+                const streak=await Streak.findOne({$and:[{"userId":req.params.userId},{"day":curr.toString().substring(0,15)}]})
+                
+              if(streak!=null){
+           
+               
+                var already=streaks.map((s)=>{
+                  if(s.day==curr.toString().substring(0,15)){
+                    return true
+                  }
+                })
+            
+                if(!already.includes(true)){
+                  streaks.push({day:valid,streak:streak})
+                  
+                  curr.setDate(curr.getDate()- 1)
+                }
+                if(curr<g.startDate || curr.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
+                  streaks.push({day:valid,streak:streak})
+                  allStreaks.push({streaks:streaks,challenge:g})
+                 
+                  found=true
+                  curr=stopDate
+                  curr.setDate(curr.getDate()- 1)
+                }else{
+                  curr.setDate(curr.getDate()- 1)
+                }
+              }else{
+               
+                curr.setDate(curr.getDate()- 1)
+                if(curr<g.startDate || curr.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
+                
+                  curr=stopDate
+                }
+              }
+            
+          }
+            }
+          }else{
+            curr.setDate(curr.getDate()- 1)
+
+          }
+        } 
+    }
+  
+  
+  })
+  setTimeout(()=>{
+
+     res.json({length:allStreaks.length,success:true,challenges:allStreaks}) 
+  },700)
+})
+app.post("/get-others-group-challenge/:userId",async(req,res)=>{
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+  "Aug","Sep","Oct","Nov","Dec"];
+  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+    const groups=await GroupChallenge.find({$or:[{"userId":req.params.userId},{"allUserIds":{$in:[req.params.userId]}}]})
+    var index=0
+   const allStreaks=[]
+    groups.map(async(g)=>{
+      
+      var startDate=new Date(g.startDate)
+   
+      var stopDate=new Date(g.startDate)
+      stopDate.setDate(stopDate.getDate()-1)
+      console.log("START:"+stopDate.toString())
+      
+  
+    
+      const streaks=[]
+      var found=false 
+      const contestant=g.selectedContestants.map((c)=>{
+        if(c.userId==req.params.userId && c.approved){
+          return true
+        }
+      })
+      const owner=g.userId==req.params.userId? true:false
+       
+  
+      if(owner || contestant.includes(true)){
+        var curr=new Date(g.endDate.setDate(g.endDate.getDate()))
+        curr=new Date(curr)
+        console.log(curr.toString())
+      while(curr>=stopDate && curr.toString().substring(0,15)!=stopDate.toString().substring(0,15) && found==false){
+         
+            var i=0 
+            const others=g.allUserIds.filter((f)=>{
+              if(f!=req.params.userId){
+                return f
+              }
+            })
+            
+            others.filter((f)=>{
+              if(f!=null){
+                return f
+              }
+            }) 
+           // console.log(curr)
+            var j=0
+  while(j<others.length  ){
+    var o=others[j]
+    //console.log(o)
+    const streakGroup=await StreakGroup.findOne({$and:[{"days":{$in:[curr.toString().substring(0,15)]}},{"userId":o}]})
+ 
+    if(streakGroup!=null ){ 
+      
+      var i=streakGroup.days.length-1
+      while(i>=0 && curr>stopDate){ 
+        d=streakGroup.days[i]
+        var streakday=d.split(" ")
+       var valid=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
+       // console.log("valid:"+valid.toString().substring(0,15),"   |   stop:"+stopDate.toString())
+        //console.log(valid> stopDate)  
+        console.log(valid, stopDate)  
+        if(valid>stopDate){  
+        console.log(valid, stopDate)    
+     
+          //curr=new Date(valid.toString().split(" ")[3],monthnum[months.indexOf(valid.toString().split(" ")[1])-1],valid.toString().split(" ")[2])
+
+          const streak=await Streak.findOne({$and:[{"userId":o},{"day":valid.toString().substring(0,15)}]})
+         
+       // console.log(typeof(valid),typeof(stopDate))
+        if(streak!=null && valid>stopDate){
+          const user=await User.findOne({"userId":streak.userId})
+          streak.username=user.username
+          streak.firstname=user.firstname
+          streak.lastname=user.lastname
+          console.log("other:",streak.day,"|"+valid.toString().substring(0,15),"stop:"+stopDate.toString().substring(0,15))
+            streaks.push({day:valid,streak:streak})
+           
+          if(i==0 || valid<g.startDate || valid.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
+             
+
+            allStreaks.push({streaks:streaks,challenge:g})
+          
+            found=true 
+            console.log("BREAK\n\n")
+            break
+          }else{
+            
+          }
+        }else{  
+        } 
+    }else{
+      break
+    }
+   i--
+      }
+    }else{
+      break
+    }
+    if(j>=others.length-1){
+      try{
+        res.json({challenges:allStreaks,success:true})
+       break
+      }catch(err){
+
+      }
+   
+    }
+    j++
+   
+  }
+  }
+      }
+    })
+
+})
+app.post("/sort-group-challenges/:userId",async(req,res)=>{
+  const allStreaks=[]
+  axios.get("http://localhost:3022/get-all-group-challenges/"+req.params.userId).then((response)=>{
+    axios.post("http://localhost:3022/get-others-group-challenge/"+req.params.userId).then((response1)=>{
+    var index=0
+    const already=[]
+    const AlreadyUser=[]
+    console.log(response.data.length)
+    console.log(response1.data.challenges.length)
+    var challenges=response.data.challenges
+    challenges=challenges.concat(response1.data.challenges)
+    console.log("NEW"+challenges.length)
+    while(index<challenges.length){
+      console.log("INDEX:"+index)
+      response.data.challenges.concat
+    challenges.map((g)=>{
+     console.log(response.data.challenges.length)
+      var i=0
+      const currStreaks=[]
+      var startDate=new Date(g.challenge.startDate)
+      var stopDate=new Date(startDate.setDate(startDate.getDate()-1))
+        stopDate=new Date(stopDate.getDate()-1)
+      g.streaks.map((s)=>{
+        var found=already.map((f)=>{
+          console.log(f.userId,f.day)
+          if(f.day==s.day && f.userId==s.streak.userId){
+            return true
+          }
+        })
+       
+        
+        if(!found.includes(true) && g.startDate<=new Date(s.day)<=stopDate){
+          console.log("\n",s.day.toString(),"         ",s.streak.userId)
+            already.push({day:s.day,userId:s.streak.userId})
+           
+            currStreaks.push(s)
+        }
+        if(i==g.streaks.length-1 && currStreaks.length>0){
+          allStreaks.push({challenge:g.challenge,streaks:currStreaks})
+        }
+        i++
+      
+      })
+      if(index==challenges.length-1){
+        res.json({length:allStreaks.length,success:true,challenges:allStreaks})
+      }
+      index++
+    })
+  }
+    setTimeout(()=>{
+      console.log(index)
+   
+      
+    },800)
+  })
+  })
 })
 
 app.post("/update-group-challenge-status/:userId",async(req,res)=>{
@@ -5811,7 +6191,7 @@ app.post("/add-user-execution-time",async(req,res)=>{
   const user=req.body.user
 })
 */
-
+/*
 function find(s,prefix, suffix) {
 	var i = s.indexOf(prefix);
 	if (i >= 0) {
@@ -5826,11 +6206,13 @@ function find(s,prefix, suffix) {
 			s = s.substring(0, i);
 		}
 		else {
-		  return '';G2547
+		  return '';
 		}
 	}
 	return s;
 };
+*/
+
 
 
 

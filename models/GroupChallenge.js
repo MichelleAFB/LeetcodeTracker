@@ -76,6 +76,10 @@ const groupChallengeSchema= new mongoose.Schema({
   lastUpdated:{
     type:Date,
     default:new Date()
+  },
+  includesFailure:{
+    type:Boolean,
+    default:false
   }
 })
 
