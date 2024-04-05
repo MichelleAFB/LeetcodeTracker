@@ -50,7 +50,7 @@ const groupChallengeSchema= new mongoose.Schema({
     type:Number,
     default:0
   },
-  intialPasses:{
+  initialPasses:{
     type:Number,
     default:0
   },
@@ -80,6 +80,9 @@ const groupChallengeSchema= new mongoose.Schema({
   includesFailure:{
     type:Boolean,
     default:false
+  },
+  createdBy:{
+    type:String
   }
 })
 

@@ -1,4 +1,13 @@
 import  xml.etree.ElementTree as ET
+
+
+from exchange.writeAllTripDescriptions.parseTripDescriptions import __parse
+from exchange.writeOneTripDescription.findTripsForTag import __findTripsForTag
+
+filePath="C:\Users\michelle.badu\Documents\Studio 5000\Projects\ParseTags\EquipShutdowns.xml"
+destination="[AutumnHills]Sandbox"
+elements=__parse("C:\Users\michelle.badu\Documents\Studio 5000\Projects\ParseTags\EquipShutdowns.xml")
+e=elements[0]
 print("hi")
 def __parse():
 	print("\n\n\n\n")

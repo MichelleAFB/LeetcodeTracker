@@ -1481,13 +1481,27 @@ function findIndex(arr,e){
   return index.length>0?index[0]:-1
 }
 
+app.get("/createdBy",async(req,res)=>{
+  const groups=await GroupChallenge.find({})
+
+  groups.map(async(g)=>{
+    console.log(g.initialPasses)
+    console.log(g.passes)
+    console.log(g.userId)
+    const up=await GroupChallenge.updateOne({"challengeId":g.challengeId},{
+      $set:{"createdBy":g.userId,"initialPasses":g.passes}
+    })
+    console.log(up)
+
+  })
+})
 app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
   const caseString=req.body.case //CREATE_GROUP_CHALLENGE_REQUEST
   const user=req.body.user
   console.log(req.body)
   if(caseString=="CONTESTANT_GROUP_CHALLENGE_ACCEPTED"){
     const groupChallenge=req.body.groupChallenge
-    const found=await GroupChallenge.findOne({"challengeId":groupChallenge.challengeId})
+    const found=await GroupChallenge.findOne({$and:[{"challengeId":groupChallenge.challengeId},{"createdBy":req.body.createdBy}]})
     const contestants=found.selectedContestants
     var contestant=req.body.user
     var index=findIndex(contestants,contestant)
@@ -1496,6 +1510,39 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
         return c.userId
        })
       contestants[index]=contestant
+      const curr=new Date()
+    const current=new Date(found.startDate.seconds*1000)<=curr<=new Date(found.endDate.seconds*1000)
+   console.log(current)
+ 
+      const addNewChallenge=new GroupChallenge({
+        challengeId:found.challengeId,
+          userId:user.userId,
+          createdBy:req.body.createdBy,
+          userStats:{
+            passes:found.initialPasses,
+            username:user.username,
+            firstname:user.firstname,
+            lastname:user.lastname,
+            approved:true,
+            challengeId:found.challengeId,
+            success:true
+          },
+          title:found.title,
+          no_questions:found.no_questions,
+          startDate:new Date(found.startDate),
+          endDate:new Date(found.endDate),
+          length:found.length,
+          initialPasses:found.initialPasses,
+          current: current? true:false,
+          passes:found.passes,
+          success:true,
+          lastUpdated:new Date(),
+          usedPasses:0,
+          selectedContestants:found.selectedContestants,
+          allUserIds:ids  
+      })
+      const save=await addNewChallenge.save()
+      console.log(save)
       setTimeout(async()=>{
         const update=await GroupChallenge.updateOne({"challengeId":groupChallenge.challengeId},{
           $set:{"selectedContestants":contestants,"hasAccepted":true}
@@ -1569,6 +1616,7 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
           challengeId:newChallenge.challengeId,
           success:true
         },
+        createdBy:req.body.createdBy,
         title:newChallenge.title,
         no_questions:newChallenge.no_questions,
         startDate:new Date(newChallenge.startDate),
@@ -1578,7 +1626,7 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
         current: current? true:false,
         passes:newChallenge.passes,
         success:true,
-        lastUpedate:new Date(),
+        lastUpdated:new Date(),
         usedPasses:0,
         selectedContestants:newChallenge.selectedContestants,
         allUserIds:ids  
@@ -1726,7 +1774,7 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
     var startDate=c.startDate
     var endDate=c.endDate
     var end=c.endDate
-    var date=startDate
+    var date=new Date(startDate)
    date= date.toString().substring(0,15)
    date=date.split(" ")
    date=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
@@ -1735,14 +1783,13 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
    stopDate=new Date(stopDate.setDate(end.getDate()+1))
 
    
-   
-   
+   console.log("DATE:"+date.toString())
    var curr=new Date()
 
    c.allUserIds.push(req.params.userId)  
 
     while(curr.toString().substring(0,15)!=date.toString().substring(0,15) && date<curr && date<stopDate && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)){
-     // console.log("\n\n",c.title,date.toString().substring(0,15))
+      console.log("\n\n",date.toString().substring(0,15),curr.toString().substring(0,15))
       const userStreak=await Streak.findOne({$and:[{"userId":req.params.userId},{"day":date.toString().substring(0,15)}]})
       const user=await User.find({"userId":req.params.userId})
       var allStreak={}
@@ -1750,23 +1797,30 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
         const user=await User.findOne({"userId":u})
         const streak=await Streak.findOne({$and:[{"userId":u},{"day":date.toString().substring(0,15)}]})
          const m= findContestantIndex(c.selectedContestants,{userId:u})
-          
-          if(new Date().toString().substring(0,15)!=date.toString().substring(0,15)){
+        
+          if(new Date().toString().substring(0,15)!=date.toString().substring(0,15) && c.selectedContestants[m]!=null  ){
           if(streak==null){
 
           allStreak[user.userId]={approved:user.approved,userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]!=null?c.selectedContestants[m]:null}
-          }else if(streak.problems.length<c.no_questions){
+          
+        }else if(streak.problems.length<c.no_questions){
             allStreak[user.userId]={userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]}
           }
           else{
             allStreak[user.userId]={approved:user.approved,userId:user.userId,firstname:user.firstname,lastname:user.lastname,hasStreak:streak!=null? true:false, streak:streak,day:date,member:c.selectedContestants[m]}
+          
           }
         }
         
-          
-        if(Object.keys(allStreak).length==c.allUserIds.length){
+         // console.log("contestant:",allStreak[user.userId])
+         console.log(Object.keys(allStreak).length,c.allUserIds.length)
+      
+
+       
+        if(Object.keys(allStreak).length==c.allUserIds.length-1){
           allUsers.push({title:c.title,challengeId:c.challengeId,no_questions:c.no_questions,initial_passes:c.passes,allUserIds:c.allUserIds,title:c.title,challenge:c,users:allStreak,member:c.selectedContestants[m]!=null?c.selectedContestants[m]:null})
         }
+  
 
       })
       
@@ -1779,7 +1833,7 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
 
   setTimeout(()=>{
     res.json(allUsers)
-  },3000)
+  },1000)
 })
 
 
@@ -1787,19 +1841,23 @@ app.post("/update-group-challenge-for-user/:userId",async(req,res)=>{
 
 app.post("/organize-group-challenges/:userId", async(req,res)=>{
   const allFailure=[]
+  
   axios.post("http://localhost:3022/update-group-challenge-for-user/"+req.params.userId).then((response)=>{
+    console.log("GOT IT")
     response.data.map(async(c)=>{
       const challenge=await Challenge.findOne({"challengeId":c.challengeId})
       const failures=[]
       //console.log(Object.keys(c))
       const group=await GroupChallenge.findOne({"challengeId":c.challengeId})
       var index=0 
-   
+      
+      console.log("LAST UPADTAE:",group.lastUpdated.toString().substring(0,15))
       if(group.lastUpdated==null || group.lastUpdated.toString().substring(0,15)!= new Date().toString().substring(0,15)){
-      Object.keys(c.users).forEach(async(key,index)=>{
+        console.log(Object.keys(c.users))
+        Object.keys(c.users).forEach(async(key,index)=>{
         const currUser=c.users[key]
         if(currUser.hasStreak){
-          if(currUser.approved && currUser.streak.problems.length<c.no_questions && new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
+          if(/*currUser.approved && */currUser.streak.problems.length<c.no_questions && new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
             console.log(currUser.day.toString().substring(0,15)+":"+currUser.firstname+" FAILS  for "+c.title)
             
             failures.push(currUser)
@@ -1807,13 +1865,14 @@ app.post("/organize-group-challenges/:userId", async(req,res)=>{
             
           }
         }else{
-          if(currUser.approved && new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
+          if(/*currUser.approved &&*/ new Date().toString().substring(0,15)!=currUser.day.toString().substring(0,15)){
           console.log(currUser.day.toString().substring(0,15)+":"+currUser.firstname+" FAILS  for "+c.title)
           failures.push(currUser)
           }
         }
        
         if(index==c.allUserIds.length-1){
+          console.log("failures:"+failures.length)
           if(failures.length>1){
            
             console.log("first:",firstLoser)
@@ -1897,7 +1956,7 @@ app.post("/organize-group-challenges/:userId", async(req,res)=>{
            
            
             
-            //console.log("first:",firstLoser)
+            console.log("first:",firstLoser)
            
              while(failures.length>0){
               const firstLoser=failures[0]
@@ -2014,8 +2073,8 @@ function coinFlip(min, max) {
         while(yester.toString().substring(0,15)!=stopDate.toString().substring(0,15)){
           const aStreak=await Streak.findOne({$and:[{"userId":a.userId},{"day":yester.toString().substring(0,15)}]})
           const bStreak=await Streak.findOne({$and:[{"userId":b.userId},{"day":yester.toString().substring(0,15)}]})
-          console.log("A:"+a.firstname+" problems:"+(aStreak!=null?aStreak.problems.length:""))
-          console.log("B:"+b.firstname+" problems:"+(bStreak!=null?bStreak.problems.length:""))
+          //console.log("A:"+a.firstname+" problems:"+(aStreak!=null?aStreak.problems.length:""))
+          //console.log("B:"+b.firstname+" problems:"+(bStreak!=null?bStreak.problems.length:""))
 
           if(aStreak!=null && bStreak!=null){
             if(aStreak.problems.length<bStreak.problems.length){
@@ -2039,6 +2098,8 @@ function coinFlip(min, max) {
               yester=new Date(yester.setDate(yester.getDate()-1))
               if(yester.toString().substring(0,15)==stopDate.toString().substring(0,15)){
                 return coinFlip(0,1)==0? a :b
+              }else{
+                return coinFlip(0,1)==0?a:b
               }
             }
 
@@ -2455,7 +2516,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
     if(owner || contestant.includes(true)){
       var curr=new Date(g.endDate.setDate(g.endDate.getDate()))
       curr=new Date(curr)
-    while(curr>=stopDate && curr.toString().substring(0,15)!=stopDate.toString().substring(0,15) ){
+    
        
           var i=0 
           const others=g.allUserIds.filter((f)=>{
@@ -2469,12 +2530,32 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               return f
             }
           })
-          console.log(others)
+         
 
-
+          const user=await User.findOne({"userId":req.params.userId})
           const streakGroup=await StreakGroup.findOne({$and:[{$in:[curr.toString().substring(0,15)]},{"userId":req.params.userId}]})
          
           if(streakGroup!=null ){ 
+            
+            const results=await getStreaksForChallenges(g,req.params.userId,allStreaks,streaks,curr,stopDate,streakGroup.days.length-1)
+            //curr=results.curr
+          
+            if(results!=null){
+              allStreaks.concat(results.allStreaks)
+              console.log("ALLSTREAKS:",results)
+              console.log(results.curr instanceof Date)
+              curr=results.curr
+              if(curr<g.startDate){
+                try{
+                  res.json({length:allStreaks.length,success:true,challenges:allStreaks}) 
+
+                }catch(err){
+                  console.log(err)
+                }
+              }
+            }
+            //curr=results.curr 
+            /*
             //console.log(streakGroup)
             for(var i=streakGroup.days.length-1;i>=0;i--){
               var d=streakGroup.days[i]
@@ -2502,10 +2583,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 }
                 if(curr<g.startDate || curr.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
                   const user=await User.findOne({"userId":streak.userId})
-                  streak.username=user.username
-                  streak.firstname=user.firstname
-                  streak.lastname=user.lastname
-                  streaks.push({day:valid,streak:streak})
+           
+                  streaks.push({day:valid,streak:streak,user:user})
                   allStreaks.push({streaks:streaks,challenge:g})
                  
                   found=true
@@ -2525,37 +2604,138 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             
           }
             }
+            */
           }else{
             curr.setDate(curr.getDate()- 1)
 
           }
-        } 
+         
     }
   
   
   })
   setTimeout(()=>{
 
-     res.json({length:allStreaks.length,success:true,challenges:allStreaks}) 
+    // res.json({length:allStreaks.length,success:true,challenges:allStreaks}) 
   },700)
 })
-app.post("/get-others-group-challenge/:userId",async(req,res)=>{
+
+async function getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,i){
+ 
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+  "Aug","Sep","Oct","Nov","Dec"];
+  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+  if(i>=0 ){
+    if( curr>stopDate){
+  const user=await User.findOne({"userId":userId})
+  const streakGroup=await StreakGroup.findOne({$and:[{"days":{$in:[curr.toString().substring(0,15)]}},{"userId":userId}]})
+ 
+  if(streakGroup!=null ){ 
+    console.log("\ni:"+i)
+      console.log("curr:"+curr.toString().substring(0,15))
+      console.log(streakGroup.days,"\n\n")
+     
+      var d=streakGroup.days[i]
+      if(d!=null){
+    
+      var streakday=d.split(" ")
+      var valid=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
+      console.log("valid:"+valid.toString())
+      if(valid>stopDate){
+     // curr=new Date(valid.toString().split(" ")[3],monthnum[months.indexOf(valid.toString().split(" ")[1])-1],valid.toString().split(" ")[2])
+
+        const streak=await Streak.findOne({$and:[{"userId":userId},{"day":valid.toString().substring(0,15)}]})
+         
+      if(streak!=null){
+    
+       
+        var already=streaks.map((s)=>{
+          if(s.day==curr.toString().substring(0,15)){
+            return true
+          }
+        })
+    
+        if(!already.includes(true)){
+          const user=await User.findOne({"userId":streak.userId})
+          streaks.push({day:valid,streak:streak,user:user})
+          
+          //curr.setDate(curr.getDate()- 1)
+          const results=await getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,i-1)
+
+        }
+        if(curr<g.startDate || curr.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
+          const user=await User.findOne({"userId":streak.userId})
+
+          streaks.push({day:valid,streak:streak,user:user})
+
+          allStreaks.push({streaks:streaks,challenge:g})
+         
+          found=true
+         
+          curr.setDate(curr.getDate()- 1)
+          console.log("curr 1:"+curr)
+         const results=await getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,i-1)
+        }else{
+          curr.setDate(curr.getDate()- 1)
+          console.log("curr a:"+curr)
+
+          const results=getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,i-1)
+          return results
+        } 
+      }else{
+       console.log("BEYON DATE")
+        curr.setDate(curr.getDate()- 1)
+        if(curr<g.startDate || curr.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
+        
+          //curr=stopDate
+          console.log("curr b:"+curr)
+
+          const results=await getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,i-1)
+          return results
+        }
+      } 
+  }else{
+    const results=await getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,-1)
+    return  {allStreaks:allStreaks,curr:curr}
+  }
+}else{
+  curr=new Date('0001-01-01T00:00:00Z')
+  console.log("curr c:"+curr)
+  const results=await getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,-1)
+  return results
+} 
+  }else{
+    curr.setDate(curr.getDate()- 1)
+    console.log("curr d:"+curr)
+    const results=await getStreaksForChallenges(g,userId,allStreaks,streaks,curr,stopDate,-1)
+    return results
+  
+
+    } 
+    return {allStreaks:allStreaks,curr:curr}
+  }
+}else{
+  console.log("RETURNING:"+i) 
+  console.log(allStreaks,"\n\n")
+  return {allStreaks:allStreaks,curr:curr}
+}
+}
+app.get("/get-others-group-challenge/:userId",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
     const groups=await GroupChallenge.find({$or:[{"userId":req.params.userId},{"allUserIds":{$in:[req.params.userId]}}]})
     var index=0
+    var length
    const allStreaks=[]
+   
     groups.map(async(g)=>{
       
       var startDate=new Date(g.startDate)
    
       var stopDate=new Date(g.startDate)
       stopDate.setDate(stopDate.getDate()-1)
-      console.log("START:"+stopDate.toString())
-      
-  
-    
+   
       const streaks=[]
       var found=false 
       const contestant=g.selectedContestants.map((c)=>{
@@ -2584,38 +2764,54 @@ app.post("/get-others-group-challenge/:userId",async(req,res)=>{
                 return f
               }
             }) 
+            length=others.length
            // console.log(curr)
             var j=0
-  while(j<others.length  ){
-    var o=others[j]
-    //console.log(o)
+
+
+   
+
+ while(j<others.length){
+  const o=others[j]
     const streakGroup=await StreakGroup.findOne({$and:[{"days":{$in:[curr.toString().substring(0,15)]}},{"userId":o}]})
- 
+    
     if(streakGroup!=null ){ 
       
       var i=streakGroup.days.length-1
+      const results=await getStreaksForChallenges(g,o,allStreaks,streaks,curr,stopDate,i)
+     
+    
+      if(results!=null){
+        j++
+        allStreaks.concat(results.allStreaks)
+        console.log("ALLSTREAKS:",allStreaks)
+        curr=results.curr
+
+        try{
+          if(j>=others.length-1){
+            res.json({length:allStreaks.length,challenges:allStreaks,success:true})
+
+          }
+        }catch(err){
+          console.log(err)
+        }
+      }
+     
+      /*
       while(i>=0 && curr>stopDate){ 
         d=streakGroup.days[i]
         var streakday=d.split(" ")
        var valid=new Date(streakday[3],monthnum[months.indexOf(streakday[1])-1],streakday[2])
-       // console.log("valid:"+valid.toString().substring(0,15),"   |   stop:"+stopDate.toString())
-        //console.log(valid> stopDate)  
-        console.log(valid, stopDate)  
-        if(valid>stopDate){  
-        console.log(valid, stopDate)    
      
-          //curr=new Date(valid.toString().split(" ")[3],monthnum[months.indexOf(valid.toString().split(" ")[1])-1],valid.toString().split(" ")[2])
+        if(valid>stopDate){  
 
           const streak=await Streak.findOne({$and:[{"userId":o},{"day":valid.toString().substring(0,15)}]})
-         
+          const user=await User.findOne({"userId":o})
+
        // console.log(typeof(valid),typeof(stopDate))
         if(streak!=null && valid>stopDate){
-          const user=await User.findOne({"userId":streak.userId})
-          streak.username=user.username
-          streak.firstname=user.firstname
-          streak.lastname=user.lastname
-          console.log("other:",streak.day,"|"+valid.toString().substring(0,15),"stop:"+stopDate.toString().substring(0,15))
-            streaks.push({day:valid,streak:streak})
+        
+            streaks.push({day:valid,streak:streak,user:user})
            
           if(i==0 || valid<g.startDate || valid.toString().substring(0,15)==g.startDate.toString().substring(0,15)){
              
@@ -2635,36 +2831,227 @@ app.post("/get-others-group-challenge/:userId",async(req,res)=>{
     }
    i--
       }
+      */
     }else{
-      break
+      curr.setDate(curr.getDate()- 1)
+      j++
+      //break
     }
-    if(j>=others.length-1){
-      try{
-        res.json({challenges:allStreaks,success:true})
-       break
-      }catch(err){
-
-      }
-   
-    }
-    j++
    
   }
-  }
+        }
       }
     })
 
+     
+      try{
+        setTimeout(()=>{
+          console.log("j:"+index)
+         
+          //res.json({challenges:allStreaks,success:true})
+          
+
+        },800)
+       
+      }catch(err){
+        console.log(err)
+      }
+   
+  
+
 })
+
+
+app.get("/group-challenges/:userId",async(req,res)=>{
+  i==0
+  const challenges=await GroupChallenge.find({"userId":req.params.userId})
+  const allChallenges=[]
+  var i=0
+  while(i<challenges.length){
+    c=challenges[i]
+    var j=0
+ 
+    const all=[c]
+    j=j+1
+    const others=await GroupChallenge.find({$and:[{"challengeId":c.challengeId},{"userId":{$ne:req.params.userId}}]})
+    if(others.length>0){
+
+      others.map((o)=>{
+        all.push(o)
+        j=j+1
+      })
+    }
+   
+    if(j==1+others.length){
+      const allStreaks=[]
+      var startDate=c.startDate
+      var stopDate=new Date()
+      var endDate=new Date(c.endDate)
+      var stopDate=new Date(c.endDate)
+      stopDate.setDate(stopDate.getDate()+1)
+      var date=new Date(c.startDate)
+      var curr=new Date()
+  
+      //stopDate=stopDate.getDate()+1
+    
+      console.log(date.toString().substring(0,15) +" | curr"+curr.toString().substring(0,15) +" | stop:"+stopDate.toString().substring(0,15)) 
+      const allLosers=[]
+      const processed=[]
+      while( date<curr && date<stopDate && date.toString().substring(0,15)!=curr.toString().substring(0,15) /*&& date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
+        var allIndex=0
+       
+        while(allIndex<=all.length){  
+          const a=all[allIndex]
+          if(a!=null){
+        
+           // console.log(date.toString().substring(0,15)+"End:"+endDate.toString().substring(0,15)+" STOP:"+stopDate.toString().substring(0,15))
+
+          var streak=await Streak.findOne({$and:[{"userId":a.userId},{"day":date.toString().substring(0,15)}]})
+          const user=await User.findOne({"userId":a.userId})
+         
+
+          if(streak!=null){ 
+          
+       
+            if(  streak.problems.length>=c.no_questions ){
+              //console.log(streak)
+             
+            allStreaks.push({date:date,streak:streak,title:c.title,firstname:user.firstname,lastname:user.lastname,username:user.username,userId:user.userId,success:streak.problems.length>=c.no_questions})
+            allIndex++
+          }else{
+              //allStreaks.push({date:date,streak:streak,title:c.title,firstname:user.firstname,lastname:user.lastname,username:user.username,userId:user.userId,success:streak.problems.length>=c.no_questions})
+              stats=all[allIndex].userStats
+              if(stats.passes==0 ){
+                if(!processed.includes(user.userId)){
+                console.log("FAIL:"+streak.day.toString().substring(0,15)+ " | "+streak.problems.length+" problems | "+c.title+" ("+c.no_questions+") | Id:"+c.challengeId+" | "+user.firstname+ " | STOP:"+stopDate.toString().substring(0,15) )
+                  
+                stats.success=false
+                stats.dateFailed=date
+               streak.firstname=user.firstname
+               var str=streak
+               str.challengeId=c.challengeId
+                allLosers.push(str)
+                processed.push(user.userId)
+                } 
+              }else{ 
+                stats.passes--
+              }
+             // console.log("\n\n--modify for "+ user.firstname,stats)
+            //  console.log(c.lastUpdated, "date:"+date.toString().substring(0,15))
+
+              allIndex++
+            } 
+          }else{
+            stats=all[allIndex].userStats
+            if(stats.passes==0){
+              if( !processed.includes(user.userId)){
+              console.log("FAIL:"+date.toString().substring(0,15)+ " | 0 problems | "+c.title+" ("+c.no_questions+") | Id:"+c.challengeId+" | "+user.firstname+ " | STOP:"+stopDate.toString().substring(0,15))
+
+              
+              stats.success=false
+              stats.dateFailed=date
+              streak={firstname:user.firstname,userId:user.userId}
+              var str=streak
+              str.challengeId=c.challengeId
+              
+              allLosers.push(str)
+              processed.push(user.userId)
+              }
+
+            }else{
+              stats.passes--
+            }
+           // console.log("\n\n--nmodify for "+ user.firstname,stats)
+          //  console.log(c.lastUpdated,"date:"+date.toString().substring(0,15))
+            allIndex++
+          }
+
+          
+          var ranks=all.length
+          if(allIndex>=all.length){
+            console.log(allIndex)
+            if(allLosers.length==1){
+              console.log("\n\nONE LOSER")
+              console.log("rank:",ranks,allLosers[0])
+             
+              setTimeout(()=>{
+                date.setDate(date.getDate()+1)
+               },)
+              
+            }else if(allLosers.length>1){
+              var loserIndex=0
+              console.log("\n\nMULTIPLE LOSERS "+c.title+ " q:"+c.no_questions)
+              console.log(allLosers)
+             
+              var indexLoser=allLosers.length
+              while(allLosers.length>0){
+                console.log("trying")
+              const first=await findFirstLoser(allLosers,c)
+              console.log("----rank:"+ranks +" | user:"+ first.userId +" | challange:"+c.title+" | Id:"+c.challengeId)
+              console.log("firstloser:",first)
+              if(allLosers.length>0){
+                var ii=0
+                var spliceIndex
+                allLosers.map((u)=>{
+                  if(u.userId==first.userId){
+                    spliceIndex=ii
+                  }
+                  ii++
+                })
+                allLosers.splice(spliceIndex,1)
+                console.log("new losers length:"+allLosers.length)
+                indexLoser--
+                ranks--
+              }
+              
+             
+                if(indexLoser==0 || allLosers.length==0){
+                setTimeout(()=>{
+                  date.setDate(date.getDate()+1)
+                },10)
+                }
+              }
+          
+            }else{
+             
+             
+                date.setDate(date.getDate()+1)
+              
+            }
+        
+           
+
+          }
+
+        
+          }else{
+           
+            allIndex++
+          }
+
+        
+   
+        } 
+
+      }
+    }
+  i++
+  }
+ 
+})
+
 app.post("/sort-group-challenges/:userId",async(req,res)=>{
   const allStreaks=[]
   axios.get("http://localhost:3022/get-all-group-challenges/"+req.params.userId).then((response)=>{
-    axios.post("http://localhost:3022/get-others-group-challenge/"+req.params.userId).then((response1)=>{
+    axios.get("http://localhost:3022/get-others-group-challenge/"+req.params.userId).then((response1)=>{
     var index=0
     const already=[]
     const AlreadyUser=[]
-    console.log(response.data.length)
-    console.log(response1.data.challenges.length)
+   
     var challenges=response.data.challenges
+    console.log(response.data.challenges.length)
+    console.log(response1.data.challenges.length)
+
     challenges=challenges.concat(response1.data.challenges)
     console.log("NEW"+challenges.length)
     while(index<challenges.length){
@@ -2698,10 +3085,11 @@ app.post("/sort-group-challenges/:userId",async(req,res)=>{
         i++
       
       })
-      if(index==challenges.length-1){
+  
+      index++
+      if(index>=challenges.length){
         res.json({length:allStreaks.length,success:true,challenges:allStreaks})
       }
-      index++
     })
   }
     setTimeout(()=>{
