@@ -72,6 +72,8 @@ const groupChallengeSchema= new mongoose.Schema({
     type:String,
     default:"OPEN"
 
+  },rank:{
+    default:Number
   },
   lastUpdated:{
     type:Date,
@@ -83,6 +85,9 @@ const groupChallengeSchema= new mongoose.Schema({
   },
   createdBy:{
     type:String
+  },
+  winningDate:{
+    type :Date
   }
 })
 
