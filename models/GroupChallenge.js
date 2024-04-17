@@ -27,6 +27,8 @@ const groupChallengeSchema= new mongoose.Schema({
   endDate:{
     type:Date,
     required:true
+  },dateFailed:{
+    type:Date
   },
   userStats:{
     type:Object,
