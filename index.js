@@ -4043,6 +4043,15 @@ app.get("/rank-losers/:userId",async(req,res)=>{
     })
   })
 })
+
+app.get("/allTags",async(req,res)=>{
+  const tags=await ProblemTopicTag.find({})
+  const names=tags.map((t)=>{
+    return t.name
+  })
+  res.json({success:true,tags:names})
+})
+
 app.get("/group-challenges-2-2/:userId",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
   "Aug","Sep","Oct","Nov","Dec"];
@@ -4067,10 +4076,61 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
       const all=await GroupChallenge.find({"challengeId":challenge.challengeId})
       var streaks=[]
        var i=0
+       console.log("all length:"+all.length)
        while(i<all.length){
         const u=all[i]
+        //console.log(u.userId)
         while( date<curr && date<stopDate && date.toString().substring(0,15)!=curr.toString().substring(0,15) /*&& date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
           var allIndex=0
+
+          while(allIndex<all.length){
+            const user=await User.findOne({"userId":all[allIndex].userId})
+
+            console.log(all[allIndex].userId,date.toString().substring(0,15))
+            const streak=await Streak.findOne({$and:[{"day":date.toString().substring(0,15)},{"userId":all[allIndex].userId}]})
+           
+            if(streak!=null){
+            
+              if(users.includes(user.userId) && days.includes(streak.day.toString().substring(0,15)) && allCha.includes(challenge.challengeId)){
+                //console.log("ALREADY:"+user.firstname+ " challenge:"+challenge.title+"---"+streak.day)
+              }else{
+                var day=streak.day.split(" ")
+                day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
+
+                console.log(streak.day+" "+streak.userId)
+                streaks.push({streak:streak,date:day,challengeId:challenge.challengeId,user:user})
+                days.push(streak.day.toString().substring(0,15))
+                users.push(user.userId)
+                allCha.push(challenge.challengeId)
+                streakIds.push(streak.id)
+              }
+            }
+            allIndex++
+            console.log(allIndex)
+            if(allIndex>=all.length){
+              date.setDate(date.getDate()+1)
+              if(date>=stopDate){
+                challenges[end].streaks=streaks
+                res.json({all:all,challenges:response.data.challenges,other:response.data,success:true})
+                i++;
+                console.log("i:"+i)
+                if(i>=all.length){
+                  console.log("i:"+i)
+                  challenges[end].streaks=streaks
+                  try{
+                  res.json({all:all,challenges:response.data.challenges,other:response.data,success:true})
+                  break
+                  }catch(err){
+                    break
+                  }
+                
+                }
+               
+              
+              } 
+            }
+          }
+          /*
           while(allIndex<all.length){
             
             const streak=await Streak.findOne({$and:[{"userId":u.userId},{"day":date.toString().substring(0,15)}]})
@@ -4084,25 +4144,30 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
                 //console.log("ALREADY:"+user.firstname+ " challenge:"+challenge.title+"---"+streak.day)
               }else{
               
-  
+                console.log(streak.day+" "+streak.userId)
                 streaks.push({streak:streak,date:day,challengeId:challenge.challengeId,user:user})
                 days.push(day.toString().substring(0,15))
                 users.push(user.userId)
                 allCha.push(challenge.challengeId)
                 streakIds.push(streak.id)
               }
+              allIndex++
 
+            }else{
+              allIndex++
             }
-            allIndex++
+            //allIndex++
           if(allIndex>=all.length){
             date.setDate(date.getDate()+1)
+            i++
            }
           }
+          */
         }
-        i++
+       
         if(i>=all.length){
           challenges[end].streaks=streaks
-          res.json({challenges:response.data.challenges,other:response.data,success:true})
+          res.json({all:all,challenges:response.data.challenges,other:response.data,success:true})
         }
        }
 
@@ -5284,6 +5349,7 @@ app.post("/set-username/:id/:username",async(req,res)=>{
   }
 })
 app.get("/sort-streaks/:userId",async(req,res)=>{
+  const start=new Date()
  // console.log(req.params.userId)
   //console.log(req.body)
   console.log(typeof(req.params.userId))
@@ -5295,6 +5361,10 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
    totalCorrectLength=totalCorrectLength+g.days.length
   })
   const streaksArr=[]
+  var gIndex=0
+ /* while(gIndex<groups.length){
+
+  }*/
   groups.map(async(g)=>{
     console.log(g.id)
     const arr=[]
@@ -5322,7 +5392,8 @@ app.get("/sort-streaks/:userId",async(req,res)=>{
       }
     })
     setTimeout(()=>{
-      res.json({success:true,streaksLength:totalLength,correctStreaksLength:totalCorrectLength,streaks:streaksArr})
+      const end=new Date()
+      res.json({success:true,time:end.getSeconds()-start.getSeconds(),streaksLength:totalLength,correctStreaksLength:totalCorrectLength,streaks:streaksArr})
 
     })
   },2500)
@@ -5335,7 +5406,7 @@ app.get("/s",async(req,res)=>{
 
 app.get("/current-streak/:userId",async(req,res)=>{
   const strek=[]
- 
+ const start=new Date()
   var streaks=await StreakGroup.find({$and:[{"userId":req.params.userId}]})
   console.log(streaks)
   if(streaks.length>0){
@@ -5384,11 +5455,12 @@ app.get("/current-streak/:userId",async(req,res)=>{
 
   setTimeout(()=>{
     try{
-    res.json({success:true,streaks:strek})
+      const end=new Date()
+    res.json({success:true,time:end.getMilliseconds()-start.getMilliseconds(),streaks:strek})
     }catch(err){
       console.log(err)
     }
-  },1100)
+  },500)
 })
 
 
@@ -5759,6 +5831,14 @@ app.get("/titleslugs-existing",async(req,res)=>{
 })
 /************************************************************************************************************************************************************************************************************************************************************ */
 //GOOD
+app.post("/getProblemByTitle",async(req,res)=>{
+  const problem=await Problem.findOne({"title":req.body.title})
+  if(problem!=null){
+    res.json({success:true,problem:problem})
+  }else{
+    res.json({success:false})
+  }
+})
 
 app.get("/pages",async(req,res)=>{
   const pages=await Problem.find({})
@@ -5877,6 +5957,7 @@ setTimeout(async()=>{
                     const del=await Problem.deleteOne({"title":q.title})
                     console.log("DELETED:",q.title,del)
                   }
+                  //console.log(q)
           if(pp!=null ){
                
             
@@ -5899,39 +5980,46 @@ setTimeout(async()=>{
                   
                   if(prob!=null){
                        if(q.paidOnly){
-              console.log("!!!MUST PAY:"+q.title)
+             // console.log("!!!MUST PAY:"+q.title)
               const del=await Problem.deleteOne({"title":q.title})
               console.log("deleted",q.title,del)
             }
                   //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
                  // console.log(prob.difficulty," ",q.acRate)
-                 const updatelink=await Problem.updateOne({"title":prob.title},{
+                 const updatelink=await Problem.updateOne({"title":" "+q.title},{
                   $set:{"link":link}
                 })
-                console.log("updating link for:",q.title,updatelink)
-                const updateSlug=await Problem.updateOne({"title":prob.title},{
+                //console.log("updating link for:",q.title,updatelink)
+                const updateSlug=await Problem.updateOne({"title":" "+q.title},{
                   $set:{"titleSlug":q.titleSlug}
                 })
-                console.log("updating titleSlug for:",q.title,updateSlug)
-                const difficulty=await Problem.updateOne({"title":prob.title},{
-                  $set:{"difficulty":q.difficulty}
+               // console.log("updating titleSlug for:",q.title,updateSlug)
+                const difficulty=await Problem.updateOne({"title":" "+q.title},{
+                  $set:{"difficulty":prob.level!=null? prob.level:q.difficulty}
                 })
-                console.log("difficulty update:",prob.title," ",difficulty)
-                const levelUpdate=await Problem.updateOne({"title":prob.title},{
+               
+                console.log("updated difficulty:",difficulty, q.title," difficulty:"+q.difficulty+"\n\n")
+                //console.log(q.acRate)
+                const acRate=await Problem.updateOne({"title":" "+q.title},{
+                  $set:{"acRate": Number(q.acRate.toString().substring(0,6))}
+                })
+                //console.log("acRate update:",prob.title," ",difficulty)
+                //console.log(q.difficulty)
+                const levelUpdate=await Problem.updateOne({"title":q.title},{
                   $set:{"level":q.difficulty}
                 })
-                console.log("level update:",prob.title," ",levelUpdate)
+               // console.log("level update:",prob.title," ",levelUpdate)
                 const page=await Problem.updateOne({"title":prob.title},{
                   $set:{"page":req.params.page}
                 })
-                console.log("page update:",prob.title,page)
+               // console.log("page update:",prob.title,page)
 
                  if(prob.acRate==null || prob.difficulty==null || prob.level==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null || prob.page==null){
                   if(prob.page==null){
                     const page=await Problem.updateOne({"title":prob.title},{
                       $set:{"page":req.params.page}
                     })
-                    console.log("updating page for:",q.title,page)
+                   // console.log("updating page for:",q.title,page)
                   }
                  
                   
@@ -5946,7 +6034,7 @@ setTimeout(async()=>{
                     const difficulty=await Problem.updateOne({"title":prob.title},{
                       $set:{"difficulty":q.difficulty}
                     })
-                    console.log("difficulty update:",prob.title," ",difficulty)
+                  //  console.log("difficulty update:",prob.title," ",difficulty)
 
                   }
                   if(prob.level==null){
@@ -5960,7 +6048,7 @@ setTimeout(async()=>{
                     const frontend=await Problem.updateOne({"title":prob.title},{
                       $set:{"frontendQuestionId":q.frontendQuestionId}
                     })
-                   console.log("frontendId update:",prob.title," ",frontend)
+                 //  console.log("frontendId update:",prob.title," ",frontend)
 
 
                   }
@@ -5968,7 +6056,7 @@ setTimeout(async()=>{
                     const page=await Problem.updateOne({"title":prob.title},{
                       $set:{"page":req.params.page}
                     })
-                    console.log("page update:",prob.title,page)
+                  //  console.log("page update:",prob.title,page)
 
                   }
                   if(prob.tags.length==0 || prob.topicTags.length==0){
@@ -5977,7 +6065,7 @@ setTimeout(async()=>{
                       const topicTag=await Problem.updateOne({"title":prob.title},{
                         $push:{"topicTags":t}
                       })
-                      console.log("topictags update:",prob.title,topicTag)
+                   //   console.log("topictags update:",prob.title,topicTag)
 
                     }
                       if(prob.tags.length==0){
@@ -6189,18 +6277,19 @@ setTimeout(async()=>{
               var count=0
               if (problems != null) {
                 problems.map(async(q) => {
+                  //console.log(q)
                   if(q.paidOnly==false){
-                    console.log("MUST PAY:"+q.title)
+                  //  console.log("MUST PAY:"+q.title)
                   }
                   const base = "https://leetcode.com/problems/";
                   const updatelink=await Problem.updateOne({"title":q.title},{
                     $set:{"link":base+q.titleSlug}
                   })
-                  console.log("updating link for:",q.title,updatelink)
+                 // console.log("updating link for:",q.title,updatelink)
                   const updateSlug=await Problem.updateOne({"title":q.title},{
                     $set:{"titleSlug":q.titleSlug}
                   })
-                  console.log("update slug for ",q.title,updateSlug)
+                  //console.log("update slug for ",q.title,updateSlug)
                   const tags=q.topicTags.map((t)=>{
                     return t.name
                   })
@@ -6232,14 +6321,14 @@ setTimeout(async()=>{
                     const difficulty=await Problem.updateOne({"title":prob.title},{
                       $set:{"difficulty":q.difficulty}
                     })
-                    console.log("difficulty update:",prob.title," ",difficulty)
+                  //  console.log("difficulty update:",prob.title," ",difficulty)
 
                   }
                   if(prob.frontendQuestionId==null){
                     const frontend=await Problem.updateOne({"title":prob.title},{
                       $set:{"frontendQuestionId":q.frontendQuestionId}
                     })
-                   console.log("frontendId update:",prob.title," ",frontend)
+                  // console.log("frontendId update:",prob.title," ",frontend)
 
                   }
                   if(prob.tags.length==0 || prob.topicTags.length==0){
@@ -6248,14 +6337,14 @@ setTimeout(async()=>{
                       const topicTag=await Problem.updateOne({"title":prob.title},{
                         $push:{"topicTags":t}
                       })
-                      console.log("topictags update:",prob.title,topicTag)
+                     // console.log("topictags update:",prob.title,topicTag)
 
                     }
                       if(prob.tags.length==0){
                       const ptag=await Problem.updateOne({"title":prob.title},{
                         $push:{"tags":t}
                       })
-                      console.log("tags update:",prob.title,ptag)
+                     // console.log("tags update:",prob.title,ptag)
 
                     }
                      // console.log(problem.title,ptag)
