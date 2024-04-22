@@ -899,7 +899,32 @@ app.get("/generate-min-questions/:groupId",async(req,res)=>{
       }   
 })
 
+app.get("/tommorow",async(req,res)=>{
+  var tommorow=new Date()
+  
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+"Aug","Sep","Oct","Nov","Dec"];
+var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+  //console.log(new Date(tommorow.setDate(tommorow.getDate()+1)))
+  const streak=await Streak.findOne({"day":"Fri Apr 19 2024"})
+  var date=streak.day.split(" ")
+  var dateDate=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
+ 
+  
+  /**661bfcb3bf079daa6ec9a748 */
 
+  console.log(dbmongo.streak) 
+
+  const probs=await Problem.find({"hints":{$ne:null}})
+  probs.map((p)=>{
+    if(p.hints.length>0){ 
+      console.log(p.hints.length)
+    }
+  })
+ // const save=await updategroup.save()
+ 
+  
+})
 app.post("/add-to-streak",async(req,res)=>{
   console.log("HI")
   const id=req.body.userId
@@ -915,7 +940,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
   if(date!=null){
     console.log(Object.keys(req.body.problem))
-    console.log(problem)
+  
     console.log(date)
     try{
 
@@ -923,23 +948,30 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
      // console.log(response.data)
      console.log("HERE DATE")
       try{
-        console.log(req)
+    
       var date=req.body.day
       date=date.split(" ")
       var dateDate=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
       var yesterDay=new Date(dateDate)
+      var tommorow=new Date(dateDate)
       yesterDay=yesterDay.setDate(dateDate.getDate()-1)
+      tommorow.setDate(dateDate.getDate()+1)
       const yesterday=new Date(yesterDay)
       console.log("yesterday:"+yesterday.toString())
-
+      console.log("tommorow:"+tommorow.toString())
       if(response.data.already){
-        res.json({success:true,message:"Problem "+problem.problem.title+" has already been done today"})
+        try{res.json({success:true,message:"Problem "+problem.problem.title+" has already been done today"})}
+        catch(err){
+          res.json({success:true,message:"Problem "+problem.title+" has already been done today"})
+        }
       }else{
 
         //check if streak already exist
         var streakExist=await Streak.find({$and:[{"day":req.body.day},{"userId":id}]})
         streakExist=streakExist[0]
         var yesterdayStreak=await Streak.findOne({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.body.userId}]})
+        var tommorowStreak=await Streak.findOne({$and:[{"day":tommorow.toString().substring(0,15)},{"userId":req.body.userId}]}) //for dev purposes saving a streak
+        
         if(streakExist!=null){
           console.log("STREAK TODAY EXISTS")
           //add-problem to streak
@@ -949,7 +981,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           if(yesterdayStreak!=null){
             var streakGroup=await StreakGroup.findOne({$and:[{"_id":yesterdayStreak.group}]})
 
-            console.log("ADDING To GROUP DAYS ARRAY:919")
+       console.log("959:Trying tommorow streak")
             const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
             {$push:{"problems":req.body.problem.problem}})
             const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
@@ -957,13 +989,27 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
             const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
             {$set:{"max_questions":streakGroup.max_questions==null?streak.problems.length:Math.max(streakGroup.max_questions,streak.problems.length)}})
+            var yesterdayGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":id}]})
+            var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+            
+            if(tommorowStreak!=null && tommorowGroup!=null){
+              if(tommorowStreak.group!=yesterdayGroup.id){
+                console.log("972:must match: tommorow"+tommorow.toString().substring(0,15) +" yesterday:"+yesterday.toString().substring(0,15))
+                tommorowGroup.days.map(async(dd)=>{
+                  const reviseTommorow=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":dd}]},{
+                    $set:{"group":yesterdayGroup.id}
+                  })
+                })
+              
 
+              }
+            }
             res.json({success:true,updatedStreak:updateStreak,streak:streak})
 
           }else{
             var streakGroup=await StreakGroup.findOne({$and:[{"_id":streakExist.group}]})
 
-            console.log("ADDING To GROUP DAYS ARRAY:919")
+            console.log("ADDING To GROUP DAYS ARRAY:1004")
             const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
             {$push:{"problems":req.body.problem.problem}})
             const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
@@ -972,6 +1018,40 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
             {$set:{"max_questions":streakGroup.max_questions==null?streak.problems.length:Math.max(streakGroup.max_questions,streak.problems.length)}})
 
+            var todayGroup=await StreakGroup.findOne({"id":streakExist.group})
+            var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+            var nextDate=new Date(tommorow)
+            nextDate.setDate(tommorow.getDate())
+            console.log("1003:must match: tommorow"+tommorow.toString().substring(0,15) +" today:"+streakExist.day)
+            if(tommorowStreak!=null ){
+              if(tommorowStreak.group!=streakExist.group){
+
+              var found=true
+              while(found){
+                var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                console.log(nextDate.toString())
+                if(str!=null){
+                  console.log("\n\nproblems:",str.problems.length)
+                  const newgroup=await StreakGroup.findOne({"_id":streakExist.group})
+                  console.log(newgroup.days)
+                  const updateStreak=await Streak.updateOne({"_id":str._id},{
+                    $set:{"group":streakExist.group}
+                  })
+                  if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                    const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                      $push:{"days":str.day}
+                    })
+                    console.log(updateStreakGroup,"\n\n")
+                  }
+                  
+                }else{
+                  found=false
+                  break
+                }
+                nextDate.setDate(nextDate.getDate()+1)
+              }
+            }
+            }
             res.json({success:true,updatedStreak:updateStreak,streak:streak})
 
           }
@@ -980,12 +1060,115 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
          }else if(!Object.keys(req.body.problem).includes("problem")){
           const updateStreak=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$push:{"problems":req.body.problem}})
-          const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
+          const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":req.body.userId}]},
           {$set:{"timeLastAdded":new Date()}})
           var streak=await Streak.findOne({$and:[{"day":req.body.day},{"userId":id}]})
-          const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
-          {$set:{"max_questions":streakGroup.max_questions==null?streak.problems.length:Math.max(streakGroup.max_questions,streak.problems.length)}})
 
+          if(yesterdayStreak!=null){
+            var streakGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":req.body.userId}]})
+           console.log("yesterday:"+yesterday.toString())
+           /* const updateMin=await StreakGroup.updateOne({$and:[{"days":{$in:[date]}},{"userId":id}]},
+            {$set:{"max_questions":streakGroup.max_questions==null?streak.problems.length:Math.max(streakGroup.max_questions,streak.problems.length)}})
+            */
+            /**661bfcb3bf079daa6ec9a741/ */
+       console.log("1029:Trying tommorow streak")
+      
+            var yesterdayGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":req.body.userId}]})
+            var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+            var nextDate=new Date(tommorow)
+            nextDate.setDate(tommorow.getDate())
+            if(tommorowStreak!=null && tommorowGroup!=null){
+              if(tommorowStreak.group!=yesterdayStreak.group){
+                console.log("972:must match: tommorow"+tommorow.toString().substring(0,15) +" yesterday:"+yesterday.toString().substring(0,15))
+                tommorowGroup.days.map(async(dd)=>{
+                  const reviseTommorow=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":dd}]},{
+                    $set:{"group":yesterdayStreak.group}
+                  })
+                  if(!streakGroup.days.includes(dd)){
+                    const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},{
+                      $push:{"days":dd}
+                    })
+                  }
+                })
+               if(tommorowGroup._id!=streakGroup._id){
+                const deleteOldGroup=await StreakGroup.deleteOne({"_id":tommorowGroup._id})
+                console.log("1072:deleted old Group:",deleteOldGroup)
+               }
+               
+
+              }
+              var found=true
+              while(found){
+                var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                console.log(nextDate.toString())
+                if(str!=null){
+                  console.log("\n\nproblems:",str.problems.length)
+                  const newgroup=await StreakGroup.findOne({"_id":yesterdayStreak.group})
+                  console.log(newgroup.days)
+                  const updateStreak=await Streak.updateOne({"_id":str._id},{
+                    $set:{"group":yesterdayStreak.group}
+                  })
+                  if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                    const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                      $push:{"days":str.day}
+                    })
+                    console.log(updateStreakGroup,"\n\n")
+                  }
+                  
+                }else{
+                  found=false
+                  break
+                }
+                nextDate.setDate(nextDate.getDate()+1)
+              }
+            }
+          //  res.json({success:true,updatedStreak:updateStreak,streak:streak})
+
+          }else{
+            var streakGroup=await StreakGroup.findOne({$and:[{"_id":streakExist.group}]})
+
+            console.log("ADDING To GROUP DAYS ARRAY:1130")
+       
+
+            var todayGroup=await StreakGroup.findOne({"_id":streakExist.group})
+            var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+            var nextDate=new Date(tommorow)
+            nextDate.setDate(tommorow.getDate())
+            if(tommorowStreak!=null){
+            
+              if(tommorowStreak.group!=todayGroup.id){
+                var found=true
+                while(found){
+                  var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                  console.log(nextDate.toString())
+                  if(str!=null){
+                    console.log("\n\nproblems:",str.problems.length)
+                    const newgroup=await StreakGroup.findOne({"_id":streakExist.group})
+                    console.log(newgroup.days)
+                    const updateStreak=await Streak.updateOne({"_id":str._id},{
+                      $set:{"group":streakExist.group}
+                    })
+                    if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                      const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                        $push:{"days":str.day}
+                      })
+                      console.log(updateStreakGroup,"\n\n")
+                    }
+                    
+                  }else{
+                    found=false
+                    break
+                  }
+                  nextDate.setDate(nextDate.getDate()+1)
+                }
+
+              }
+              
+            }
+           // res.json({success:true,updatedStreak:updateStreak,streak:streak})
+
+          }
+          
           res.json({success:true,updatedStreak:updateStreak,streak:streak})
 
          }
@@ -994,29 +1177,33 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
         }else{
           console.log("STREAK TODAY DOES NOT EXIST")
+          console.log("tommorow:"+tommorow.toString())
           //check if streak can be added to a streak group
           console.log(yesterday.toString().substring(0,15))
           console.log(typeof(req.body.userId))
           var yesterdayStreak=await Streak.findOne({$and:[{"day":yesterday.toString().substring(0,15)},{"userId":req.body.userId}]})
           yesterdayStreak=yesterdayStreak
-          console.log(yesterdayStreak)
+          //console.log(yesterdayStreak)
+          var tommorowStreak=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":tommorow.toString().substring(0,15)}]})
+         var tommorowGroup=await StreakGroup.find({$and:[{"userId":req.body.userid},{"days":{$in:[tommorow.toString().substring(0,15)]}}]})
+      
           if(yesterdayStreak!=null){
             
-            console.log("STREAK YESTERDAY EXIST")
+      
             //create streak and add it to StreakGroup
             var streakGroup=await StreakGroup.find({$and:[{"_id":yesterdayStreak.group}]})
             streakGroup=streakGroup[0]
             if(streakGroup!=null){
-              console.log("STREAKGROUP EXIST")
+              console.log("1110:STREAKGROUP EXIST")
                 if(!streakGroup.days.includes(req.body.day)){
                   console.log("TODAY STREAK NOT IN STREAK GROUP")
                   //if streakGroup doesnt have day
               const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
               {$push:{"days":req.body.day}})
-              console.log("ADDING To GROUP DAYS ARRAY:956")
+              console.log("ADDING To GROUP DAYS ARRAY:1203")
               const updateMin=await StreakGroup.updateOne({"_id":yesterdayStreak.group},
               {$set:{"min_questions":streakGroup.min_questions==null?1:Math.min(streakGroup.min_questions,yesterdayStreak.problems.length),"max_questions":streakGroup.max_questions==null?1:Math.max(streakGroup.max_questions,yesterdayStreak.problems.length)}})
-              console.log("UPDATING STREAKGROUP:" +streakGroup._ID)
+              console.log("UPDATING STREAKGROUP:" +streakGroup._id)
               console.log("CREATE NEW STREAK")
               console.log(updateStreakGroup)
               console.log("\n\n")
@@ -1031,6 +1218,38 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               const save=await newStreak.save()
               const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$set:{"timeLastAdded":new Date()}})
+          var yesterdayGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":req.body.userId}]})
+          var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+          var nextDate=new Date(tommorow)
+          nextDate.setDate(tommorow.getDate())
+          if(tommorowStreak!=null ){
+            if(tommorowStreak.group!=streakGroup._id){
+              var found=true
+              while(found){
+                var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                console.log(nextDate.toString())
+                if(str!=null){
+                  console.log("\n\nproblems:",str.problems.length)
+                  const newgroup=await StreakGroup.findOne({"_id":streakGroup._id})
+                  console.log(newgroup.days)
+                  const updateStreak=await Streak.updateOne({"_id":str._id},{
+                    $set:{"group":streakGroup._id}
+                  })
+                  if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                    const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                      $push:{"days":str.day}
+                    })
+                    console.log(updateStreakGroup,"\n\n")
+                  }
+                  
+                }else{
+                  found=false
+                  break
+                }
+                nextDate.setDate(nextDate.getDate()+1)
+              }
+            }
+          }
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
             }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
               const newStreak=new Streak({
@@ -1049,6 +1268,40 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               const save=await newStreak.save()
               const updateStreakTime=await Streak.updateOne({$and:[{"day":req.body.day},{"userId":id}]},
           {$set:{"timeLastAdded":new Date()}})
+          
+          var yesterdayGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":req.body.userId}]})
+            var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+            var nextDate=new Date(tommorow)
+            nextDate.setDate(tommorow.getDate())
+            if(tommorowStreak!=null){
+              if(tommorowStreak.group!=streakGroup._id){
+                var found=true
+                while(found){
+                  var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                  console.log(nextDate.toString())
+                  if(str!=null){
+                    console.log("\n\nproblems:",str.problems.length)
+                    const newgroup=await StreakGroup.findOne({"_id":streakGroup._id})
+                    console.log(newgroup.days)
+                    const updateStreak=await Streak.updateOne({"_id":str._id},{
+                      $set:{"group":streakGroup._id}
+                    })
+                    if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                      const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                        $push:{"days":str.day}
+                      })
+                      console.log(updateStreakGroup,"\n\n")
+                    }
+                    
+                  }else{
+                    found=false
+                    break
+                  }
+                  nextDate.setDate(nextDate.getDate()+1)
+                }
+
+              }
+            }
               res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
 
             }
@@ -1077,6 +1330,38 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 {$set:{"min_questions":streakGroup.min_questions==null?streakExist.problems.length:Math.min(streakGroup.min_questions,streakExist.problems.length),"max_questions":streakGroup.max_questions==null?streakExist.problems.length:Math.max(streakGroup.max_questions,streakExist.problems.length)}})
       
                 const updateStreakGroup=await StreakGroup.find({$and:[{"userId":req.body.userId},{"_id":streakGroup._id}]})
+                var yesterdayGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":req.body.userId}]})
+                var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+                var nextDate=new Date(tommorow)
+                nextDate.setDate(tommorow.getDate())
+                if(tommorowStreak!=null ){
+                  if(tommorowStreak.group!=streakGroup._id){
+                    var found=true
+                    while(found){
+                      var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                      console.log(nextDate.toString())
+                      if(str!=null){
+                        console.log("\n\nproblems:",str.problems.length)
+                        const newgroup=await StreakGroup.findOne({"_id":streakGroup._id})
+                        console.log(newgroup.days)
+                        const updateStreak=await Streak.updateOne({"_id":str._id},{
+                          $set:{"group":streakGroup._id}
+                        })
+                        if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                          const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                            $push:{"days":str.day}
+                          })
+                          console.log(updateStreakGroup,"\n\n")
+                        }
+                        
+                      }else{
+                        found=false
+                        break
+                      }
+                      nextDate.setDate(nextDate.getDate()+1)
+                    }
+                  }
+                }
 
                 res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
               }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
@@ -1091,6 +1376,38 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 {$set:{"min_questions":streakGroup.min_questions==null?updatedStreak.problems.length:Math.min(streakGroup.min_questions,updatedStreak.problems.length)}})
   
                 const updateStreakGroup=await StreakGroup.find({$and:[{"userId":req.body.userId},{"_id":streakGroup._id}]})
+                var yesterdayGroup=await StreakGroup.findOne({$and:[{"days":{$in:[date]}},{"userId":req.body.userId}]})
+                var tommorowGroup=await StreakGroup.findOne({$and:[{"days":{$in:[tommorow.toString().substring(0,15)]}},{"userId":req.body.userId}]})
+                
+                if(tommorowStreak!=null ){
+                  if(tommorowStreak.group!=streakGroup._id){
+                    var found=true
+                    while(found){
+                      var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
+                      console.log(nextDate.toString())
+                      if(str!=null){
+                        console.log("\n\nproblems:",str.problems.length)
+                        const newgroup=await StreakGroup.findOne({"_id":streakGroup.id})
+                        console.log(newgroup.days)
+                        const updateStreak=await Streak.updateOne({"_id":str._id},{
+                          $set:{"group":streakGroup._id}
+                        })
+                        if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
+                          const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                            $push:{"days":str.day}
+                          })
+                          console.log(updateStreakGroup,"\n\n")
+                        }
+                        
+                      }else{
+                        found=false
+                        break
+                      }
+                      nextDate.setDate(nextDate.getDate()+1)
+                    }
+    
+                  }
+                }
                 res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
   
               }
@@ -1120,6 +1437,28 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             })
             console.log("ADDING STREAK:1040")
             const addStreak=newStreak.save()
+            if(tommorowGroup!=null && tommorowStreak!=null){
+              if(tommorowStreak.group!=addGroup.id){
+               
+                console.log("1250: trying to match tommorow group")
+                tommorowGroup.days.map(async(dd)=>{
+                  const newgroup=await StreakGroup.findOne({"_id":addGroup._id})
+                  const reviseTommorow=await StreakGroup.updateOne({$and:[{"day":dd},{"userId":req.body.userId}]},{
+                    $set:{"group":addGroup._id}
+                  })
+                  if(!newgroup.days.includes(dd)){
+                    const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                      $push:{"days":dd}
+                    })
+                  }
+                })
+                if(tommorowGroup._id!=newgroup._id){
+                  const deleteOldGroup=await StreakGroup.deleteOne({"_id":tommorowGroup._id})
+                  console.log("deleted old Group:",deleteOldGroup)
+                  }
+              }
+          }
+            
                         res.json({success:true,streak:newStreak,streakGroup:addGroup})
 
           }else if(Object.keys(req.body.problem).includes("problem")){
@@ -1131,6 +1470,27 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             })
             console.log("ADDING STREAK:1051")
             const addStreak=newStreak.save()
+            if(tommorowGroup!=null && tommorowStreak!=null){
+              if(tommorowStreak.group!=addGroup.id){
+                console.log("1250: trying to match tommorow group")
+                
+                tommorowGroup.days.map(async(dd)=>{
+                  const reviseTommorow=await StreakGroup.updateOne({$and:[{"day":dd},{"userId":req.body.userId}]},{
+                    $set:{"group":addGroup._id}
+                  })
+                  var newgroup=await StreakGroup.findOne({"_id":addGroup._id})
+                  if(!newgroup.days.includes(dd)){
+                    const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
+                      $push:{"days":dd}
+                    })
+                  }
+                })
+                if(tommorowGroup._id!=newgroup._id){
+                  const deleteOldGroup=await StreakGroup.deleteOne({"_id":tommorowGroup._id})
+                  console.log("deleted old Group:",deleteOldGroup)
+                  }
+              }
+          }
 
             res.json({success:true,streak:newStreak,streakGroup:addGroup})
 
@@ -4049,7 +4409,7 @@ app.get("/allTags",async(req,res)=>{
   const names=tags.map((t)=>{
     return t.name
   })
-  res.json({success:true,tags:names})
+  res.json({success:true,length:tags.length,tags:names})
 })
 
 app.get("/group-challenges-2-2/:userId",async(req,res)=>{
@@ -4113,14 +4473,18 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
                 challenges[end].streaks=streaks
                 res.json({all:all,challenges:response.data.challenges,other:response.data,success:true})
                 i++;
-                console.log("i:"+i)
-                if(i>=all.length){
+                //console.log("i:"+i,"all length:"+all.length)
+                if(i!=0){
+                  i-10
                   console.log("i:"+i)
-                  challenges[end].streaks=streaks
+                  challenges[challenges.length-1].streaks=streaks
+            
                   try{
                   res.json({all:all,challenges:response.data.challenges,other:response.data,success:true})
                   break
                   }catch(err){
+                    //break
+                    console.log(err)
                     break
                   }
                 
@@ -5949,17 +6313,25 @@ setTimeout(async()=>{
                   end=end.replace("(","")
                   end=end.replace(")","")
                   end=end.replace(":","")
-                  link=base+q.titleSlug
-        
+                 var link=base+q.titleSlug
+                  console.log(q.title)
+                  console.log(base+q.titleSlug)
+                  const prob=await Problem.findOne({"title":q.title})
+                
+                 const updatelink=await Problem.updateOne({"title":q.title},{
+                    $set:{"link":base+q.titleSlug}
+                  })
+
+                  console.log(updatelink,"\n\n")
                  
-                  const pp=await Problem.findOne({"title":q.title})
-                  if(q.paidOnly && pp!=null){
+                  
+                  if(q.paidOnly && prob!=null){
                     const del=await Problem.deleteOne({"title":q.title})
                     console.log("DELETED:",q.title,del)
                   }
-                  //console.log(q)
-          if(pp!=null ){
-               
+                 
+          if(prob!=null ){
+            /*   
             
                   const tags=q.topicTags.map((t)=>{
                     return t.name
@@ -5979,6 +6351,15 @@ setTimeout(async()=>{
                   const prob=await Problem.findOne({"title":q.title})
                   
                   if(prob!=null){
+                    const updatelink=await Problem.updateMany({"title":" "+q.title},{
+                      $set:{"link":link}
+                    })
+                    const updateTag=await Problem.updateMany({"title":" "+q.title},{
+                      $set:{"topicTags":tags,"tags":tags}
+                    })
+                   // console.log("updating link for:",q.title,link,updatelink)
+                   // console.log("updating tag for:",q.title,tags,updatelink)
+
                        if(q.paidOnly){
              // console.log("!!!MUST PAY:"+q.title)
               const del=await Problem.deleteOne({"title":q.title})
@@ -5986,36 +6367,46 @@ setTimeout(async()=>{
             }
                   //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
                  // console.log(prob.difficulty," ",q.acRate)
+                 if(prob.link==null){
                  const updatelink=await Problem.updateOne({"title":" "+q.title},{
                   $set:{"link":link}
                 })
                 //console.log("updating link for:",q.title,updatelink)
+              }
+              if(prob.titleSlug==null){
                 const updateSlug=await Problem.updateOne({"title":" "+q.title},{
                   $set:{"titleSlug":q.titleSlug}
                 })
-               // console.log("updating titleSlug for:",q.title,updateSlug)
+              // console.log("updating titleSlug for:",q.title,updateSlug)
+              }
+              if(prob.difficulty==null){
                 const difficulty=await Problem.updateOne({"title":" "+q.title},{
                   $set:{"difficulty":prob.level!=null? prob.level:q.difficulty}
                 })
                
-                console.log("updated difficulty:",difficulty, q.title," difficulty:"+q.difficulty+"\n\n")
-                //console.log(q.acRate)
+                //console.log("updated difficulty:",difficulty, q.title," difficulty:"+q.difficulty+"\n\n")
+              }
+              if(prob.acRate==null){
                 const acRate=await Problem.updateOne({"title":" "+q.title},{
                   $set:{"acRate": Number(q.acRate.toString().substring(0,6))}
                 })
-                //console.log("acRate update:",prob.title," ",difficulty)
-                //console.log(q.difficulty)
+               // console.log("acRate update:",prob.title," ",acRate)
+              }
+                if(prob.level==null){
                 const levelUpdate=await Problem.updateOne({"title":q.title},{
                   $set:{"level":q.difficulty}
                 })
-               // console.log("level update:",prob.title," ",levelUpdate)
+              // console.log("level update:",prob.title," ",levelUpdate)
+              }
+             /* if(prob.page==null){
                 const page=await Problem.updateOne({"title":prob.title},{
                   $set:{"page":req.params.page}
                 })
-               // console.log("page update:",prob.title,page)
+               //console.log("page update:",prob.title,page)
+              }*/
 
                  if(prob.acRate==null || prob.difficulty==null || prob.level==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null || prob.page==null){
-                  if(prob.page==null){
+                /*  if(prob.page==null){
                     const page=await Problem.updateOne({"title":prob.title},{
                       $set:{"page":req.params.page}
                     })
@@ -6083,10 +6474,25 @@ setTimeout(async()=>{
                   console.log("\n\n")
                   const updateP=await Problem.find({title:prob.title})
                   updates.push(updateP)
-                }
+                  
+                }*/
                 }else{
-                  if(q.paidOnly==false){
-                  console.log("CREATING NEW PROBLEM",q.title)
+                  const prob=await Problem.findOne({"title":q.title})
+                  if(q.paidOnly==false && prob==null){
+                    var end = q.title //.substring(1, title.length);
+                    end = end.toLowerCase();
+                    end = end.replace(/\s/g, "-");
+                    end = end.replace(/{([])}/g, "");
+                    end = end.replace("---","-");
+                    end=end.replace("()","")
+                    end=end.replace("`","")
+                    end=end.replace("---","-")
+                    end=end.replace("(","")
+                    end=end.replace(")","")
+                    end=end.replace(":","")
+                    link=base+q.titleSlug
+                    console.log(link)
+                 // console.log("CREATING NEW PROBLEM",q.title)
                   const tags=q.topicTags.map((t)=>{
                     return t.name
                   })
@@ -6105,7 +6511,7 @@ setTimeout(async()=>{
                   try {
                     const saved= await newProblem.save()
                     console.log("success")
-                    console.log(saved)
+                    //console.log(saved)
 
                     tags.map(async(t)=>{
                       const topicTag=await Problem.updateOne({"title":newProblem.title},{
@@ -6126,8 +6532,8 @@ setTimeout(async()=>{
                 }
                 }
                   }else{
-                    if(q.paidOnly==false){
-                                         console.log("\nEMPTY:",q.title)
+                    if(q.paidOnly==false && prob==null){
+                                         console.log("\nEMPTY QUESTION:",q.title)
                                          const tags=q.topicTags.map((t)=>{
                                           return t.name})
                                         if(tags!=null){
@@ -6161,15 +6567,20 @@ setTimeout(async()=>{
                       tags:tags
                       
                      })
-                     console.log(newProblem,"\n\n")
+                     if(q.paidOnly==false){
+                      const added=await newProblem.save()
+                      console.log("success added")
+                      console.log(added,"\n\n")
+                     }
+                    
                     try {
                      // const saved= await newProblem.save()
-                      console.log("success")
+                     
                       //console.log(saved)
                       const tags=q.topicTags.map((t)=>{
                         return t.name})
                       if(tags!=null){
-                     
+                      
 
                       tags.map(async(t)=>{
                         const topicTag=await Problem.updateOne({"title":newProblem.title},{
@@ -6190,49 +6601,7 @@ setTimeout(async()=>{
                     }
                   }
                   }
-                 // const goodProb=await Problem.find({"title":q.title,"difficulty":{$exists:true}})
-
-                  /*if(prob!=null){
-                    try{
-                      await Problem.update({"title":prob.title},{
-                        thisId:prob.thisId,
-                        title:prob.title,
-                        difficulty:q.difficulty,
-                        link:prob.link,
-                        firebaseId:prob.firebaseId,
-                        prompt:prob.prompt,
-                        problemId:prob.problemId
-
-                      })
-                        
-                    }catch(err1){
-
-                    }
-                  }
-                 
-                  if (q.title != null && goodProb==null) {
-                    console.log("inserting")
-                   allproblems.push({title:q.title,difficulty:q.difficulty})
-                   i++
-                   console.log("i:"+i);
-                 
-                  var  problem=new Problem({
-                    title:q.title,
-                    difficulty:q.difficulty
-                   })
-                  try {
-                    const saved= await problem.save()
-                    console.log("success")
-                    console.log(saved)
-                  }catch(err1){
-                    console.log(err1)
-                  }
-
-                   if(i>=problems.length){
-                    res.json({success:true,problems:allProblems,arr:arrr})
-                   }
-                  }
-                  */
+          
                 });
               
               }
@@ -6277,22 +6646,54 @@ setTimeout(async()=>{
               var count=0
               if (problems != null) {
                 problems.map(async(q) => {
+                  const base = "https://leetcode.com/problems/";
+                  var end = q.title //.substring(1, title.length);
+                  end = end.toLowerCase();
+                  end = end.replace(/\s/g, "-");
+                  end = end.replace(/{([])}/g, "");
+                  end = end.replace("---","-");
+                  end=end.replace("()","")
+                  end=end.replace("`","")
+                  end=end.replace("---","-")
+                  end=end.replace("(","")
+                  end=end.replace(")","")
+                  end=end.replace(":","")
+                  var link=base+q.titleSlug
+                  console.log(link)
+                  const prob=await Problem.findOne({$and:[{"title":q.title}]})
+                  const updatelink=await Problem.updateMany({"title":prob.title},{
+                    $set:{"link":link}
+                  })
+               
+                  console.log(page.url())
+                  //console.log("here:",updatelink)
                   //console.log(q)
                   if(q.paidOnly==false){
                   //  console.log("MUST PAY:"+q.title)
                   }
-                  const base = "https://leetcode.com/problems/";
-                  const updatelink=await Problem.updateOne({"title":q.title},{
-                    $set:{"link":base+q.titleSlug}
-                  })
-                 // console.log("updating link for:",q.title,updatelink)
-                  const updateSlug=await Problem.updateOne({"title":q.title},{
-                    $set:{"titleSlug":q.titleSlug}
-                  })
-                  //console.log("update slug for ",q.title,updateSlug)
+                 
                   const tags=q.topicTags.map((t)=>{
                     return t.name
                   })
+                 // const prob=await Problem.findOne({$and:[{"title":q.title}]})
+                  if(prob!=null){
+                  const updatelink=await Problem.updateMany({"title":" "+prob.title},{
+                    $set:{"link":base+q.titleSlug}
+                  })
+                 // console.log("updating link for:",q.title,updatelink)
+                  const updateSlug=await Problem.updateOne({"title":prob.title},{
+                    $set:{"titleSlug":q.titleSlug}
+                  })
+                  //console.log("update slug for ",q.title,updateSlug)
+                  const updateTags=await Problem.updateMany({"title":+prob.title},{
+                    $set:{"tags":tags,"topicTags":tags}
+                  })
+                 // console.log("update tags for ",q.title,tags,updateTags)
+                  const difficulty=await Problem.updateMany({"title":prob.title},{
+                    $set:{"difficulty":q.difficulty}
+                  })
+                 // console.log("difficulty update:",prob.title," ",difficulty)
+                }
                   //console.log(tags)
                   tags.map(async(t)=>{
                     try{
@@ -6300,17 +6701,17 @@ setTimeout(async()=>{
                       name:t
                     })
                     const saveTag=await tag.save()
-                    console.log(saveTag)
+                   // console.log(saveTag)
                   }catch(err){
 
                   }
                   })
-                  const prob=await Problem.findOne({$and:[{"title":q.title}]})
+                  //const prob=await Problem.findOne({$and:[{"title":q.title}]})
                   if(prob!=null){
                     if(q.paidOnly==false){
                   //console.log("\n",prob.title," ",q.acRate," ",q.difficulty)
                  // console.log(prob.difficulty," ",q.acRate)
-                 if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
+                /* if(prob.acRate==null || prob.difficulty==null || prob.tags.length==0 ||prob.topicTags.length==0 || prob.frontendQuestionId==null){
                   if(prob.acRate==null){
                     const acRate=await Problem.updateOne({"title":prob.title},{
                       $set:{"acRate":q.acRate}
@@ -6355,25 +6756,32 @@ setTimeout(async()=>{
                   const updateP=await Problem.find({title:prob.title})
                   updates.push(updateP)
                 }
+                */
                 }
                   }else{
-                    console.log("\nEMPTY:",q.title)
-                    var  newProblem=new Problem({
-                      title:q.title,
-                      difficulty:q.difficulty,
-                      acRate:q.acRate,
-                      level:q.difficulty,
-                      frontendQuestionId:q.frontendQuestionId,
-                      page:req.params.page,
-                      link:link,
-                      titleSlug:q.titleSlug,
-                      topicTags:tags,
-                      tags:tags
-                      
-                      
-                     })
+                   
                     try {
+                      if(q.paidOnly==false){
+                        console.log("\nEMPTY:",q.title)
+                        var  newProblem=new Problem({
+                          title:q.title,
+                          difficulty:q.difficulty,
+                          acRate:q.acRate,
+                          level:q.difficulty,
+                          frontendQuestionId:q.frontendQuestionId,
+                          page:req.params.page,
+                          link:link,
+                          titleSlug:q.titleSlug,
+                          topicTags:tags,
+                          tags:tags
+                          
+                          
+                         })
                       const saved= await newProblem.save()
+                      }else{
+                        const dele=await Problem.deleteOne({"title":q.title})
+                        console.log("DELETED:"+dele)
+                      }
                       console.log("success")
                       console.log(saved)
                       const tags=q.topicTags.map((t)=>{
@@ -7403,12 +7811,17 @@ function parseHTML(str){
         }
       }
     }
-    start++
+    end++
+    if(end>=str.length){
+      return 
+    }
   }
 }//const jsdom=require("jsdom");
 const User = require("./models/User");
 const GroupChallenge = require("./models/GroupChallenge");
-/*const {JSDOM}=jsdom
+const jsdom=require("jsdom")
+const {JSDOM}=jsdom
+
 app.get("/create-prompts",async(req,res)=>{
   (async (r,i) => {
     const generate = async (r) => {
@@ -7458,9 +7871,11 @@ app.get("/create-prompts",async(req,res)=>{
         
           const data = await getData(response).then(async (response) => {
             try{
+
+             
             const html=await page.content()
             //console.log(html)
-         
+              
               const $=cheerio.load(html)
              
               const para=$("div ")//[class='flexlayout__tabset_content']
@@ -7468,11 +7883,11 @@ app.get("/create-prompts",async(req,res)=>{
               if(para[0].children!=null){
                
               const c=para[0].children[0]
-              console.log("\n\n\n",c.text(),"n\n\n")
+              //console.log("\n\n\n",c.text(),"n\n\n")
                 parseHTML(c.text().toString())
                 if(c.text()!=null){
                
-                console.log("HEREEEEE")
+                
              
                   try{
                  //console.log("\n\n\n",typeof(c.text()),"n\n\n")
@@ -7534,7 +7949,6 @@ app.get("/create-prompts",async(req,res)=>{
 
                 }
               }catch(err){
-
               }
 
               try {
@@ -7571,7 +7985,7 @@ app.get("/create-prompts",async(req,res)=>{
                   );
 
                 console.log("content:",dom.window.document.getElementById("body").outerHTML);
-                  parseHTML(ch)
+                 // parseHTML(ch)
                  // ch=ch.replace(/<.*?>/, "")
                  // console.log("\n\n\n\n\n\n\nlenght",ch)
              
@@ -7580,7 +7994,7 @@ app.get("/create-prompts",async(req,res)=>{
                  //console.log(ch)
                 }
               }catch(err){
-                console.log(err)
+                //console.log(err)
               }
                 if (content != null && r.prompt==null) {
                   //console.log(content)
@@ -7591,10 +8005,15 @@ app.get("/create-prompts",async(req,res)=>{
                     "<!DOCTYPE html><body id='body'>" + content + "</body>"
                   );
 
-                console.log("content:",dom.window.document.getElementById("body").outerHTML);
-                /* const update=await Problem.updateOne({"title":r.title},{
+                console.log("content:",dom.window.document.getElementById("body").textContent);
+                 const update=await Problem.updateOne({"title":r.title},{
                     $set:{"prompt":dom.window.document.getElementById("body").textContent}
                   })
+                
+                  i++
+                  return i
+                  
+                  /*
                   if(update.acknowledged){
                     i++
                     console.log(",",i ," prompts created\n")
@@ -7608,6 +8027,7 @@ app.get("/create-prompts",async(req,res)=>{
                     }
 
                   } 
+                  */
                   
                   
              
@@ -7617,7 +8037,7 @@ app.get("/create-prompts",async(req,res)=>{
 
                 }
               }catch(err){
-                console.log(err)
+                //console.log(err)
               }
                 const hint=p.hints
 
@@ -7628,7 +8048,15 @@ app.get("/create-prompts",async(req,res)=>{
                       $set:{"leetcode_hints":hint}
                     })
                     console.log("\n\nhints updated:",update)
-                  }
+                    const str=await Streak.findOne({$and:[{"title":p.title},{"prompt":{$ne:null}}]})
+                    if(str!=null){
+                      try{ 
+                     // page.close() 
+                      }catch(err){ 
+
+                      }   
+                    } 
+                  }  
                 }
               } catch {
                // console.log("no problems");
@@ -7652,7 +8080,7 @@ app.get("/create-prompts",async(req,res)=>{
           results.map((p)=>{
            
             if(p.prompt==null){
-              generate(p,i)
+              //generate(p,i)
               //console.log(p.title)
             }
           })
@@ -7664,27 +8092,35 @@ app.get("/create-prompts",async(req,res)=>{
         var i=0
 
         if(results.length>0){
+          var index=0;
+           index=await generate(results[number],index)
+           console.log("\n\n\nindex:"+index)
+           index=await generate(results[number+1],index) 
+           console.log("\n\n\nindex:"+index)
+         index=await generate(results[number+2],index)
+           console.log("\n\n\nindex:"+index)
+           index=await generate(results[number+3],index)
+           console.log("\n\n\nindex:"+index)
+           index=await generate(results[number+4],index)
+           console.log("\n\n\nindex:"+index)
+           index=await generate(results[number+5],index)
+           index=await generate(results[number+6],index)
+           index=await generate(results[number+7],index)
+           // generate(results[number+4],i) 
+           // generate(results[number+5],i) 
 
-          /* generate(results[number],i)
-           generate(results[number+1],i)
-            generate(results[number+2],i)
-            generate(results[number+3],i)
-            generate(results[number+4],i)
-            generate(results[number+5],i)
-
-
-            setTimeout(()=>{
+ 
+           /* setTimeout(()=>{
               try{
               res.json({success:true,updated:i})
-              /*generate(results[number+4],i)
+              generate(results[number+4],i)
               generate(results[number+5],i)
                generate(results[number+6],i)
-               generate(results[number+7],i)
-              }catch(err){
+               generate(results[number+7],i)  
                 console.log("caught")
               }
 
-            },20000)
+            },20000)*/
 
    
         }else{
@@ -7708,7 +8144,7 @@ app.get("/create-prompts",async(req,res)=>{
         
   })(); 
 })
-*/
+
 const apiKey="6LfnTEApAAAAAJjSto6edYwxj4WOTRrnq09NIRfI"
 /*
 async function initiateCaptchaRequest(apiKey) {
