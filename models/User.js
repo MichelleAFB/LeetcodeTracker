@@ -16,6 +16,14 @@ const userSchema= new mongoose.Schema({
   username:{
     type:String
   },
+  bio:{
+    type:String,
+    required:false
+  },
+  profilePicUrl:{
+    type:String,
+    required:false
+  },
   email:{
     type:String,
     required:true
