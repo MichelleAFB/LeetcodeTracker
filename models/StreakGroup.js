@@ -16,8 +16,9 @@ const StreakGroupSchema= new mongoose.Schema({
     
   },
   max_questions:{
-    type:Number,
-    
+    type:Number, 
+  },total_problems:{
+    type:Number
   }
 })
 

@@ -6,8 +6,17 @@ const groupChallengeDataSchema= new mongoose.Schema({
         type:Number,
         unique:true
     },
+    title:{
+      type:String
+    },
     contestants:{
       type:Array
+    },
+    startDay:{
+      type:String
+    },
+    endDay:{
+      type:String
     },
     startDate:{
       type:Date,

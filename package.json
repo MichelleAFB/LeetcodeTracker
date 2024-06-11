@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node index.js Socket.js",
+    "dev-all":"npm run dev && npm run socket",
+    "dev": "nodemon index.js ",
+    "socket":"nodemon Socket.js"
   },
   "dependencies": {
     "@emailjs/browser": "^3.10.0",
@@ -118,6 +120,7 @@
     "fast-levenshtein": "^2.0.6",
     "fast-text-encoding": "^1.0.6",
     "fast-xml-parser": "^4.3.4",
+    "fastify": "^4.27.0",
     "fd-slicer": "^1.1.0",
     "fetch-blob": "^3.2.0",
     "file-uri-to-path": "^2.0.0",
@@ -185,7 +188,6 @@
     "jake": "^10.8.5",
     "jimp": "^0.16.2",
     "jpeg-js": "^0.4.4",
-   
     "json-bigint": "^1.0.0",
     "jsonfile": "^4.0.0",
     "jwa": "^2.0.0",
@@ -313,6 +315,7 @@
     "signal-exit": "^3.0.7",
     "simple-update-notifier": "^1.0.7",
     "smart-buffer": "^4.2.0",
+    "socket.io": "^4.7.5",
     "socks": "^2.7.1",
     "socks-proxy-agent": "^5.0.1",
     "source-map": "^0.6.1",
