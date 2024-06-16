@@ -35,6 +35,8 @@ const groupChallengeDataSchema= new mongoose.Schema({
     },
     problemCounter:{
       type:Object
+    },ranks:{
+      type:Array
     }
     
 })

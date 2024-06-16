@@ -7,5 +7,5 @@ io.on('connection', client => {
         console.log("incoming message",data)
     })
  });
-io.listen(3000);
+io.listen(3032);
 module.exports={io}

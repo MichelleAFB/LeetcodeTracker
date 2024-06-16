@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js Socket.js",
-    "dev-all":"npm run dev && npm run socket",
+    "dev-all":"start npm run dev  & start npm run socket ",
     "dev": "nodemon index.js ",
     "socket":"nodemon Socket.js"
   },

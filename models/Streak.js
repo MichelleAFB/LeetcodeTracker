@@ -20,7 +20,7 @@ const StreakSchema= new mongoose.Schema({
   },
   timeLastAdded:{
     type:Date,
-    default:new Date()
+   default:new Date()
   }
   
 })
