@@ -92,6 +92,26 @@ const webserver = express()
  )
  .listen(3000, () => console.log(`Listening on ${3042}\n`))
 
+ const http=require("http")
+ const server=http.createServer(app)
+ const {Server}=require("socket.io")
+ const io=new Server(server,{
+  cors:"http://localhost:3000",
+  methods:["GET","POST"]
+ })
+
+ io.on("connection",(socket)=>{
+  console.log("connected at 3042",Object.keys(socket))
+ })
+ io.on("message",(socket)=>{
+  console.log("connected at 3042",Object.keys(socket))
+ })
+ 
+server.listen(3042,()=>{
+  console.log("socket open on 3042")
+})
+
+/*
 const { WebSocketServer } = require('ws')
 const sockserver = new WebSocketServer({ port: 3042 })
 var socket
@@ -115,6 +135,7 @@ sockserver.on('connection', ws => {
     }
 }
 )
+*/
 
 app.post("/set-ids",async(req,res)=>{
  
@@ -148,15 +169,7 @@ app.post("/set-ids",async(req,res)=>{
   }
 })
 
-app.post("/idss",async(req,res)=>{
-  console.log(req.body.userId)
-  console.log(req.body)
-  const user=req.body.userId
-  const problems=req.body.problems
 
-  const probs=[]
-
-})
 
 var corsOptions = {
   origin: "*",
@@ -200,9 +213,7 @@ app.get("/",(req,res)=>{
   res.json("Welcome to the Leetcode Api")
 })
 /************************************************************************* */
-app.get("/ss/:id",(req,res)=>{
 
-})
 
 app.post("/sqltomongo",(req,res)=>{
   db.query("select * from leetcode.problems",(err,results)=>{
@@ -229,6 +240,7 @@ app.post("/sqltomongo",(req,res)=>{
     }
   })
 })
+
 app.get("/get-all-streaks",async(req,res)=>{
   const streaks=await Streak.find({})
   const groups=await StreakGroup.find({})
