@@ -96,12 +96,13 @@ const webserver = express()
  const server=http.createServer(app)
  const {Server}=require("socket.io")
  const io=new Server(server,{
-  cors:"http://localhost:3000",
+  cors:"*",
   methods:["GET","POST"]
  })
 
  io.on("connection",(socket)=>{
-  console.log("connected at 3042",Object.keys(socket))
+  console.log("connected at 3042",new Date().toString(),Object.keys(socket),socket.data)
+
  })
  io.on("message",(socket)=>{
   console.log("connected at 3042",Object.keys(socket))
