@@ -91,28 +91,70 @@ const webserver = express()
    res.send("hi")
  )
  .listen(3000, () => console.log(`Listening on ${3042}\n`))
+*/
 
  const http=require("http")
  const server=http.createServer(app)
  const {Server}=require("socket.io")
+ 
  const io=new Server(server,{
-  cors:"*",
+  cors:"http://localhost:3000",
   methods:["GET","POST"]
  })
+var rooms={}
 
- io.on("connection",(socket)=>{
-  console.log("connected at 3042",new Date().toString(),Object.keys(socket),socket.data)
+ io.sockets.on("connection",(socket)=>{
+  console.log("user ", socket.id," connected")
+
+  socket.on("send_message",(data)=>{
+  
+    console.log("socket message ",data)
+    socket.emit("mass_message_recieved",{message:"MASS MESSAGE"})
+   })
+   socket.on("NEW_USER_SESSION",(data)=>{
+    var done=false
+    console.log("NEW SESSION")
+    console.log(data.user.firstname+ " tapped in ","\n\n")
+   
+    if(rooms[data.user.userId]==null){
+      rooms[data.id]=data.user.userId
+    }
+    console.log(data.id)
+   //socket.join(data.id)
+   try{
+    socket.join(data.id)
+    var to=rooms[data.id]
+    console.log("done",done)
+    if(done==false){
+    socket.to(data.id).emit("RECIEVED_NEW_USER",{room:io.sockets})
+    done=true
+    }
+    
+    console.log("THREAD ROOM",rooms)
+   }catch(err){
+    console.log(err)
+   }
+    
+   })
+   /**************************************************** */
+   socket.on("UPDATE_NOTIFICATIONS",(data)=>{
+    console.log("UPDATE_NOTIFICATIONS from ",socket.id,data)
+    socket.emit("NOTIFICATIONS_UPDATED",{message:"MASS MESSAGE"})
+   })
+   socket.on("disconnection",(s)=>{
+    console.log(socket.id," is disconnected")
+   })
 
  })
- io.on("message",(socket)=>{
-  console.log("connected at 3042",Object.keys(socket))
+
+ server.listen(3042,()=>{
+  console.log("listening at 3042")
+
  })
  
-server.listen(3042,()=>{
-  console.log("socket open on 3042")
-})
 
 /*
+
 const { WebSocketServer } = require('ws')
 const sockserver = new WebSocketServer({ port: 3042 })
 var socket
@@ -3217,7 +3259,7 @@ app.get("/get-others-group-challenge/:userId",async(req,res)=>{
 
 })
 
-app.get("/fix-passes-and-ranks/",async(req,res)=>{
+app.get("/fix-passes-and-ranks/:challengeId",async(req,res)=>{
   const groups=await GroupChallenge.find({})
   groups.map(async(c)=>{
     const stats=c.userStats
@@ -4059,8 +4101,17 @@ app.post("/fix-streaks-day-before",async(req,res)=>{
 })
 
 
+app.get("/challenge-stats/:userId",async(req,res)=>{
+  const challenges=await Challenge.find({"userId":req.params.userId})
+  const group=await GroupChallenge.find({"userId":req.params.userId})
+  console.log(challenges.length)
+  console.log(group.length)
+  
+})
+
 
 app.get("/find-bad/:challengeId",async(req,res)=>{
+  console.log("\n\nHERE")
   const data=await GroupChallengeData.findOne({"challengeId":req.params.challengeId})
   var i=0
   if(data==null){
@@ -4126,9 +4177,10 @@ if(challenges.length>1){
           }
                 var streak=await Streak.findOne({$and:[{"userId":userId},{"day":curr.toString().substring(0,15)}]})
               if(streak!=null){
-                problemCounter[userId]+=streak.problems.length
+                problemCounter[userId]=problemCounter[userId]+streak.problems.length
+                console.log(problemCOunter[userId])
                 console.log(curr.toString().substring(0,15)+"----"+userId+" "+streak.problems.length)
-                console.log(streak.day)
+         
                 var day=streak.day.split(" ")
                 day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
                 streak.streakId=streak.id
@@ -4139,15 +4191,17 @@ if(challenges.length>1){
                 curr.setDate(curr.getDate()+1)
                 if(curr>=stop || curr.toString().substring(0,15)==stop.toString().substring(0,15) || curr.toString().substring(0,15)==tommorow.toString().substring(0,15)){
                   console.log("COMPLETE")
-                  streaks.map((s)=>{
-                    console.log(s.date)
-                  })
+             
                   console.log("problemCounter",problemCounter)
                   const update=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
                     $set:{"streaks":streaks,"problemCounter":problemCounter}
                  })
                  const data1=await GroupChallengeData.findOne({"challengeId":req.params.challengeId})
+                 try{
                  res.json({groupChallengeData:data1})
+                 }catch(err){
+
+                 }
                   console.log(streaks.length)
                 }
               }
@@ -4166,14 +4220,19 @@ if(challenges.length>1){
   stop.setDate(stop.getDate()+1)
   console.log(stop)
   console.log(startDate.toString().substring(0,15)+"--------------"+endDate.toString().substring(0,15))
+  var problemCounter={}
+  data.contestants.map((c)=>{
+
+    problemCounter[c]={}
+    problemCounter[c].problems=0
+  })
  const streaks=[]
  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
  "Aug","Sep","Oct","Nov","Dec"];
  var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
  
- console.log(data.contestants)
-  
-   
+ console.log(problemCounter)
+ 
       var curr=startDate
     console.log(data.title)
        while(curr<stop && curr.toString().substring(0,15)!=stop.toString().substring(0,15)){
@@ -4191,10 +4250,17 @@ if(challenges.length>1){
             challengeId:59186
        
           }
+          problemCounter[userId].user={
+            userId:u.userId,
+            username:u.username,
+            firstname:u.firstname,
+            lastname:u.lastname,
+          }
                 var streak=await Streak.findOne({$and:[{"userId":userId},{"day":curr.toString().substring(0,15)}]})
               if(streak!=null){
                 console.log(curr.toString().substring(0,15)+"----"+userId+" "+streak.problems.length)
                 console.log(streak.day)
+                problemCounter[userId].problems+=streak.problems.length
                 var day=streak.day.split(" ")
                 day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
                 streak.streakId=streak.id
@@ -4209,16 +4275,19 @@ if(challenges.length>1){
                     console.log(s.date)
                   })
                   const update=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
-                    $set:{"streaks":streaks}
+                    $set:{"streaks":streaks,"problemCounter":problemCounter}
                  })
                  const data1=await GroupChallengeData.findOne({"challengeId":req.params.challengeId})
-                 res.json({challengeData:data1})
-                  console.log(streaks.length)
+                 try{
+                  res.json({groupChallengeData:data1})
+                  }catch(err){
+                   
+                  }
               
                   
                 }
               }
-      }
+           }
        
        }
       }
@@ -4242,6 +4311,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   var allChallengesIndex=0
   const AllStreaks=[]
   const ch=[]
+  console.log(group.length)
   while(allChallengesIndex<group.length){
     var c=group[allChallengesIndex]
     var groupData=await GroupChallengeData.findOne({$and:[{"challengeId":c.challengeId},{"endDate":{$lte:new Date()}}]})
@@ -5952,6 +6022,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
   var startTime=new Date()
   axios.get("http://localhost:3022/group-challenges-2-fix/"+req.params.userId).then(async(response)=>{
     console.log("MADE IT TO CHALLENGE-2-2")
+    console.log(Object.keys(response.data))
     console.log("hi")
     if(response.data.challenges.length>0){
      console.log("HERE")
@@ -6527,17 +6598,20 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         var streak=await Streak.findOne({$and:[{"userId":challenge.userId},{"day":date.toString().substring(0,15)}]})
       
         if(streak!=null){
-          
-          
+          console.log("6549",challenge.userId," has a " +streak.problems.length+ " problems for day ",streak.day.toString().substring(0,15))
+          //{"day":"Fri Mar 29 2024"}
+          //663c0cbd175de6f764879b7c
+          //66076241bc59bf961930a658
           if(streak.problems.length<challenge.no_questions/* && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
             var aday=streak.day.split(" ")
             aday=new Date(aday[3],monthnum[months.indexOf(aday[1])-1],aday[2])
+           
             if(!processedLosers.includes(challenge.userId)){
               processedLosers.push(challenge.userId)
       
               LOSERS.push({date:aday.toString(),userId:challenge.userId,streak:streak})
 
-           
+           console.log("ADDING 6559",streak.userId)
             losers.push({challenge:challenge,date:aday.toString(),streak:streak})
             }
             challengeIndex++
@@ -6590,6 +6664,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   return l.userId
                 })
                 //console.log("6530"+date.toString())
+                console.log("6612",date.toString())
                 allLosers.push({date:date.toString(),length:losers.length,losers:losers})
                
                 date.setDate(date.getDate()+1)
@@ -6621,16 +6696,19 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             }
           } 
         }else{
-          if(!processedLosers.includes(challenge.userId) && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)){
+          console.log("6644",challenge.userId," has no streak for day ",date.toString().substring(0,15))
+
+          losers.push({challenge:challenge,date:date.toString(),streak:null})
+         if(!processedLosers.includes(challenge.userId) && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)){
             //console.log("6562:"+ date.toString())
-            losers.push({challenge:challenge,date:date.toString(),streak:null})
+           
             processedLosers.push(challenge.userId)
             LOSERS.push({date:date.toString(),userId:challenge.userId})
 
             //console.log("6572 adding to processed "+challenge.userId+" "+ date.toString().substring(0,15))
 
          
-          }
+         }
           challengeIndex++
           if(challengeIndex==challenges.length){ 
             if(losers.length>0){
@@ -7700,6 +7778,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
            // console.log(onlyOne)
            if(!onlyOne){
           // console.log(alllosers.length)
+          console.log("onlyOne")
            var index=0
             while(index<allLosers.length){
               
@@ -7724,13 +7803,13 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                     takenRanks.push(rank)
                     //console.log(takenRanks)
                       await getLosersEmpty(allChallenges,indexindex,losers,lastRank!=null?lastRank:rank,processed).then(async(results)=>{
-                     var update=await GroupChallenge.updateOne({$and:[{"challengeId":results.loser.challenge.challengeId},{"userId":results.loser.challenge.userId}]},{
-                      $set:{"rank":rank,"success":false,"dateFailed":results.loser.date}
-                     })
-                     console.log("7688",update)
+                        allRanks.push({rank:rank,user:results.loser.challenge.userStats,date:new Date(results.loser.date)})
+                        var update=await GroupChallenge.updateOne({$and:[{"challengeId":results.loser.challenge.challengeId},{"userId":results.loser.challenge.userId}]},{
+                          $set:{"rank":rank,"success":false,"dateFailed":new Date(results.loser.date)}
+                         })
+                        console.log("7688",update)
                         console.log("BACK IN METH: rank",rank," user:",results.loser.challenge.userId,"\n\n")
-                        
-                        allRanks.push({rank:rank,user:results.loser.challenge.userId})
+                    
                         
                       processed=results.processed
                      
@@ -7740,13 +7819,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                     }else{ 
                       rank--
                       takenRanks.push(rank)
+                      console.log("7755")
                       await getLosersEmpty(allChallenges,indexindex,losers,lastRank!=null?lastRank:rank,processed).then(async(results)=>{
+                        allRanks.push({rank:rank,user:results.loser.challenge.userStats,date:new Date(results.loser.date)})
                         var update=await GroupChallenge.updateOne({$and:[{"challengeId":results.loser.challenge.challengeId},{"userId":results.loser.challenge.userId}]},{
-                          $set:{"rank":rank,"success":false,"dateFailed":results.loser.date}
+                          $set:{"rank":rank,"success":false,"dateFailed":results.loser.date instanceof Date?results.loser.date:new Date(results.loser.date)}
                          })
                          console.log("7704",update)
                           console.log("BACK IN METH: rank",rank," user:",results.loser.challenge.userId,"\n\n")
-                          allRanks.push({rank:rank,user:results.loser.challenge.userId})
+                        
                         processed=results.processed
                       
                        
@@ -7755,13 +7836,14 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                        })
                     }
                  }else if(losers.length==2){
-                
+                  console.log("7771")
                   if(!takenRanks.includes(rank)){
                     takenRanks.push(rank)
+                   
                   await getLosersEmpty(allChallenges,indexindex,losers,lastRank!=null?lastRank:rank,processed).then(async(results)=>{
-                    allRanks.push({rank:rank,user:results.loser.challenge.userId})
+                    allRanks.push({rank:rank,user:results.loser.challenge.userStats,date:new Date(results.loser.date)})
                     var update=await GroupChallenge.updateOne({$and:[{"challengeId":results.loser.challenge.challengeId},{"userId":results.loser.challenge.userId}]},{
-                      $set:{"rank":rank,"success":false,"dateFailed":results.loser.date}
+                      $set:{"rank":rank,"success":false,"dateFailed":results.loser.date instanceof Date?results.loser.date:new Date(results.loser.date)}
                      })
                      console.log("7722",update)
                       console.log("7445 BACK IN METH: rank",rank," user:",results.loser.challenge.userId,"\n\n")
@@ -7777,43 +7859,62 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                       takenRanks.push(rank)
                  
                       console.log("7454 BACK IN METH: rank",rank," user:",losers[0].challenge.userId,"\n\n")
-                      allRanks.push({rank:rank,user:losers[0].challenge.userId})
+                      console.log(losers[0].date instanceof Date)
+                      allRanks.push({rank:rank,user:losers[0].challenge.userStats,date:new Date(losers[0].date)})
                       var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
-                        $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date}
+                        $set:{"rank":rank,"success":false,"dateFailed":losers[0].date instanceof Date?losers[0].date:new Date(losers[0].date)}
                        })
                        console.log("7742",update)
                       processed.push(losers[0].challenge.userId)
                       indexindex++
                       losers=[]                     
                       index++
+                      console.log("7808:index",index,"all",allLosers.length)
+                      if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
+                     
+                        const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                          $set:{"ranks":allRanks}})
+                        axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
+                          res.json({success:true,ranks:allRanks,data:response.data})
+                        })
+                      }
                     }else{
                       rank--
                       takenRanks.push(rank)
-                      allRanks.push({rank:rank,user:losers[0].challenge.userId})
+                      console.log("7815")
+                      allRanks.push({rank:rank,user:losers[0].challenge.userStats,date:new Date(losers[0].date)})
                       processed.push(losers[0].challenge.userId)
                       var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
-                        $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date}
+                        $set:{"rank":rank,"success":false,"dateFailed":losers[0].date instanceof Date?losers[0].date:new Date(losers[0].date)}
                        })
                        console.log("7751",update)
                       console.log("7461 BACK IN METH: rank",rank," user:",losers[0].challenge.userId,"\n\n")
                       indexindex++
                       losers=[]                     
                       index++
+                      if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
+                  
+                        const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                          $set:{"ranks":allRanks}})
+                        axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
+                          res.json({success:true,ranks:allRanks,data:response.data})
+                        })
+                      }
                     }
+                    console.log("7837 index:",index)
                     }
                  
                    })
                   }else{
                     rank--
                     takenRanks.push(rank)
-
+                    console.log("7839")
                     await getLosersEmpty(allChallenges,indexindex,losers,lastRank!=null?lastRank:rank,processed).then(async(results)=>{
                       processed=results.processed 
-                      var update=await GroupChallenge.updateOne({$and:[{"challengeId":results.loser.challenge.challengeId},{"userId":results.loser.challenge.userId}]},{
-                        $set:{"rank":rank,"success":false,"dateFailed":results.loser.date}
-                       })
-                       console.log("7769",update)
-                      allRanks.push({rank:rank,user:results.loser.challenge.userId})
+                      allRanks.push({rank:rank,user:results.loser.challenge.userStats,date:new Date(results.loser.date)})
+                    var update=await GroupChallenge.updateOne({$and:[{"challengeId":results.loser.challenge.challengeId},{"userId":results.loser.challenge.userId}]},{
+                      $set:{"rank":rank,"success":false,"dateFailed":new Date(results.loser.date)}
+                     })
                       console.log("7473 BACK IN METH: rank",rank," user:",results.loser.challenge.userId,"\n\n")
                      
                       losers=results.losers
@@ -7825,20 +7926,38 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                         
                         console.log("7481 BACK IN METH: rank",rank," user:",losers[0].challenge.userId,"\n\n")
                         const l=losers[0].challenge
-                        allRanks.push({rank:rank,user:losers[0].challenge.userId})
-                        var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
-                          $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date}
-                         })
+                        allRanks.push({rank:rank,user:losers[0].challenge.userStats,date:new Date(losers[0].date)})
+                      
+                        if(losers[0]!=null){
+                          
+                      var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
+                        $set:{"rank":rank,"success":false,"dateFailed":losers[0].date instanceof Date?losers[0].date:new Date(losers[0].date)}
+                       })
                          console.log("7786",update)
                         processed.push(losers[0].challenge.userId)
                      
+                        console.log("7872 index:",index,"allLosers:",allLosers.length,"ids",ids.length)
+                       console.log(losers[0].date)
+                       console.log(processed)
                         indexindex++
                         losers=[]
-                       
-                        index++
-                        if(index>=allLosers.length){
+                   
+                      }
+                       index++
+                      
+                        console.log("7876 index:",index,"allLosers:",allLosers.length,"ids",ids.length)
+                      
+                        if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
+                          const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                            $set:{"ranks":allRanks}})
                           console.log(allRanks)
-                          res.json({success:true,ranks:allRanks})
+                          axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
+                            try{
+                            res.json({success:true,ranks:allRanks,data:response.data})
+                            }catch(err){
+
+                            }
+                          })
                         }
                         
                       }
@@ -7848,35 +7967,53 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                    //console.log(results.loser.userId)
                      //indexindex++
                  }else if(losers.length==1){
+                  console.log("7883")
                   if(!takenRanks.includes(rank)){
                    console.log("7453 BACK IN METH: rank",rank," user:"+losers[0].challenge.userId)
+                   allRanks.push({rank:rank,user:losers[0].challenge.userStats,date:new Date(losers[0].date)})
+                   processed.push(losers[0].challenge.userId)
                    var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
-                    $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date}
-                   })
-                   console.log("7814",update)
-                   allRanks.push({rank:rank,user:losers[0].challenge.userId})
+                     $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date instanceof Date?losers[0].challenge.date:new Date(losers[0].challenge.date)}
+                    })
                    processed.push(losers[0].challenge.userId)
                    indexindex++
                    rank--
                    losers=[]
                    index++ 
+                   if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
+                    
+                    const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                      $set:{"ranks":allRanks}})
+                    console.log(allRanks)
+                    axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
+                      res.json({success:true,ranks:allRanks,data:response.data})
+                    })
+                  }
                   }else{
                     rank--
                     takenRanks.push(rank)
-                    var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
-                      $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date}
-                     })
-                     console.log("7826",update)
-                    processed.push(losers[0].challenge.userId)
-                    allRanks.push({rank:rank,user:losers[0].challenge.userId})
+                    console.log("7905",losers[0].challenge.userId)
+                    if(!processed.includes(losers[0].challenge.userId)){
+                    allRanks.push({rank:rank,user:losers[0].challenge.userStats,date:new Date(losers[0].date)})
+                      processed.push(losers[0].challenge.userId)
+                      console.log(processed)
+                      var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
+                        $set:{"rank":rank,"success":false,"dateFailed":losers[0].date instanceof Date?losers[0].date:new Date(losers[0].date)}
+                       })
                     console.log("7453 BACK IN METH: rank",rank," user:"+losers[0].challenge.userId)
                     indexindex++
                     rank--
                     losers=[]
+                      }
                     index++
-                    if(index>=allLosers.length){
+                    console.log("7919 index",index)
+                    if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
+                      const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                        $set:{"ranks":allRanks}})
                       console.log(allRanks)
-                      res.json({success:true,ranks:allRanks})
+                      axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
+                        res.json({success:true,ranks:allRanks,data:response.data})
+                      })
                     }
                   }
                    
@@ -7891,17 +8028,44 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
              } 
            }else{
             var index=0
+            console.log("ONLY ONE 7972")
             while(index<response.data.losers.length){
               var loser=response.data.losers[index]
             
               if(loser.losers.length>0){
+                console.log("7977")
                 console.log("rank:"+rank+" "+loser.losers[0].challenge.userId, loser.date.toString().substring(0,15))
+                console.log(ids)
+                const update=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":loser.losers[0].challenge.userId}]},{
+                  $set:{"success":false,"dateFailed":loser.date instanceof Date?loser.date:new Date(loser.date),"rank":rank}
+                })
+                const found=await GroupChallenge.findOne({$and:[{"challengeId":req.params.challengeId},{"userId":loser.losers[0].challenge.userId}]})
+                console.log("update",update,found)
+                
+                
+
+                allRanks.push({rank:rank,userId:loser.losers[0].challenge.userId,dateFailed:new Date(loser.date)})
+               
                 rank--
               } 
               index++
-              if(index>=allLosers.length){
+              if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
                 console.log(allRanks)
-                res.json({success:true,ranks:allRanks})
+                const updateWinners=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":{$nin:ids}}]},{
+                  $set:{"success":true}
+                })
+                const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                  $set:{"ranks":allRanks}
+                })
+                axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
+                  try{
+                  res.json({success:true,ranks:allRanks,data:response.data})
+                  }catch(err){
+
+                  }
+                })
+                
+            
               }
             }
            }
