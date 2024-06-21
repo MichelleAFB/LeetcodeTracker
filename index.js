@@ -92,7 +92,7 @@ const webserver = express()
  )
  .listen(3000, () => console.log(`Listening on ${3042}\n`))
 */
-
+var rooms={}
  const http=require("http")
  const server=http.createServer(app)
  const {Server}=require("socket.io")
@@ -101,51 +101,93 @@ const webserver = express()
   cors:"http://localhost:3000",
   methods:["GET","POST"]
  })
-var rooms={}
+
 
  io.sockets.on("connection",(socket)=>{
   console.log("user ", socket.id," connected")
 
-  socket.on("send_message",(data)=>{
-  
-    console.log("socket message ",data)
-    socket.emit("mass_message_recieved",{message:"MASS MESSAGE"})
-   })
+ 
+
    socket.on("NEW_USER_SESSION",(data)=>{
     var done=false
     console.log("NEW SESSION")
     console.log(data.user.firstname+ " tapped in ","\n\n")
+    if(data.user!=null){
    
-    if(rooms[data.user.userId]==null){
+    if(data.id!=null){
+      console.log(rooms)
+      if(!Object.keys(rooms).includes(data.id)){
+      console.log("DATA ID NOT NULL")
       rooms[data.id]=data.user.userId
-    }
-    console.log(data.id)
-   //socket.join(data.id)
-   try{
-    socket.join(data.id)
+      socket.join(data.id)
     var to=rooms[data.id]
     console.log("done",done)
     if(done==false){
-    socket.to(data.id).emit("RECIEVED_NEW_USER",{room:io.sockets})
+    socket.to(data.id).emit("RECIEVED_NEW_USER",{room:data.id})
     done=true
     }
-    
-    console.log("THREAD ROOM",rooms)
-   }catch(err){
-    console.log(err)
-   }
-    
+  }
+    }else{
+      console.log(rooms)
+      if(!Object.keys(rooms).includes(socket.id)){
+      console.log("DATA ID IS NULL")
+      rooms[socket.id]=data.user.userId
+      socket.join(socket.id)
+    var to=rooms[socket.id]
+    console.log("done",done)
+    if(done==false){
+    socket.to(socket.id).emit("RECIEVED_NEW_USER",{room:socket.id})
+    done=true
+    }
+  }
+    }
+  }
    })
    /**************************************************** */
    socket.on("UPDATE_NOTIFICATIONS",(data)=>{
+   
     console.log("UPDATE_NOTIFICATIONS from ",socket.id,data)
-    socket.emit("NOTIFICATIONS_UPDATED",{message:"MASS MESSAGE"})
+    console.log("rooms",rooms)
+    if(data.user!=null){
+    const user=data.user
+    console.log(Object.values(rooms))
+    if(Object.values(rooms).includes(user.userId)){
+      console.log("FOUNF")
+      var sendee
+      const otherId=Object.keys(rooms).map((k)=>{
+        console.log("o:",rooms[k], user.userId)
+        if(rooms[k]==user.userId){
+          sendee=k
+          return k 
+        }
+      })
+      console.log("other socket id",sendee,user.firstname)
+      socket.to(sendee).emit("NOTIFICATIONS_UPDATED",{message:"You have a new follower",follower:data.ourOur})
+    }
+  }else if(data.users!=null){
+    if(data.users.length>0){
+      var sendeeOne
+      data.users.map((u)=>{
+        const otherIds=Object.keys(rooms).map((k)=>{
+          console.log("o:",rooms[k], u.userId)
+          if(rooms[k]==u.userId){
+            sendeeOne=k
+            return k 
+          }
+        })
+        socket.to(sendeeOne).emit("NOTIFICATIONS_UPDATED",{message:data.message})
+
+
+      })
+    }
+  }
+   
    })
    socket.on("disconnection",(s)=>{
     console.log(socket.id," is disconnected")
    })
 
- })
+ }) 
 
  server.listen(3042,()=>{
   console.log("listening at 3042")
@@ -1934,26 +1976,7 @@ app.post("/update-group-challenge-contestant/:userId",async(req,res)=>{
         console.log(update)
         if(update.acknowledged){
           var challenge=await GroupChallenge.findOne({"challengeId":groupChallenge.challengeId})
-          sockserver.on('connection', ws => {
-            console.log('New client connected!')
-            console.log
-            
-            ws.send({message:"CONTESTANT_GROUP_CHALLENGE_ACCEPTED",createdBy:save.createdBy})
-            
-            ws.on('close', () => console.log('Client has disconnected!'))
-            
-            ws.on('message', data => {
-                sockserver.clients.forEach(client => {
-                console.log(`distributing message: ${data}`)
-                client.send(`${data}`)
-                })
-            })
-            
-            ws.onerror = function () {
-                console.log('websocket error')
-            }
-        }
-        )
+          
           res.json({success:true,groupChallenge:challenge})
         }
       },100)
@@ -6021,7 +6044,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   var startTime=new Date()
   axios.get("http://localhost:3022/group-challenges-2-fix/"+req.params.userId).then(async(response)=>{
-    console.log("MADE IT TO CHALLENGE-2-2")
+    console.log("MADE IT TO CHALLENGE-2-2 AFter rquest")
     console.log(Object.keys(response.data))
     console.log("hi")
     if(response.data.challenges.length>0){
