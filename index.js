@@ -104,15 +104,16 @@ var rooms={}
 
 
  io.sockets.on("connection",(socket)=>{
-  console.log("user ", socket.id," connected")
+  
 
  
 
    socket.on("NEW_USER_SESSION",(data)=>{
     var done=false
-    console.log("NEW SESSION")
-    console.log(data.user.firstname+ " tapped in ","\n\n")
+   
     if(data.user!=null){
+      console.log("NEW SESSION")
+      console.log(data.user.firstname+ " tapped in ","\n\n")
    
     if(data.id!=null){
       console.log(rooms)
@@ -141,6 +142,9 @@ var rooms={}
     }
   }
     }
+  }else{
+    console.log("DISCONNECTIMG USELESS CONNECTION",socket.id)
+    socket.disconnect()
   }
    })
    /**************************************************** */
@@ -152,17 +156,20 @@ var rooms={}
     const user=data.user
     console.log(Object.values(rooms))
     if(Object.values(rooms).includes(user.userId)){
-      console.log("FOUNF")
+      console.log("FOUND")
       var sendee
       const otherId=Object.keys(rooms).map((k)=>{
-        console.log("o:",rooms[k], user.userId)
+       
         if(rooms[k]==user.userId){
+          console.log("\nFOUND "+k+" user:"+rooms[k])
           sendee=k
+          console.log("other socket id",sendee,user.firstname)
+          socket.to(k).emit("NOTIFICATIONS_UPDATED",{time:new Date().toString(),message:data.message})
+
           return k 
         }
       })
-      console.log("other socket id",sendee,user.firstname)
-      socket.to(sendee).emit("NOTIFICATIONS_UPDATED",{message:"You have a new follower",follower:data.ourOur})
+      
     }
   }else if(data.users!=null){
     if(data.users.length>0){
@@ -172,10 +179,11 @@ var rooms={}
           console.log("o:",rooms[k], u.userId)
           if(rooms[k]==u.userId){
             sendeeOne=k
+            socket.to(sendeeOne).emit("NOTIFICATIONS_UPDATED",{time:new Date().toString(),message:data.message})
             return k 
           }
         })
-        socket.to(sendeeOne).emit("NOTIFICATIONS_UPDATED",{message:data.message})
+       
 
 
       })
@@ -791,9 +799,13 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 })
 setInterval(function () {
   console.log("\n\n\*************************************PINGING")
+  try{
   axios.get("https://leetcodetracker.onrender.com").then((response)=>{
     console.log(response.data,new Date().toString(),"\n\n\n")
   })
+}catch(err){
+  console.log(err)
+}
 }, 540000);
 app.get("/remove-dup-group",async(req,res)=>{
   const users=await User.find({})
@@ -4337,6 +4349,25 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   console.log(group.length)
   while(allChallengesIndex<group.length){
     var c=group[allChallengesIndex]
+    console.log(c)
+    console.log("startDate",new Date(c.startDate))
+    if(new Date()<new Date(c.startDate)){
+      AllStreaks.push({challenge:c});
+      allChallengesIndex++;
+      if(allChallengesIndex>=group.length){
+   
+        var endTime=new Date() 
+        var time=((endTime-startTime)/1000)
+        console.log("\n\nSending 4655")
+        try{
+        res.json({time:time+" secs",ch:ch,challenges:AllStreaks})
+        }catch(err){
+          console.log("ERR:4363")
+        }
+        
+      }
+
+    }else{
     var groupData=await GroupChallengeData.findOne({$and:[{"challengeId":c.challengeId},{"endDate":{$lte:new Date()}}]})
     if(groupData!=null){
       groupData.title=c.title
@@ -4386,21 +4417,46 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
       //console.log("startdate:",startDate)  
       //console.log("stopDate:",stopDate) 
       var tommorow=new Date(curr)
-      tommorow=tommorow.setDate(tommorow.getDate()+1)
+      tommorow.setDate(tommorow.getDate()+1)
       if(/*date.toString().substring(0,15)!=curr.toString().substring(0,15) && */complete==false){
-       // console.log("HERE")
-        var problemCounter={}
-        all.map((c)=>{
-          console.log("is:",c.userId)
-        })
-      while(/*complete==false&& date<curr*/date<stopDate  && date<tommorow/*date.toString().substring(0,15)!=curr.toString().substring(0,15) && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
+       // console.log("HERE") 
+        var problemCounter={} 
+        console.log("\ndate:",date.toString(),"\nstop",stopDate.toString(),"\ntommorow:",tommorow.toString())
+              while(/*complete==false&& date<curr*/date<stopDate  && date<tommorow/*date.toString().substring(0,15)!=curr.toString().substring(0,15) && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
         var allIndex=0
-        console.log("date not change")
+       // console.log("date not change",date.toString())   
        // console.log("IN WHILE LOOP")
         //console.log(date.toString().substring(0,15)+" | start:"+c.startDate.toString().substring(0,15)+ " | stop:"+stopDate.toString().substring(0,15)+"index:"+ allIndex)
       //console.log("here:"+new Date(checkEnd.setDate(c.endDate.getDate()-1)).toString().su bstring(0,15))
-       
-        while(allIndex<all.length){ 
+      console.log("starting date",date," currdate",new Date())
+        if(date>new Date()){ 
+          console.log("CHALLENGE NOT STARTING YET") 
+          AllStreaks.push({challenge:challenge})  
+          allChallengesIndex++
+          console.log(allChallengesIndex)
+          if(allChallengesIndex>=group.length){
+           // HEREIMAM 
+           try{
+            if(!res.headersSent){
+            res.json({ch:ch,allStreaksLength:AllStreaks.length,challenges:AllStreaks,allLosers:allLosers})
+            break 
+            }else{
+              try{
+                res.json({ch:ch,allStreaksLength:AllStreaks.length,challenges:AllStreaks,allLosers:allLosers})
+
+              }catch(err){
+                console.log(err)
+              }
+              break
+            }
+
+           }catch(err){
+            console.log("4454",err)
+           }
+          }
+        }
+        else{
+        while(allIndex<all.length && date<tommorow && date.toString().substring(0,15)!=tommorow.toString().substring(0,15)){  
           const u=all[allIndex]   
          
           const streak=await Streak.findOne({$and:[{"userId":u.userId},{"day":date.toString().substring(0,15)}]})
@@ -4481,8 +4537,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               }
             }else{
               console.log("!!!!\n\n\n\EXCEPTION:Streak has no problems\n\n")
+              allIndex++
             }
-          }else{
+          }else if(streak==null){
             //should modify all groups where this date is between their start and end date
             //console.log("FAIL:"+user.firstname+ " | "+date.toString().substring(0,15)+ " | 0 problems | "+c.title)
               if(!c.lastUpdated.toString().substring(0,15)==new Date().toString().substring(0,15)){
@@ -4513,7 +4570,11 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   }  
                 }
             allIndex++ 
+          }else{
+            console.log("EXCEPTION")
+            allIndex++
           }
+          console.log(allIndex,"all",all.length)
          // console.log("\n\n\n"+c.title + " allINDEX:"+allIndex+ " all length "+all.length)
           //console.log(date.toString().substring(0,15)+" | start:"+c.startDate.toString().substring(0,15)+ " | stop:"+stopDate.toString().substring(0,15)+"index:"+ allIndex)
           
@@ -4639,6 +4700,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               AllStreaks.push({challenge:challenge,streaks:streaks,problemCounter:problemCounter})
               date.setDate(date.getDate()+1)
               allChallengesIndex++ 
+              console.log(allChallengesIndex,"group:",group.length,date)
               if(allChallengesIndex>=group.length){ 
                 var endTime=new Date()
                 var time=((endTime-startTime)/1000)
@@ -4678,7 +4740,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               }
             
             }else{
-              console.log("NOT END")
+              console.log("NOT END",date.toString())
               date.setDate(date.getDate()+1)
             }
           
@@ -4686,7 +4748,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           }
         }
         
-        } 
+        }
+      } 
       }
    
     }else{ 
@@ -4741,6 +4804,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
     
   }
 }
+  }
 }
   
 })
