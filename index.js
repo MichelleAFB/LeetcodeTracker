@@ -172,7 +172,7 @@ var rooms={}
       
     }
   }else if(data.users!=null){
-    if(data.users.length>0){
+    if(data.users.length>0){ 
       var sendeeOne
       data.users.map((u)=>{
         const otherIds=Object.keys(rooms).map((k)=>{
@@ -203,32 +203,7 @@ var rooms={}
  })
  
 
-/*
 
-const { WebSocketServer } = require('ws')
-const sockserver = new WebSocketServer({ port: 3042 })
-var socket
-sockserver.on('connection', ws => {
-    console.log('New client connected!')
-    console.log
-    socket=ws
-    ws.send('connection established')
-    
-    ws.on('close', () => console.log('Client has disconnected!'))
-    
-    ws.on('message', data => {
-        sockserver.clients.forEach(client => {
-        console.log(`distributing message: ${data}`)
-        client.send(`${data}`)
-        })
-    })
-    
-    ws.onerror = function () {
-        console.log('websocket error')
-    }
-}
-)
-*/
 
 app.post("/set-ids",async(req,res)=>{
  
@@ -4361,6 +4336,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         console.log("\n\nSending 4655")
         try{
         res.json({time:time+" secs",ch:ch,challenges:AllStreaks})
+        break
         }catch(err){
           console.log("ERR:4363")
         }
@@ -4588,11 +4564,12 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             console.log("\n\nTODAY IS THE START OF THE CHALLENGE")
             AllStreaks.push({challenge:challenge,streaks:streaks,problemCounter:problemCounter})
             allChallengesIndex++
-          
+          date.setDate(date.getDate()+1)
             if(allChallengesIndex>=group.length){
               if(!res.headersSent){
                 try{
               res.json({time:time+" secs",challenges:AllStreaks,ch:ch})
+              break
                 }catch(err){
                   console.log(err)
                 }
@@ -6108,7 +6085,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
   var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   var startTime=new Date()
   axios.get("http://localhost:3022/group-challenges-2-fix/"+req.params.userId).then(async(response)=>{
-    console.log("MADE IT TO CHALLENGE-2-2 AFter rquest")
+    console.log("\n\n\n\nMADE IT TO CHALLENGE-2-2 AFter rquest")
     console.log(Object.keys(response.data))
     console.log("hi")
     if(response.data.challenges.length>0){
@@ -6316,8 +6293,8 @@ app.get("/group-challenges-2-2/:userId/:challengeId",async(req,res)=>{
       
        while(i<all.length && complete==false){
         const u=all[i]
-        
-        console.log(u.userId)
+         
+        console.log("here",u.userId)
         while( date<tommorow  && complete==false&& date<stopDate ){
           var allIndex=0
 
@@ -6328,7 +6305,7 @@ app.get("/group-challenges-2-2/:userId/:challengeId",async(req,res)=>{
             const streak=await Streak.findOne({$and:[{"day":date.toString().substring(0,15)},{"userId":all[allIndex].userId}]})
            
             if(streak!=null){
-              console.log(all[allIndex].userId +" on day: "+date.toString().substring(0,15)+ " has "+streak.problems.length+ " problems")
+              console.log("here 6308",all[allIndex].userId +" on day: "+date.toString().substring(0,15)+ " has "+streak.problems.length+ " problems")
 
               if(streakIds.includes(streak.id)){
               
@@ -6351,7 +6328,7 @@ app.get("/group-challenges-2-2/:userId/:challengeId",async(req,res)=>{
                 streakIds.push(streak.id)
               }
               allIndex++
-            }else{
+            }else{ 
             allIndex++
             }
           
@@ -6377,8 +6354,8 @@ app.get("/group-challenges-2-2/:userId/:challengeId",async(req,res)=>{
                       problemCounter[str.userId]+=str.problems.length
                     }else{
                       problemCounter[str.userId]+=str.problems.length
-    
-                    }
+     
+                    }  
                 
                     streaks.push({streak:str,date:date,challengeId:challenge.challengeId,user:struser})
                     newIndex++
@@ -12812,6 +12789,7 @@ app.get("/problems", async(req, res) => {
   const problems= await problemItem.find({})
   res.json({success:true,length:problems.length,problems:problems})
 });
+
 
 
 
