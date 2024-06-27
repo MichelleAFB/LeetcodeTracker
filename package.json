@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js Socket.js",
-    "dev-all":"start npm run dev  & start npm run socket ",
+    "dev-all": "start npm run dev  & start npm run socket ",
     "dev": "nodemon index.js ",
-    "socket":"nodemon Socket.js"
+    "socket": "nodemon Socket.js"
   },
   "dependencies": {
     "@emailjs/browser": "^3.10.0",
@@ -65,6 +65,7 @@
     "concat-map": "^0.0.1",
     "concat-stream": "^1.6.2",
     "console-control-strings": "^1.1.0",
+    "console-stamp": "^3.1.2",
     "content-disposition": "^0.5.4",
     "content-type": "^1.0.4",
     "cookie": "^0.5.0",
