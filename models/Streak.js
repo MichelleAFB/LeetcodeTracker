@@ -7,6 +7,10 @@ const StreakSchema= new mongoose.Schema({
     unique:false
 
   },
+  date:{
+    type:Date,
+    default:new Date()
+  },
   problems:[
     
   ],

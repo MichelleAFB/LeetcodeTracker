@@ -90,6 +90,9 @@ const groupChallengeSchema= new mongoose.Schema({
   },
   winningDate:{
     type :Date
+  },
+  totalProblems:{
+    type:Number
   }
 })
 

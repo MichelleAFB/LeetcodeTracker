@@ -11,12 +11,18 @@
   "license": "ISC",
   "dependencies": {
     "autodetect-decoder-stream": "^2.0.2",
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
     "csv-parse": "^5.5.6",
     "csv-parser": "^3.0.0",
     "csv-reader": "^1.0.12",
     "cvs-reader": "^0.0.1",
+    "edge": "^7.10.1",
     "express": "^4.19.2",
+    "msnodesqlv8": "^4.2.1",
+    "mssql": "^11.0.0",
     "mysql": "^2.18.1",
+    "node-adodb": "^5.0.3",
     "nodemon": "^3.1.4",
     "sql": "^0.78.0",
     "xlsx": "^0.18.5"

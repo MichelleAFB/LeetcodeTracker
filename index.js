@@ -105,6 +105,7 @@ const port = 3022;
 app.use(bodyParser.json());
 app.use(express.json())
 app.use(express.json({limit:'50mb'}))
+
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true,parameterLimit:50000}));
 
 const paymentRouter=require("./payment").router
@@ -177,7 +178,7 @@ var rooms={}
     console.log("\n\n\nSOCKET:UPDATING GROUP CHALLENGE")
     if(data.user!=null){
       const user=data.user
-      console.log(Object.values(rooms),user)
+      console.log(Object.values(rooms))
       if(Object.values(rooms).includes(user.userId)){
         console.log("FOUND")
         var sendee
@@ -188,9 +189,33 @@ var rooms={}
             sendee=k
             console.log("other socket id",sendee,user.firstname)
             
-          const groupChallenge=await GroupChallenge.findOne({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]},{$and:[{"startDay":new Date().toString().substring(0,15)},{"endDay":new Date().toString().substring(0,15)},{"userId":user.userId}]}]})
-          console.log(groupChallenge)
+          const groupChallenge=await GroupChallengeData.find({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]},{$and:[{"startDay":new Date().toString().substring(0,15)},{"endDay":new Date().toString().substring(0,15)},{"userId":user.userId}]}]})
+          const others=await  GroupChallenge.find({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]},{$and:[{"startDay":new Date().toString().substring(0,15)},{"endDay":new Date().toString().substring(0,15)},{"userId":{$ne:user.userId}}]}]})
           if(groupChallenge!=null){
+            console.log("SOCKET:"+groupChallenge.challengeId)
+            var oIndex=0
+            if(oIndex<others.length){
+              
+              var other=others[oIndex]
+              while(oIndex<others.length){
+                const o=Object.keys(rooms)
+                var oo=0
+                Object.keys(rooms).map((kk)=>{
+                  //console.log("SEARCHING",rooms[kk])
+                  if(rooms[kk]==other.userId){
+                    console.log("SOCKET:FOUND OTHER ")
+                    socket.to(kk).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge})
+
+                  }else{
+                    
+                  }
+                })
+                oIndex++
+                if(oIndex>others.length){
+                  break;
+                }
+              }
+            }
             try{
           socket.to(sendee).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge})
             }catch(err){
@@ -544,7 +569,7 @@ console.log(streak.day)
    if(Object.keys(problem).includes("problem")){
     console.log("HERE")
     var title=problem.problem.title.replace(/\s/g,"").toUpperCase()
-    
+    if(p.title.length>0){
     var ptitle=p.problem==null?p.title.replace(/\s/g,"").toUpperCase():p.problem.title.replace(/\s/g,"").toUpperCase()
     if(title==ptitle){
       console.log("DOUBLE")
@@ -554,7 +579,8 @@ console.log(streak.day)
    
   }else if(!Object.keys(problem).includes("problem")){
     var title=req.body.problem.title.replace(/\s/g,"").toUpperCase()
-   
+   console.log(p)
+
     var ptitle=p.title.replace(/\s/g,"").toUpperCase()
     console.log(ptitle,title)
     console.log(title,"-----",ptitle)
@@ -563,6 +589,7 @@ console.log(streak.day)
       foundProblem=p
       already=true
      }
+    }
 
 
    }
@@ -846,7 +873,7 @@ setInterval(function () {
 }catch(err){
   console.log(err)
 }
-}, 540000);
+}, 440000);
 app.get("/remove-dup-group",async(req,res)=>{
   const users=await User.find({})
   if(users.length>0){
@@ -1043,9 +1070,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
       const yesterday=new Date(yesterDay)
   
       const groupChallenge=await GroupChallenge.findOne({$and:[{"userId":id},{"startDate":{$lte:dateDate}},{"endDate":{$gte:dateDate}}]})
-      console.log("CHALLENGE EXIST:",groupChallenge,"\n\n")
+     // console.log("CHALLENGE EXIST:",groupChallenge,"\n\n")
       const groupChallengeData=await GroupChallengeData.findOne({$and:[{$or:[{"userId":id},{"contestants":{$in:[id]}}]},{$or:[{$and:[{"startDate":{$lte:dateDate}},{"endDate":{$gte:dateDate}}]},{$or:[{"startDay":req.body.day},{"enDay":req.body.day}]}]}]})
-      console.log("MY GROUP CHALLENGE EXIST:",groupChallengeData,"\n\n")
+     // console.log("MY GROUP CHALLENGE EXIST:",groupChallengeData,"\n\n")
       if(response.data.already){
         try{res.json({success:true,message:"Problem "+problem.problem.title+" has already been done today"})}
         catch(err){
@@ -1108,6 +1135,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                 
               }else{
+                console.log("GROUP CHALLENGE NULL")
                 res.json({success:true,updatedStreak:updateStreak,streak:streak})
               }
         
@@ -1135,6 +1163,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           })
           
         }else{
+          console.log("GROUP CHALLENGE NULL")
           res.json({success:true,updatedStreak:updateStreak,streak:streak})
         }
              
@@ -1171,6 +1200,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                 
               }else{
+                console.log("GROUP CHALLENGE NULL")
                 res.json({success:true,updatedStreak:updateStreak,streak:streak})
               }
             /*if(tommorowStreak!=null && tommorowGroup!=null){
@@ -1240,6 +1270,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 })
                 
               }else{
+                console.log("H+GROUP CHALLENGE NULL")
                 res.json({success:true,updatedStreak:updateStreak,streak:streak})
               }
              
@@ -1328,6 +1359,8 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             })
             
           }else{
+            console.log("H+GROUP CHALLENGE NULL")
+
             res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
           }
          
@@ -1388,12 +1421,28 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             }
             */
              
-           
-                res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+            if(groupChallenge!=null){
+              axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                res.json({success:true,streak:save,updatedGroup:updateStreakGroup})              })
+              
+            }else{
+              console.log("H+GROUP CHALLENGE NULL")
+
+              res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+            }
             
 
             }else{
-              res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+              //res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+              if(groupChallenge!=null){
+                axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                  res.json({success:true,streak:save,updatedGroup:updateStreakGroup,groupChallenge:response.data})              })
+                
+              }else{
+                console.log("H+GROUP CHALLENGE NULL")
+
+                res.json({success:true,streak:save,updatedGroup:updateStreakGroup,groupChallenge:response.data})
+              }
 
             }
             }else if(streakGroup.days.includes(req.body.day)){
@@ -1454,8 +1503,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   }
                 }
 
-
+                if(groupChallenge!=null){
+                  axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                    res.json({groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                  })
+                }else{
+                  console.log("H+GROUP CHALLENGE NULL")
+  
                   res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                }
 
            
               }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
@@ -1471,7 +1527,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   var added=await newStreak.save()
                      
               
-                  res.json({success:true,streak:newStreak})
+                  if(groupChallenge!=null){
+                    axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                      res.json({success:true,streak:newStreak,groupChallenge:response.data})
+                    })
+                  }else{
+                    console.log("H+GROUP CHALLENGE NULL")
+    
+                    res.json({success:true,streak:newStreak})
+                  }
                 
                   
                 }else{
@@ -1520,8 +1584,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                   }
                 }
                 */
-                res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
-
+                if(groupChallenge!=null){
+                  axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                    res.json({groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                  })
+                }else{
+                  console.log("H+GROUP CHALLENGE NULL")
+  
+                  res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                }
               
               }
               }
@@ -1530,9 +1601,17 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
             }else{
             
-             
+              if(groupChallenge!=null){
+                axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                  res.json({success:false,message:"streakGroup does not exist",groupChallenge:response.data})
+                })
+              }else{
+                console.log("H+GROUP CHALLENGE NULL")
+                res.json({success:false,message:"streakGroup does not exist"})
+
+               // res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+              }
           
-                res.json({"success":false,message:"streakGroup does not exist"})
 
           
             }
@@ -1588,7 +1667,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             
         
               axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                res.json({success:true,streak:save,updatedGroup:updateStreakGroup,groupChallenge:response.data})
+                res.json({success:true,streak:newStreak,streakGroup:addGroup,groupChallenge:response.data})
               })
               
             }else{
@@ -4306,6 +4385,8 @@ if(challenges.length>1){
             challengeId:59186
        
           }
+          problemCounter[userId].user={}
+          
           if(!Object.keys(problemCounter).includes(userData.userId)){
             problemCounter[userId].user=userData
               problemCounter[userId].problems=0
@@ -4521,20 +4602,26 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
        // console.log("HERE")  
         var problemCounter={} 
         console.log(c.title)
-        console.log("\n\n\n\nOTHERS",others.length,"\n\n\nindex",allChallengesIndex)
+       /* console.log("\n\n\n\nOTHERS",others.length,"\n\n\nindex",allChallengesIndex)
         console.log("\ndate:",date.toString(),"\nstop",stopDate.toString(),"\ntommorow:",tommorow.toString())
-              while(/*complete==false&& date<curr*/date<stopDate  && date<tommorow/*date.toString().substring(0,15)!=curr.toString().substring(0,15) && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
+        */
+   while(/*complete==false&& date<curr*/date<stopDate  && date<tommorow/*date.toString().substring(0,15)!=curr.toString().substring(0,15) && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
         var allIndex=0 
        // console.log("date not change",date.toString())   
        // console.log("IN WHILE LOOP")
         //console.log(date.toString().substring(0,15)+" | start:"+c.startDate.toString().substring(0,15)+ " | stop:"+stopDate.toString().substring(0,15)+"index:"+ allIndex)
       //console.log("here:"+new Date(checkEnd.setDate(c.endDate.getDate()-1)).toString().su bstring(0,15))
-      console.log("starting date",date.toString()," currdate",new Date().toString()) 
-        if(date>new Date() && date.toString().substring(0,15)!=new Date.toString().substring(0,15)){ 
+      //console.log(" date",date," currdate",new Date().toString()," stop",stopDate) 
+
+      if(date!=null && date.toString().substring(0,15)!=stopDate.toString().substring(0,15)){
+        console.log(date.toString().substring(0,15))
+        const currd=new Date(date)
+       
+        if(date>new Date() && date.toString().substring(0,15)!=stopDate.toString().substring()/*&& date.toString().substring(0,15)!=new Date.toString().substring(0,15)*/){ 
           console.log("CHALLENGE NOT STARTING YET") 
           AllStreaks.push({challenge:challenge})  
           allChallengesIndex++
-          console.log(allChallengesIndex)
+        
           if(allChallengesIndex>=group.length){
            // HEREIMAM 
            try{
@@ -4564,16 +4651,23 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
      
           const user=await User.findOne({"userId":u.userId})
           if(streak!=null){
-            //console.log(u.userId +" "+streak.problems.length+ " for day "+streak.day)
+            console.log(u.userId +" "+streak.problems.length+ " problems for day "+streak.day)
             //console.log("---------------"+streak.day+"---problems:"+streak.problems.length+"----"+streaks.length+"-----------------") 
           
             var day=streak.day.split(" ")
             day=new Date(day[3],monthnum[months.indexOf(day[1])-1],day[2])
            if(users.includes(user.userId) && days.includes(day.toString().substring(0,15)) && allCha.includes(c.challengeId)){
-              
-            }else{ 
-
+            try{
               streaks.push({streak:streak,date:day,challengeId:c.challengeId,user:user})
+                }catch(err){
+                  console.log(err)
+                }
+            }else{ 
+                try{
+              streaks.push({streak:streak,date:day,challengeId:c.challengeId,user:user})
+                }catch(err){
+                  console.log(err)
+                }
               days.push(day.toString().substring(0,15))
               users.push(user.userId)
               allCha.push(c.challengeId) 
@@ -4700,10 +4794,14 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
            }else{
  
             console.log("\n\n4666 Bhere",date.toString().substring(0,15),"start:",c.startDate,new Date().toString().substring(0,15),"\n\n")
-            
+          console.log(allIndex," "+ all.length)
+            streaks.map((s)=>{
+            console.log(s.date.toString().substring(0,15)," "+s.user.userId+" ",s.streak.problems.length+" problems")
+           })
               
             if(new Date().toString().substring(0,15)==date.toString().substring(0,15) && date<stopDate && date> startDate){
-              console.log("\n\n\n\nSEND!!!\n\n\n\n") 
+              console.log(date.toString().substring(0,15+"  streaks length "+streaks.length))
+              console.log("\n\nSEND!!!\n\n") 
               var ind=0
               while(ind<all.length){
                 const user=await User.findOne({"userId":all[ind].userId})
@@ -4715,7 +4813,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 } 
                 ind++
                 if(ind>=all.length){
+                 console.log("FINAL DAY CHECK",date)
                   AllStreaks.push({challenge:challenge,streaks:streaks,problemCounter:problemCounter})
+                  date.setDate(date.getDate()+1)
                   setTimeout(()=>{
                     //console.log("4617 SENT HERE")
                     try{
@@ -4733,9 +4833,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
     
             }
             else if((date>c.endDate || date.toString().substring(0,15)==stopDate.toString().substring(0,15)) && new Date()>c.endDate){
-              console.log("PROBABLY AN OLD CHALLENGE THAT SNUCK THROUGH")
+             // console.log("PROBABLY AN OLD CHALLENGE THAT SNUCK THROUGH")
               if(allLosers.length>0){ 
-                console.log("losers length:"+allLosers.length) 
+               // console.log("losers length:"+allLosers.length) 
               rank=allLosers.length
             
               while(allLosers.length!=0){ 
@@ -4822,12 +4922,12 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
        
             }else if( new Date().toString().substring(0,15)==date.toString().substring(0,15) && new Date()<stopDate){
               const allL=[]
-              console.log("TODAY HERE: IN BETWEEN START AND END")
+             /* console.log("TODAY HERE: IN BETWEEN START AND END")
               console.log("\n\ncurrDate:"+date.toString().substring(0,15))
               console.log("endDate:"+c.endDate.toString().substring(0,15))
               console.log("startDate:"+c.startDate.toString().substring(0,15))
               console.log("\n\n----------------"+c.title +" is complete and CURRENT")
-              console.log("date:",date,streaks.length)
+              console.log("date:",date,streaks.length)*/
               AllStreaks.push({challenge:challenge,streaks:streaks,problemCounter:problemCounter})
               date.setDate(date.getDate()+1)
               allChallengesIndex++ 
@@ -4846,10 +4946,10 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               }
          
         }else if(new Date().toString().substring(0,15)==date.toString().substring(0,15)  ){
-              console.log("---HERE\n\n--------")
+              //console.log("---HERE\n\n--------")
              
-              console.log("CURR:",date.toString().substring(0,15))
-              console.log("STOP:",stopDate.toString())
+             // console.log("CURR:",date.toString().substring(0,15))
+             // console.log("STOP:",stopDate.toString())
               var ind=0
               while(ind<all.length){
                 const user=await User.findOne({"userId":all[ind].userId})
@@ -4871,9 +4971,10 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               }
             
             }else{
-              console.log("NOT END",date.toString())
+              //console.log("NOT END",date.toString())
+
               date.setDate(date.getDate()+1)
-              console.log(date) 
+             // console.log(date) 
             }
           
          
@@ -4882,6 +4983,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         
         }
       } 
+    }
       }
    
     }else{ 
@@ -4945,10 +5047,19 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
       console.log("SENDING AT 4044:"+ date.toString())
       try{
         if(!res.headersSent){
-      res.json({ch:ch,allStreaksLength:AllStreaks.length,challenges:AllStreaks,allLosers:allL})
+      res.json({ch:ch,allStreaksLength:AllStreaks.length,challenges:AllStreaks})
         }
       }catch(err){
-        consoel.log("ALREADY SENT")
+        console.log(err,"ALREADY SENT")
+       // res.json({ch:ch,allStreaksLength:AllStreaks.length,challenges:AllStreaks,allLosers:allL})
+
+        try{
+      
+        res.json({ch:ch,allStreaksLength:AllStreaks.length,challenges:AllStreaks})
+          
+        }catch(err){
+          console.log("ALREADY SENT",err)
+        }
       }
     
       
@@ -4961,6 +5072,860 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 }
   
 })
+//good i think
+app.post("/finalize-group-challenges/:challengeId",async(req,res)=>{
+  const challenges=await GroupChallenge.find({'challengeId':req.params.challengeId})
+  console.log(challenges.length)
+  var index=0
+  var day=challenges[index].startDate
+  var stopDate=challenges[index].endDate
+  stopDate.setDate(stopDate.getDate()+1)
+  console.log(stopDate)
+  var problemCounter={}
+
+  const allStreaks=[]
+  const ALLSTREAKS=[]
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+    "Aug","Sep","Oct","Nov","Dec"];
+    var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+   const allLosers=[]
+   const processedLosers=[]
+  while(day<stopDate){
+    var userIndex=0
+   const streaks=[]
+   const losers=[]
+   console.log("-------------------DATE:",day)
+    while(userIndex<challenges.length){
+     
+      const u=challenges[userIndex]
+     
+      var user=await User.findOne({"userId":u.userId})
+      const userData={
+        userId:user.userId,
+        username:user.username,
+        firstname:user.firstname,
+        lastname:user.lastname,
+        bio:user.bio,
+        profilePicUrl:user.profilePicUrl,
+        challengeId:req.params.challengeId
+      }
+      if(problemCounter[user.userId]==null){
+        problemCounter[user.userId]={
+          problems:0,
+        user:userData
+        }
+      }
+      var streak=await Streak.findOne({$and:[{"userId":u.userId},{"day":day.toString().substring(0,15)}]})
+      if(streak!=null){
+        var dday=streak.day.split(" ")
+        dday=new Date(dday[3],monthnum[months.indexOf(dday[1])-1],dday[2])
+
+        streaks.push({user:userData,streak:streak,date:dday})
+        ALLSTREAKS.push({user:userData,streak:streak,date:dday})
+        problemCounter[u.userId].problems+=streak.problems.length
+        if(streak.problems.length<challenges[userIndex].no_questions){
+          if(!processedLosers.includes(u.userId)){
+            processedLosers.push(u.userId)
+            console.log(processedLosers)
+          losers.push({day:dday,user:user,streak:streak})
+          }
+        }
+        userIndex++
+
+      }else{
+        if(!processedLosers.includes(u.userId)){
+         
+          processedLosers.push(u.userId)
+          console.log(processedLosers)
+        losers.push({day:day,user:user,streak:null})
+        }
+        userIndex++
+      }
+      if(userIndex>=challenges.length){
+        if(streaks.length>0){
+      
+        var correctDay=streaks[0].date.toString().split(" ")
+        correctDay=new Date(correctDay[3],monthnum[months.indexOf(correctDay[1])-1],correctDay[2])
+        allStreaks.push({day:correctDay,streaks:streaks})
+       
+      }
+      if(losers.length>0){
+        allLosers.push({date:correctDay,losers:losers})
+        }
+        console.log("\n\nBREAK",correctDay)
+      
+          day.setDate(day.getDate()+1)
+          if(day.toString().substring(0,15)==stopDate.toString().substring(0,15)){
+            const updateGroupData=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+              $set:{"problemCounter":problemCounter,'streaks':ALLSTREAKS}
+            })
+            res.json({problemCounter:problemCounter,streaks:allStreaks,losers:allLosers})
+          }
+      
+      
+      }
+    }
+  }
+})
+
+async function getLoserFromLosers(challenge,allLosers,date){
+  var loser
+  var foundLoser=await allLosers.reduce(async(a,b)=>{
+   
+    var aProbs=0
+    var bProbs=0
+    
+   console.log(Object.keys(a),Object.keys(b))
+    if(a!=null && b!=null && Object.keys(a).length>0 && Object.keys(b).length>0){
+      console.log("NEITHER NULL")
+    if(a.streak==null && b.streak!=null){
+      loser=a
+      return a
+      
+    }else if(a.streak!=null && b.streak==null){
+      loser=b
+      return b
+   
+    }else if(a.streak==null && b.streak==null){
+      loser="BOTH"
+      const start=challenge.startDate
+      var earlierAdded
+      if(b.day.toString().substring(0,15)==a.day.toString().substring(0,15)){
+        console.log("EQUAL DAY")
+        var curr=new Date(date)
+        var stopDate=challenge.startDate
+        stopDate.setDate(stopDate.getDate()-1)
+     
+       
+        if(date.toString().substring(0,15)!=challenge.startDate.toString().substring(0,15)){
+          console.log("INVESTIGATE")
+          curr.setDate(curr.getDate()-1)
+          //curr=new Date(curr)
+          console.log("curr",curr)
+          console.log("stopDate",stopDate)
+          if(curr.toString().substring(0,15)!=stopDate.toString().substring(0,15)){
+          while(curr>stopDate){
+            var bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
+            var astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
+          try{
+            console.log("curr",curr)
+            console.log("a problems:",astr.problems.length)
+            console.log("b problems:",bstr.problems.length)
+            earlierAdded=astr.timeLastAdded && bstr.timeLastAdded!=null? astr.timeLasted<bstr.timeLasted? a: b:astr.timeLastAdded!=null && bstr.timeLastAdded==null? a:astr.timeLastAdded==null && bstr.timeLastAdded!=null?b:astr.timeLastAdded==null && bstr.timeLastAdded==null? earlierAdded:earlierAdded
+          }catch(err){
+
+
+          }
+            if(astr==null && bstr!=null){
+            return a
+            break
+          }else if(bstr==null && astr!=null){
+            return b
+            break
+          }else if(astr==null && bstr==null){
+            console.log("BOTH NULL")
+           // loser="BOTH"
+            if(earlierAdded!=null){
+              loser=earlierAdded
+              return earlierAdded
+            }
+            //return "BOTH"
+            break
+          }else{
+            earlierAdded=astr.timeLastAdded && bstr.timeLastAdded!=null? astr.timeLastedAdded<bstr.timeLastedAdded? a: b:astr.timeLastAdded!=null && bstr.timeLastAdded==null? a:astr.timeLastAdded==null && bstr.timeLastAdded!=null?b:astr.timeLastAdded==null && bstr.timeLastAdded==null? earlierAdded:earlierAdded
+            
+            aProbs+=astr.problems.length
+            bProbs+=bstr.problems.length
+
+            if(astr.problems.length<challenge.no_questions && bstr.problems.length>=challenge.no_questions){
+              return a
+              break
+            }else  if(astr.problems.length>=challenge.no_questions && bstr.problems.length<challenge.no_questions){
+              return b
+              break
+            }else{
+              if(earlierAdded!=null){
+                console.log("\n\nEARLIER")
+                loser=earlierAdded
+                return earlierAdded
+              }
+            }
+          }
+            curr.setDate(curr.getDate()-1)
+            if(curr.toString().substring(0,15)==stopDate.toString().substring(0,15)){
+              console.log("\nFIN",aProbs," b",bProbs)
+              if(earlierAdded!=null){
+                return earlierAdded
+              }
+              if(aProbs>bProbs){
+                console.log("b")
+                loser=b
+                return b
+                break
+              }else if(aProbs<bProbs){
+                console.log("a")
+                loser=a
+                return a
+                break
+              }else{
+                console.log("GOING OFF EARLIER ADDED")
+                return earlierAdded
+                break
+              }
+            }
+
+          }
+        }else{
+          console.log("\n\n CURR")
+          curr=challenge.endDate
+          console.log("start:",start,"end:",curr)
+          aProbs=0
+          bProbs=0
+          while(curr>stopDate){
+            astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
+            bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
+            try{
+              if(astr!=null){
+              console.log("a:",astr.problems.length)
+              aProbs+=astr.problems.length
+              }
+              if(bstr!=null){
+              console.log("b:",bstr.problems.length)
+              bProbs+=bstr.problems.length
+              }
+            
+            }catch(err){
+
+            }
+            curr.setDate(curr.getDate()-1)
+            if(curr.toString().substring(0,15)==curr.toString().substring(0,15)){
+              if(aProbs>bProbs){
+                loser=b
+                return b
+              }else if(aProbs<bProbs){
+                loser=a
+                return a
+              }else{
+                var coin=coinFlip()
+                console.log("\n\nCOIN",coin)
+                return coin==0? a:b
+              }
+            }
+
+          }
+
+      
+
+        }
+        }else{
+          console.log("\n\nHERE")
+      
+            console.log("\nFIN",aProbs," b",bProbs)
+            if(aProbs>bProbs){
+              console.log("b")
+              loser=b
+              return b
+       
+            }else if(aProbs<bProbs){
+              console.log("a")
+              loser=a
+              return a
+       
+            }else{
+              
+                console.log("\nFIN",aProbs," b",bProbs)
+                if(aProbs>bProbs){
+                  console.log("b")
+                  loser=b
+                  return b
+               //   break
+                }else if(aProbs<bProbs){
+                  console.log("a")
+                  loser=a
+                  return a
+                 // break
+                }else{
+                  console.log("\n\n CURR")
+                  curr=challenge.endDate
+                  console.log("start:",start,"end:",curr)
+                  aProbs=0
+                  bProbs=0
+                  while(curr>stopDate){
+                    astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
+                    bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
+                    try{
+                      if(astr!=null){
+                      console.log("a:",astr.problems.length)
+                      aProbs+=astr.problems.length
+                      }
+                      if(bstr!=null){
+                      console.log("b:",bstr.problems.length)
+                      bProbs+=bstr.problems.length
+                      }
+                    
+                    }catch(err){
+  
+                    }
+                    curr.setDate(curr.getDate()-1)
+                    if(curr.toString().substring(0,15)==curr.toString().substring(0,15)){
+                      if(aProbs>bProbs){
+                        loser=b
+                        return b
+                      }else if(aProbs<bProbs){
+                        loser=a
+                        return a
+                      }else{
+                        var coin=coinFlip()
+                        console.log("\n\nCOIN",coin)
+                        return coin==0? a:b
+                      }
+                    }
+  
+                  }
+                  //return "BOTH EQUAL PROBLEM COUNTERS"
+                  //break
+                }
+              
+            }
+          
+
+        }
+      }
+     // return "BOTH"
+    }else {
+      console.log("\n\nBOTH HAVE STREAK")
+      const start=challenge.startDate
+      if(b.day.toString().substring(0,15)==a.day.toString().substring(0,15)){
+        console.log("EQUAL DAY")
+        var curr=new Date(date)
+        var stopDate=challenge.startDate
+        stopDate.setDate(stopDate.getDate()-1)
+     
+       
+        if(date.toString().substring(0,15)!=challenge.startDate.toString().substring(0,15)){
+          console.log("INVESTIGATE")
+          curr.setDate(curr.getDate()-1)
+          //curr=new Date(curr)
+          console.log("curr",curr)
+          console.log("stopDate",stopDate)
+
+          while(curr>stopDate){
+            var bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
+            var astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
+            earlierAdded=astr.timeLastAdded && bstr.timeLastAdded!=null? astr.timeLastedAdded<bstr.timeLastedAdded? a: b:astr.timeLastAdded!=null && bstr.timeLastAdded==null? a:astr.timeLastAdded==null && bstr.timeLastAdded!=null?b:astr.timeLastAdded==null && bstr.timeLastAdded==null? earlierAdded:earlierAdded
+
+          try{
+            console.log("curr",curr)
+            console.log("a problems:",astr.problems.length)
+            console.log("b problems:",bstr.problems.length)
+            
+          }catch(err){
+
+          }
+            if(astr==null && bstrk!=null){
+            return a
+            break
+          }else if(bstr==null && astr!=null){
+            return b
+            break
+          }else if(astr==null && bstr==null){
+            console.log("BOTH NULL")
+            loser="BOTH"
+            if(earlierAdded!=null){
+              return earlierAdded
+            }
+            break
+          }else{
+            if(earlierAdded!=null){
+              return earlierAdded
+            }
+            aProbs+=astr.problems.length
+            bProbs+=bstr.problems.length
+            if(astr.problems.length<challenge.no_questions && bstr.problems.length>=challenge.no_questions){
+              return a
+              break
+            }else  if(astr.problems.length>=challenge.no_questions && bstr.problems.length<challenge.no_questions){
+              return b
+              break
+            }
+          }
+            curr.setDate(curr.getDate()-1)
+            if(curr.toString().substring(0,15)==stopDate.toString().substring(0,15)){
+              console.log("\nFIN",aProbs," b",bProbs)
+              if(aProbs>bProbs){
+                console.log("b")
+                loser=b
+                return b
+                break
+              }else if(aProbs<bProbs){
+                console.log("a")
+                loser=a
+                return a
+                break
+              }else{
+                
+                curr=challenge.endDate
+                console.log("start:",start,"end:",curr)
+                aProbs=0
+                bProbs=0
+                while(curr>stopDate){
+                  astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
+                  bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
+                  try{
+                    if(astr!=null){
+                    console.log("a:",astr.problems.length)
+                    aProbs+=astr.problems.length
+                    }
+                    if(bstr!=null){
+                    console.log("b:",bstr.problems.length)
+                    bProbs+=bstr.problems.length
+                    }
+                  
+                  }catch(err){
+
+                  }
+                  curr.setDate(curr.getDate()-1)
+                  if(curr.toString().substring(0,15)==curr.toString().substring(0,15)){
+                    if(aProbs>bProbs){
+                      loser=b
+                      return b
+                    }else if(aProbs<bProbs){
+                      loser=a
+                      return a
+                    }else{
+                      var coin=coinFlip()
+                      console.log("\n\nCOIN",coin)
+                      return coin==0? a:b
+                    }
+                  }
+
+                }
+                //return "BOTH EQUAL PROBLEM COUNTERS"
+                break
+              }
+            }
+          }
+        }
+      }
+    }
+  }else if((a==null && b!=null) || ((Object.keys(a).length==0 || Object.keys(a)==null) && Object.keys(b).length>0)){
+    console.log("A NULL")
+    loser=b
+    return b
+  }else if((a!=null && b==null) || ((Object.keys(b).length==0 || Object.keys(b)==null) && Object.keys(a).length>0)){
+    console.log("B NULL")
+    loser=a
+    return a
+  }else if(Object.keys(b).length==0 && Object.keys(a).length){
+
+  }else{
+    console.log(Object.keys(a),Object.keys(b))
+    console.log("\n\nWE HAVE A PROBLEM")
+    if((Object.keys(a).length==0 || Object.keys(a)==null)){
+      console.log("\n\nB")
+      loser=b
+      return b
+    }else if((Object.keys(b).length==0 || Object.keys(b)==null)){
+      console.log("\n\nA")
+      loser=a
+      return a
+    }else{
+      console.log("\n\n\nPROBLEMS",aProbs,bProbs)
+    }
+  }
+  })
+  var l=await foundLoser
+  var i=0
+ console.log(l)
+ console.log("loser",loser)
+  if(loser!=null){
+    allLosers.map((lo)=>{
+     // console.log(lo.user.userId,"  ",l.user.userId)
+      if(lo.user.userId==l.user.userId){
+       
+        console.log("\n\nfoundLoser")
+        console.log(lo.user.userId)
+
+        console.log("alllosers:",allLosers.length)
+        allLosers.splice(i,1)
+      }
+      i++
+    })
+  }
+  return {loser:loser!=null?loser:l,loser1:l,foundLoser:l,losers:allLosers}
+
+}
+function getEarliestWinner(losers,challenge){
+ async function getEarliest(losers,challenge){
+  var sorted={}
+  var rank=losers.length
+  var start=new Date(challenge.startDate)
+  start.setDate(start.getDate()-1)
+  const ids=losers.map((c)=>{
+    return c.loser.user.userId
+  })
+  var end=new Date(challenge.endDate)
+  end.setDate(end.getDate()+1)
+  var curr=new Date(challenge.startDate)
+  console.log(start)
+  var times=[]
+  while(curr<end){
+    var index=0
+   
+    var ranks={}
+  
+  
+      const sTimes=await Streak.find({$and:[{"day":curr.toString().substring(0,15)},{"userId":{$in:ids}}]})
+     if(sTimes.length>0){ 
+    
+    
+      while(sTimes.length>0){
+        var currRank=sTimes.length
+        var i=0
+        if(sTimes.length>1){
+        var lowest=sTimes.reduce((a,b)=>{
+          if(a.timeLastAdded<b.timeLastAdded){
+            return a
+          }else{
+            return b
+          }
+        })
+        console.log("lowest",lowest.userId,"rank:",currRank)
+       ranks[lowest.userId]=currRank
+        currRank--
+        sTimes.map((c)=>{
+          
+          if(c.userId==lowest.userId){
+            sTimes.splice(i,1)
+          }
+          i++
+        })
+      }else{
+        var lowest=sTimes[0]
+        sTimes.splice(0,1)
+        ranks[lowest.userId]=currRank
+        console.log("lowest",lowest.userId,"rank:",currRank)
+        ids.map((o)=>{
+          if(!Object.keys(ranks).includes(o)){
+            ranks[o]=losers.length
+          }
+        })
+        times.push({date:curr,ranks:ranks})
+        index++
+        curr.setDate(curr.getDate()+1)
+        console.log("\n\nCOMPLETE")
+        
+      }
+
+      }
+
+     }else{
+      times[index]={date:curr}
+     }   
+      
+   if(curr>=end){
+    console.log(times)
+    ids.map((i)=>{
+      var total=0
+      var ind=0
+      times.map((t)=>{
+        total+=t.ranks[i]
+        
+       
+      })
+    
+        console.log(i," ave:",total/losers.length)
+        sorted[i]=total/losers.length
+     
+
+    })
+    return sorted
+   }
+   
+  }
+}
+  var sorted=getEarliest(losers,challenge)
+  sorted.sort(function(a,b){
+    if(sort[a]<=sort[b]){
+      return a
+    }else{
+      return b
+    }
+  })
+  return sort
+
+}
+async function getMostQuestionsWinner(losers,challenge){
+ 
+  async function getMostQuestions(losers,challenge){
+    var sorted={}
+  var rank=losers.length
+  var start=new Date(challenge.startDate)
+  start.setDate(start.getDate()-1)
+  const ids=losers.map((c)=>{
+    return c.loser.user.userId
+  })
+  var end=new Date(challenge.endDate)
+  end.setDate(end.getDate()+1)
+ 
+  
+  var index=0
+  var sorted={}
+  while(index<losers.length){
+    var user=losers[index].loser.user
+    const streaks=await Streak.find({$and:[{"userId":user.userId},{$and:[{"date":{$gte:start}},{"date":{$lte:end}}]}]})
+    var sIndex=0
+    var total=0
+    if(streaks.length>0){
+      while(sIndex<streaks.length){
+        total+=streaks[sIndex].problems.length
+        sIndex++
+        if(sIndex>=streaks.length){
+          sorted[user.userId]=total
+          index++
+          if(index>=losers.length){
+            console.log(sorted)
+            return sorted
+          }
+        }
+      }
+    }else{
+      sorted[user.userId]=total
+    index++
+    if(index>=losers.length){
+      console.log(sorted)
+      return sorted
+    }
+    }
+  }
+}
+ var sorted=await getMostQuestions(losers,challenge)
+
+return sorted
+}
+app.post("/grade-by-priority",async(req,res)=>{
+  var challenge=req.body.challenge
+  var priority=req.body.priorities
+  console.log(priority)
+  
+  axios.post("http://localhost:3022/finalize-group-challenges/"+challenge.challengeId).then(async(response)=>{
+    console.log(response.data.losers)
+    const allLosers=[]
+    var singles=true
+    const losers=response.data.losers
+    response.data.losers.map((l)=>{
+      if(l.losers.length>1){
+        singles=false
+      }
+      l.losers.map((c)=>{
+        allLosers.push({loser:c,day:l.date})
+      })
+    })
+    console.log(allLosers.length)
+    if(singles==false){
+      var rank=allLosers.length
+      const currLosers=response.data.losers
+      while(priority.length>0){
+        var p=priority.splice(0,1)[0]
+        console.log("priority:",p)
+        if(p.text.toUpperCase().includes("EARLIEST")){
+          var l=await getEarliestWinner(allLosers,challenge)
+          console.log("earliest",l)
+        res.json({success:true,ranks:l})
+     
+        }else if(p.text.toUpperCase().includes("TOTAL # QUESTIONS")){
+          var l=await getMostQuestionsWinner(allLosers,challenge)
+          console.log(" Most questions",l)
+        }
+      }
+      
+
+    }else{
+
+    }
+  
+
+  })
+})
+/**
+ * GOOOD FOR REAL
+ */
+app.get("/finalize-grade-group-challenges/:challengeId",async(req,res)=>{
+  axios.post("http://localhost:3022/finalize-group-challenges/"+req.params.challengeId).then(async(response)=>{
+    console.log("MADE IT",Object.keys(response.data))
+    console.log(response.data.losers.length)
+    const allLosers=response.data.losers
+    const allRanks=[]
+    const ranks={}
+    console.log(allLosers)
+    var index=0
+    const challenge=await GroupChallenge.findOne({"challengeId":req.params.challengeId})
+    var singles=true
+    var losersLength=0
+    allLosers.map((l)=>{
+      losersLength+=l.losers.length
+      if(l.losers.length>1){
+        singles=false
+      }
+    })
+  
+    console.log("totalLosers:",losersLength,singles)
+    if(losersLength>0){
+    if(singles==false){
+      console.log("NOT SINGLES")
+      var rank=losersLength
+     
+    
+        while(index<allLosers.length){
+          var losers=allLosers[index].losers
+          if(losers.length>1){
+          while(losers.length>1){
+            console.log("index:",index,"losers",losers.length)
+           var l=await  getLoserFromLosers(challenge,losers,allLosers[index].date)
+           
+           losers=l.losers
+           console.log("index:",index," new losers",losers.length)
+           var newLoser=l.loser
+        
+           console.log("rank:",rank," loser:",newLoser.user.userId)
+           var userData={
+            userId:newLoser.user.userId,
+            firstname:newLoser.user.firstname,
+            lastname:newLoser.user.lastname,
+            username:newLoser.user.username,
+            bio:newLoser.user.bio,
+            profilePicUrl:newLoser.user.profilePicUrl
+          }
+           allRanks.push({rank:rank,user:userData,date:newLoser.day})
+           ranks[newLoser.user.userId]=rank
+           rank--
+           if(losers.length==1){
+            console.log("rank:",rank," loser:",losers[0].user.userId)
+            ranks[losers[0].user.userId]=rank
+            var userData={
+              userId:losers[0].user.userId,
+              firstname:losers[0].user.firstname,
+              lastname:losers[0].user.lastname,
+              username:losers[0].user.username,
+              bio:losers[0].user.bio,
+              profilePicUrl:losers[0].user.profilePicUrl
+            }
+            const date=allLosers[0].date
+            allRanks.push({rank:rank,user:userData,date:date})
+            losers=[]
+            console.log(losers.length," ",losersLength)
+            if(losers.length==0){
+              index++
+             }
+           
+           }
+        
+            if(losers.length==0 && index==allLosers.length){
+              const updateRanks=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                $set:{"ranks":allRanks}
+              })
+              allRanks.map(async(c)=>{
+                const updateChallenge=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":c.user.userId}]},{
+                  $set:{"rank":c.rank,"status":"COMPLETE_AND_CLOSED"}
+                })
+                console.log(updateChallenge)
+              })
+              res.json({ranks:ranks,allRanks:allRanks,losers:response.data.losers})
+             
+            }
+
+          
+          }
+        }else{
+          if(allRanks.length ==losersLength-1){
+            rank--
+          }
+            console.log("rank:",rank," loser:",losers[0].user.userId)
+          
+            ranks[losers[0].user.userId]=rank
+            var userData={
+              userId:losers[0].user.userId,
+              firstname:losers[0].user.firstname,
+              lastname:losers[0].user.lastname,
+              username:losers[0].user.username,
+              bio:losers[0].user.bio,
+              profilePicUrl:losers[0].user.profilePicUrl
+            }
+            const date=allLosers[0].date
+            allRanks.push({rank:rank,user:userData,date:date})
+        
+            losers=[]
+          
+            rank--
+            index++
+            if(losers.length==0 && index==allLosers.length){
+              const updateRanks=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+                $set:{"ranks":allRanks}
+              })
+              allRanks.map(async(c)=>{
+                const updateChallenge=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":c.user.userId}]},{
+                  $set:{"rank":c.rank,"status":"COMPLETE_AND_CLOSED"}
+                })
+                console.log(updateChallenge)
+              })
+              res.json({ranks:ranks,allRanks:allRanks,losers:response.data.losers})
+            }
+          }
+      }
+
+    }else{
+      var rank=losersLength
+      var losersIndex=0
+    console.log("SINGLES")
+      while(losersIndex<losersLength  && rank>0){
+        var losers=allLosers[losersIndex].losers
+        //console.log("loserLength:",losersIndex<losersLength)
+        //console.log("losersLength:",losers.length, "losersIndex:",losersIndex, "rank:",rank)
+        var loser=allLosers[losersIndex].losers[0]
+       
+        var userData={
+          userId:losers[0].user.userId,
+          firstname:losers[0].user.firstname,
+          lastname:losers[0].user.lastname,
+          username:losers[0].user.username,
+          bio:losers[0].user.bio,
+          profilePicUrl:losers[0].user.profilePicUrl
+        }
+        const date=allLosers[0].date
+        allRanks.push({rank:rank,user:userData,date:date})
+       
+        ranks[loser.user.userId]=rank 
+       
+        console.log("rank:",rank,"loser:",loser.user.userId)
+        rank--
+        losers=[] 
+        console.log(losers.length," ",losersLength," ",losersIndex)
+        losersIndex++
+        if(losers.length==0 && losersIndex==allLosers.length){
+          const updateRanks=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+            $set:{"ranks":allRanks}
+          })
+          allRanks.map(async(c)=>{
+            const updateChallenge=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":c.user.userId}]},{
+              $set:{"rank":c.rank,"status":"COMPLETE_AND_CLOSED"}
+            })
+            console.log(updateChallenge)
+          })
+          res.json({ranks:ranks,allRanks:allRanks,losers:response.data.losers})
+        }
+       
+     
+         
+          
+        
+      }
+    }
+  }else{
+    res.json({ranks:[],message:"no losers",losers:response.data.losers})
+  }
+
+  })
+})
 app.get("/group-challenges-2/:userId",async(req,res)=>{
   const group=await GroupChallenge.find({"userId":req.params.userId})
   const days=[]
@@ -4972,6 +5937,7 @@ app.get("/group-challenges-2/:userId",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
 "Aug","Sep","Oct","Nov","Dec"];
 var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
+           
 
   const processed=[]
   var allChallengesIndex=0
@@ -5763,9 +6729,14 @@ app.get("/get-group-challenge-data/:challengeId",async(req,res)=>{
 
   const winners=await GroupChallenge.find({$and:[{"challengeId":req.params.challengeId},{success:true}]})
   const losers=await GroupChallenge.find({$and:[{"challengeId":req.params.challengeId},{success:false}]})
-  
-  console.log(all.length-losers.length)
-  console.log(all.length-winners.length)
+  const problemcounter=await GroupChallengeData.findOne({"challengeId":req.params.challengeId})
+ //console.log(problemcounter)
+  Object.keys(problemcounter.problemCounter).forEach(async(c)=>{
+    console.log(c,problemcounter.problemCounter[c].problems)
+    const update=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":c}]},{
+      $set:{"totalProblems":problemcounter.problemCounter[c].problems}
+    })
+  })
   const players=[]
   while(players.length<all.length && losers.length>0){
   
@@ -5782,7 +6753,7 @@ app.get("/get-group-challenge-data/:challengeId",async(req,res)=>{
   
 
   }
-  console.log(winners)
+  //console.log(winners)
   const problemCounter=await GroupChallengeData.findOne({"challengeId":req.params.challengeId})
   res.json({total:all.length, losersLlength:losers.length,losers:losers,winners:winners,problemCounter:problemCounter!=null?problemCounter.problemCounter:null})
 
@@ -6267,7 +7238,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
     console.log(Object.keys(response.data))
     console.log("hi")
     if(response.data.challenges.length>0){
-     console.log("HERE")
+ 
       const challenges=response.data.challenges
       const end=challenges.length-1
       const challenge=challenges[end].challenge
@@ -6295,14 +7266,9 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
        while(i<all.length && complete==false){  
         const u=all[i]
         console.log("index",i,"all",all.length)
-        console
-        console.log(u.userId,date,"<stop", stopDate,"     tommorow",tommorow)
-        console.log("date",date.toString())
-        console.log("tommorow",tommorow)
-        console.log("stopDate",stopDate.toString())
-        console.log(date<tommorow)
-        console.log("complete",complete)
-        console.log(date<stopDate)
+      
+       
+      
         if(date>tommorow){
         while(date<tommorow   && complete==false && date<stopDate  /*&& date.toString().substring(0,15)!=curr.toString().substring(0,15) /*&& date.toString().substring(0,15)!=stopDate.toString().substring(0,15)*/){
           var allIndex=0
@@ -6315,7 +7281,8 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
             const streak=await Streak.findOne({$and:[{"day":date.toString().substring(0,15)},{"userId":all[allIndex].userId}]})
            
             if(streak!=null){
-              //console.log(all[allIndex].userId +" on day: "+date.toString().substring(0,15)+ " has "+streak.problems.length+ " problems")
+
+              console.log(all[allIndex].userId +" on day: "+date.toString().substring(0,15)+ " has "+streak.problems.length+ " problems")
  
               if(streakIds.includes(streak.id)){
                 //console.log("ALREADY:"+user.firstname+ " challenge:"+challenge.title+"---"+streak.day)
@@ -6411,7 +7378,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
                       try{
                         setTimeout(()=>{
                           const endTime=new Date()
-                          res.json({all:all,time:endDate.getSeconds()-startTime.getSeconds(),challenges:response.data.challenges,other:response.data,success:true})
+                          res.json({pre:response.data,all:all,time:endDate.getSeconds()-startTime.getSeconds(),challenges:response.data.challenges,other:response.data,success:true})
 
                         },200)
                       break
@@ -6439,7 +7406,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
           complete=true
           challenges[end].streaks=streaks
           const endTime=new Date()
-          res.json({all:all,time:endDate.getSeconds()-startTime.getSeconds(),challenges:response.data.challenges,other:response.data,success:true})
+          res.json({pre:response.data,all:all,time:endDate.getSeconds()-startTime.getSeconds(),challenges:response.data.challenges,other:response.data,success:true})
         }
       }else if(challenge.startDate<date<stopDate){
       
@@ -6447,7 +7414,7 @@ app.get("/group-challenges-2-2/:userId",async(req,res)=>{
         console.log("\n\nISSUE WITHDATE",challenge)
         var endDate=new Date()
         try{
-        res.json({all:all,time:endDate.getSeconds()-startTime.getSeconds(),challenges:response.data.challenges,other:response.data,success:true})
+        res.json({pre:response.data,all:all,time:endDate.getSeconds()-startTime.getSeconds(),challenges:response.data.challenges,other:response.data,success:true})
         }catch(err){
           console.log("alreadySet")
         }
@@ -7096,11 +8063,14 @@ async function getLoser(allChallenges,indexindex,losers,rank){
       //console.log("LOSER",loser)
       var index=0
       var loserIndex
+      
       losers.map((l)=>{
-       
+      console.log('loser',loser)
+      console.log(l)
         if(l.challenge.userId==loser.challenge.userId){
           loserIndex=index
         }
+      
         index++
       })
       losers.splice(loserIndex,1)
@@ -8653,7 +9623,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 console.log("STORED RANK:"+(lowest.rank)+" newRank"+(lowest.rank+1))
 
                  const updateLoser=await GroupChallenge.updateOne({$and:[{"userId":results.loser.challenge.userId},{"challengeId":results.loser.challenge.challengeId}]},{
-                   $set:{"status":"COMPLETE_AND_CLOSED","success":false,"dateFailed":(failDate instanceof Date)?failDate:allLosers[index].date,"rank":lasrt}
+                   $set:{"status":"COMPLETE_AND_CLOSED","success":false,"dateFailed":(failDate instanceof Date)?failDate:allLosers[index].date,"rank":lastRank}
                  })
                  //console.log(updateLoser)
                 lastRank=rank-1
