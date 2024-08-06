@@ -130,6 +130,7 @@ var rooms={}
  })
 
 const totalRooms=[]
+const hotel=[]
  io.sockets.on("connection",(socket)=>{
   
 
@@ -151,7 +152,8 @@ const totalRooms=[]
     if(data.user!=null){
       console.log("NEW SESSION")
       console.log(data.user.firstname+ " tapped in ","\n\n")
-   
+      if(!totalRooms.contains(data.user.userId)){
+        totalRooms.push(data.user.userId)
     if(data.id!=null){
     
       console.log(rooms)
@@ -207,6 +209,7 @@ const totalRooms=[]
 
   }
     }
+  }
   }else{
     console.log("DISCONNECTIMG USELESS CONNECTION",socket.id)
     socket.disconnect()
@@ -271,6 +274,7 @@ const totalRooms=[]
     }
     
   })
+
    /**************************************************** */
    socket.on("UPDATE_NOTIFICATIONS",(data)=>{
    
@@ -327,7 +331,32 @@ const totalRooms=[]
  })
  
 
+app.post("/establish-room/:userId",async(req,res)=>{
+  const user=req.body.user
+  const otherUsers=[]
+  const allChallenges=[]
+  const challengeRooms={}
+  if(totalRooms.includes(user.userId)){
+    const groupMates=await groupChallenge.find({$and:[{"userId":{$ne:user.userId}},{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}}]})
+    if(groupMates.length>0){
+      console.log("\n\n\nACTIVE CHALLENGES WITH ROOMMATES")
+      const ids=groupChallenges.map((c)=>{
+        if(totalRooms.includes(c.userId)){
+          if(!allChallenges.includes(c.challengeId)){
+            allChallenges.push(c.challengeId)
+            allChallenges[c.challengeId]={challengeId:c.challengeId,others:[c.userId]}
 
+          }else{
+            var currCha=challengesRooms.map((c)=>{
+
+            })
+          }
+        }
+      })
+    }
+  }
+
+})
 
 app.post("/set-ids",async(req,res)=>{
  
