@@ -129,11 +129,21 @@ var rooms={}
   methods:["GET","POST"]
  })
 
-
+const totalRooms=[]
  io.sockets.on("connection",(socket)=>{
   
 
- 
+  socket.on("disconnect", (reason) => {
+  
+    console.log("DISCONNECTED")
+    if (socket.active) {
+      // temporary disconnection, the socket will automatically try to reconnect
+    } else {
+      // the connection was forcefully closed by the server or the client itself
+      // in that case, `socket.connect()` must be manually called in order to reconnect
+      console.log(reason);
+    }
+  });
 
    socket.on("NEW_USER_SESSION",(data)=>{
     var done=false
@@ -143,6 +153,7 @@ var rooms={}
       console.log(data.user.firstname+ " tapped in ","\n\n")
    
     if(data.id!=null){
+    
       console.log(rooms)
       if(!Object.keys(rooms).includes(data.id)){
       console.log("DATA ID NOT NULL")
@@ -150,12 +161,20 @@ var rooms={}
       socket.join(data.id)
     var to=rooms[data.id]
     console.log("done",done)
-    if(done==false){
+    
     socket.to(data.id).emit("RECIEVED_NEW_USER",{room:data.id})
+   
     done=true
-    }
+    socket.on("CONFIRM_SOCKET_ROOM",(data)=>{
+      Object.keys(rooms).forEach((k)=>{
+        console.log("trimmimg")
+        console.log(k,data)
+      })
+    })
+   
   }
     }else{
+      console.log(socket.id)
       console.log(rooms)
       if(!Object.keys(rooms).includes(socket.id)){
       console.log("DATA ID IS NULL")
@@ -163,10 +182,29 @@ var rooms={}
       socket.join(socket.id)
     var to=rooms[socket.id]
     console.log("done",done)
-    if(done==false){
+
     socket.to(socket.id).emit("RECIEVED_NEW_USER",{room:socket.id})
     done=true
-    }
+    console.log("CORMING SOCKET ROOM")
+    socket.on("CONFIRM_SOCKET_ROOM",(data)=>{
+      console.log("CORMING SOCKET ROOM RECIEVED")
+      Object.keys(rooms).forEach((k)=>{
+        console.log("trimmimg")
+        console.log(k,data)
+      })
+    })
+  
+  }else{
+    socket.to(socket.id).emit("RECIEVED_NEW_USER",{room:socket.id})
+    done=true
+    socket.on("CONFIRM_SOCKET_ROOM",(data)=>{
+      Object.keys(rooms).forEach((k)=>{
+        console.log("trimmimg")
+        console.log(k,data)
+      })
+    })
+    
+
   }
     }
   }else{
@@ -205,7 +243,7 @@ var rooms={}
                   if(rooms[kk]==other.userId){
                     console.log("SOCKET:FOUND OTHER ")
                     socket.to(kk).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge})
-
+                    console.log("SUCCESS SENDING")
                   }else{
                     
                   }
@@ -569,6 +607,7 @@ console.log(streak.day)
    if(Object.keys(problem).includes("problem")){
     console.log("HERE")
     var title=problem.problem.title.replace(/\s/g,"").toUpperCase()
+    if(p.title!=null){
     if(p.title.length>0){
     var ptitle=p.problem==null?p.title.replace(/\s/g,"").toUpperCase():p.problem.title.replace(/\s/g,"").toUpperCase()
     if(title==ptitle){
@@ -576,6 +615,7 @@ console.log(streak.day)
       foundProblem=p
       already=true
      }
+    }
    
   }else if(!Object.keys(problem).includes("problem")){
     var title=req.body.problem.title.replace(/\s/g,"").toUpperCase()
@@ -873,7 +913,7 @@ setInterval(function () {
 }catch(err){
   console.log(err)
 }
-}, 440000);
+}, 800000);
 app.get("/remove-dup-group",async(req,res)=>{
   const users=await User.find({})
   if(users.length>0){
@@ -1195,7 +1235,9 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
       
              
               if(groupChallenge!=null){
+                console.log("\n\nGROUP CHALLENGE EXISTS!!!")
                 axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
+                  
                   res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
                 })
                 
@@ -4385,8 +4427,8 @@ if(challenges.length>1){
             challengeId:59186
        
           }
-          problemCounter[userId].user={}
-          
+          problemCounter[userId].user=userData
+          //socket.emit("UPDATE_GROUP_CHALLENGE",{user:userData,groupChallenge:saved})
           if(!Object.keys(problemCounter).includes(userData.userId)){
             problemCounter[userId].user=userData
               problemCounter[userId].problems=0
@@ -4414,6 +4456,7 @@ if(challenges.length>1){
                  })
                  const data1=await GroupChallengeData.findOne({"challengeId":req.params.challengeId})
                  try{
+             
                  res.json({groupChallengeData:data1,problemCounter:problemCounter})
                  }catch(err){
 
@@ -4450,6 +4493,7 @@ if(challenges.length>1){
  
       var curr=startDate
     console.log(data.title)
+    const c=await GroupChallenge.findOne({"challengeId":req.params.challengeId})
        while(curr<stop && curr.toString().substring(0,15)!=stop.toString().substring(0,15)){
         var i=0
         while(i<data.contestants.length){
@@ -4465,7 +4509,9 @@ if(challenges.length>1){
             challengeId:59186
        
           }
+          //socket.emit("UPDATE_GROUP_CHALLENGE",{user:userData,groupChallenge:c})
           problemCounter[userId].user=userData
+          
                 var streak=await Streak.findOne({$and:[{"userId":userId},{"day":curr.toString().substring(0,15)}]})
               if(streak!=null){
                 //console.log(curr.toString().substring(0,15)+"----"+userId+" "+streak.problems.length)
@@ -5645,14 +5691,8 @@ function getEarliestWinner(losers,challenge){
   }
 }
   var sorted=getEarliest(losers,challenge)
-  sorted.sort(function(a,b){
-    if(sort[a]<=sort[b]){
-      return a
-    }else{
-      return b
-    }
-  })
-  return sort
+  
+  return sorted
 
 }
 async function getMostQuestionsWinner(losers,challenge){
@@ -5703,6 +5743,44 @@ async function getMostQuestionsWinner(losers,challenge){
 
 return sorted
 }
+async function getConsistencyWinner(losers,challenge){
+  async function getWinner(losers,challenge){
+  var sorted={}
+  var rank=losers.length
+  var start=new Date(challenge.startDate)
+  start.setDate(start.getDate()-1)
+  const ids=losers.map((c)=>{
+    return c.loser.user.userId
+  })
+  var end=new Date(challenge.endDate)
+  end.setDate(end.getDate()+1)
+ 
+  
+  var index=0
+  var sorted={}
+  const diff=datediff(new Date(challenge.startDate),new Date(challenge.endDate))
+  console.log("DIFF",diff)
+  while(index<losers.length){
+    var user=losers[index].loser.user
+    const streaks=await Streak.find({$and:[{"userId":user.userId},{$and:[{"date":{$gte:start}},{"date":{$lte:end}}]}]})
+    if(streaks.length>0){
+      sorted[user.userId]=streaks.length
+    }else{
+      sorted[user.userId]=0
+    }
+    index++
+    if(index>=losers.length){
+      return sorted
+    }
+  }
+}
+var sorted=getWinner(losers,challenge)
+return sorted
+
+}
+function datediff(first, second) {        
+  return Math.round((second - first) / (1000 * 60 * 60 * 24));
+}
 app.post("/grade-by-priority",async(req,res)=>{
   var challenge=req.body.challenge
   var priority=req.body.priorities
@@ -5736,6 +5814,9 @@ app.post("/grade-by-priority",async(req,res)=>{
         }else if(p.text.toUpperCase().includes("TOTAL # QUESTIONS")){
           var l=await getMostQuestionsWinner(allLosers,challenge)
           console.log(" Most questions",l)
+        }else if(p.text.toUpperCase().includes("CONSISTENCY")){
+          var l=await getConsistencyWinner(allLosers,challenge)
+          console.log(" COnsistency",l)
         }
       }
       

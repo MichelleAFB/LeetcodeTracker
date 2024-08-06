@@ -1,2 +1,1336 @@
-{{1,2,3,4},{5,6,7,8},{9,10,11,12}}
-Output: {1,2,3,4,8,12,11,10,9,5,6,7}
+
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F001 TPC Potato Bin Room PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F002 TPC PC Line Start-up PSM.xlsx
+ process:7,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visable previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  in product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:PEF, SORT_ORDER:2
+QUESTIONS:"(1,'No missing or broken pieces on conveyor'),
+(2,'No fraying, cracked, broken, or missing belting'),
+(3,'Door seals in good condition (no water leaks)'),
+(4,' No metal to metal'),
+(5,' No cracked or broken lexan'),
+(6,' No fraying, broken, or missing pieces of UHMW'),
+
+SECTION:Cross- over PC Conveyor/Vertical Lift , SORT_ORDER:3
+QUESTIONS:"(1,'No fraying, cracked , broken or missing belting.'),
+(2,'No Metal to Metal'),
+(3,'No prodsuct buildup'),
+
+SECTION:Online solid, SORT_ORDER:4
+QUESTIONS:"(1,'No fraying, cracked, broken, or missing belting.'),
+(2,'No metal to metal in peeler'),
+(3,'No  cracked , broken or missing plastic'),
+(4,'No missing ortorn rubber'),
+
+SECTION:Slicer/ Blancher, SORT_ORDER:5
+QUESTIONS:"(1,'No knicks, dings, or missing pieces of slicer heads'),
+(2,'No peeling label stickers over product zone'),
+(3,'No fraying, cracked, or missing belting.'),
+(4,'No fraying, cracked, or missing pieces of UHMW'),
+
+SECTION:Peeler, SORT_ORDER:6
+QUESTIONS:"(1,'No fraying, cracked, broken, or missing belting.'),
+(2,'No metal to metal in peeler'),
+(3,'No missing peeler bristles'),
+(4,'No build up on bristles'),
+
+SECTION:Odenberg, SORT_ORDER:7
+QUESTIONS:"(1,'No cracked or broken Lexan'),
+(2,'No cracked or broken Odenberg fingers'),
+(3,'No torn or ripped plastic flaps'),
+(4,'No metal to metal'),
+
+SECTION:Surge hopper, SORT_ORDER:8
+QUESTIONS:"(1,'No broken or missing links on surge incline infeed conveyor'),
+(2,'No product residue on conveyor'),
+(3,'No Metal to metal'),
+(4,'No potatoes in hopper pan'),
+
+SECTION:Weigh belt/ Fast Lane Laning Conveyor, SORT_ORDER:9
+QUESTIONS:"(1,'No fraying, cracked, broken, or missing belting.'),
+(2,'No metal to metal'),
+(3,'No product build up'),
+(4,'no over grease bearings'),
+
+SECTION:Slicer, SORT_ORDER:10
+QUESTIONS:"(1,'No knicks, dings, or missing pieces of slicer heads'),
+(2,'No peeling label stickers over product zone'),
+(3,'No product build up'),
+
+SECTION:Fryer Infeed Conveyor, SORT_ORDER:11
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No overgreased bearings, all catchpans clean and free of debris'),
+(3,'No missing link in metal belt'),
+
+SECTION:Fryer , SORT_ORDER:12
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No fraying, cracked, broken, or missing belting'),
+(3,'No oil leaks'),
+(4,'No missing or broken chain links'),
+(5,'No rust on the belt'),
+
+SECTION:Defect reader, SORT_ORDER:13
+QUESTIONS:"(1,'No Metal to Metal'),
+(2,'Check the Plastic door for broken or mising pieces'),
+(3,'No fraying, cracked, broken, or missing belting'),
+(4,'No missing or torn rubber flaps'),
+
+SECTION:Seasoning unit skid, SORT_ORDER:14
+QUESTIONS:"(1,'No metal to metal'),
+(2,'Check Ktron for crack or broken lexan'),
+(3,'Check the Ktron Filter sock for wetness and old product'),
+(4,'Chesck the oil tank level  glass for cracked or broken piece'),
+(5,'Check the funnel in the pod for crackes or broken pieces'),
+(6,'Check the hoses on the pod for cracked or broken piece on the end'),
+(7,'Check tumbler for fraying or cracked UHMW '),
+
+SECTION:Bucket Elevator to Packaging, SORT_ORDER:15
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'PEF'),(3,'Cross- over PC Conveyor/Vertical Lift '),(4,'Online solid'),(5,'Slicer/ Blancher'),(6,'Peeler'),(7,'Odenberg'),(8,'Surge hopper'),(9,'Weigh belt/ Fast Lane Laning Conveyor'),(10,'Slicer'),(11,'Fryer Infeed Conveyor'),(12,'Fryer '),(13,'Defect reader'),(14,'Seasoning unit skid'),(15,'Bucket Elevator to Packaging'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F002_PC.xlsx
+ process:7,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F003 TPC Kettle Line Start-up PSM.xlsx
+ process:5,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked, warped, or burnt through)'),
+(4,'No evidence of insects, rodents, or birds'),
+(5,'Floors and stairs clean and free of debris'),
+(6,'No lingering smell of previously run product'),
+(7,'No visible previous product residue'),
+(8,'Cleaning tools/supplies in place and (in good condition) '),
+(9,'Foreign matter (5 or more) loose items not in designated area'),
+(10,'No frayed wires in product zone'),
+(11,' Bearings over product zones not over lubricated'),
+(12,' No rust  in product area/zone'),
+(13,' No sticker/labels in product area'),
+(14,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(15,'cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:PEF, SORT_ORDER:2
+QUESTIONS:"(1,'No fraying, cracked, broken, or missing belting. '),
+(2,'Door seals in good condition (no water leaks)'),
+(3,'No metal to metal'),
+(4,'No cracked or broken lexan'),
+(5,'No fraying, broken or missing pieces og UHMW'),
+
+SECTION:Destoner/ Vertical lift, SORT_ORDER:3
+QUESTIONS:"(1,'No broken flights on belts'),
+(2,'No broken or missing links on belts'),
+(3,'No fraying or missing pieces on UHMW'),
+(4,'No metal to metal'),
+(5,'No torn or missing flap pieces '),
+(6,'No broken or missing pieces '),
+(7,'No previous product residue in slicer'),
+(8,'No oil leaks'),
+
+SECTION:Online Solids, SORT_ORDER:4
+QUESTIONS:"(1,'No broken flights on belt'),
+(2,'No broken or missing links on belt'),
+(3,'No fraying or missing pieces on UHMW'),
+(4,'No residue at blancher outfeed'),
+(5,'No broken or missing links on belt'),
+(6,'No fraying or missing pieces on UHMW'),
+
+SECTION:Cutting, SORT_ORDER:5
+QUESTIONS:"(1,'No plastic to plastic'),
+(2,'No broken flights on belt'),
+(3,'No broken or missing links on belt'),
+(4,'No fraying or missing pieces on UHMW'),
+
+SECTION:Slicer/ Blancher, SORT_ORDER:6
+QUESTIONS:"(1,'No metal to metal on fryer infeed belt'),
+(2,'No plastic to plastic on fryer infeed belt'),
+
+SECTION:Peeling, SORT_ORDER:7
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No torn or missing flap pieces '),
+(3,'No broken or missing pieces '),
+(4,'No previous product residue in slicer'),
+
+SECTION:Sorting, SORT_ORDER:8
+QUESTIONS:"(1,'Paddles intact - no missing pieces'),
+(2,'No flaking rust in fryer'),
+(3,'No metal to metal '),
+(4,'No oil leaks '),
+(5,'No missing or broken links on conveyor'),
+(6,'No broken wires'),
+(7,'No flaking rust on chains'),
+(8,'No overgreased bearings, all catchpans clean and free of debris'),
+
+SECTION:Batch Hopper, SORT_ORDER:9
+QUESTIONS:"(1,'No missing or broken links on conveyor'),
+(2,'No missing or torn rubber flaps'),
+(3,'No overgreased bearings, all catchpans clean and free of debris'),
+
+SECTION:Slicing, SORT_ORDER:10
+QUESTIONS:"(1,'No missing or broken links on conveyor'),
+(2,'No missing or torn rubber flaps'),
+(3,'No overgreased bearings, all catchpans clean and free of debris'),
+(4,'No flaking rust or paint on gear motors'),
+
+SECTION:Fryer, SORT_ORDER:11
+QUESTIONS:"(1,'No missing or broken links on conveyor'),
+(2,'No missing or torn rubber flaps'),
+(3,'No overgreased bearings, all catchpans clean and free of debris'),
+(4,'No flaking rust or paint on gear motors'),
+
+SECTION:Defect Reader, SORT_ORDER:12
+QUESTIONS:"(1,'No missing or broken links on conveyor'),
+(2,'No missing or torn rubber flaps'),
+(3,'No overgreased bearings, all catchpans clean and free of debris'),
+(4,'No flaking rust or paint on gear motors'),
+
+SECTION: Seasoning Tumbler / Acrison Seasoner/ Salter/ Oil Spray Unit/ Slurry Applicator, SORT_ORDER:13
+QUESTIONS:"(1,'No metal to metal at tumbler infeed and outlet'),
+(2,'No previously run seasoning residue in tumbler'),
+(3,'No previously run seasoning residue on spray bar'),
+(4,'No oil leaks'),
+(5,'No over greased bearings '),
+(6,'No fraying or cracked or broken plastic.'),
+(7,'No previously run product residue on abort chute'),
+
+SECTION:All Conveyor on line, SORT_ORDER:14
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'PEF'),(3,'Destoner/ Vertical lift'),(4,'Online Solids'),(5,'Cutting'),(6,'Slicer/ Blancher'),(7,'Peeling'),(8,'Sorting'),(9,'Batch Hopper'),(10,'Slicing'),(11,'Fryer'),(12,'Defect Reader'),(13,' Seasoning Tumbler / Acrison Seasoner/ Salter/ Oil Spray Unit/ Slurry Applicator'),(14,'All Conveyor on line'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F004 TPC Corn Cook Area Start-up PSM.xlsx
+ process:19,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visible previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust in product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:COOK KETTLE AREA-CHECK POINTS, SORT_ORDER:2
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'COOK KETTLE AREA-CHECK POINTS'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F005 TPC TC (Wash to Packaging) Start-up PSM.xlsx
+ process:19,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visible previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  in product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,'cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:CORN WASH/MILL AREA-CHECK POINTS, SORT_ORDER:2
+QUESTIONS:"(1,'No mold or excessive slime on the hydrosieve or corn washer hopper'),
+(2,'No mold or slime in corn washer tumbler, tumbler housing, drain belt, mill feed, or mill'),
+(3,'No torn vinyl flap at corn wash tumbler outfeed'),
+(4,'No leaking gear boxes over product zone in corn wash area'),
+(5,'No metal or other foreign material on the corn wash discharge magnet'),
+(6,'No metal or other foreign objects on the mill feed magnet'),
+
+SECTION:Frito Press, SORT_ORDER:3
+QUESTIONS:"(1,'Check for leaks from Hydraulic pump'),
+(2,'Check sprockets and chains'),
+(3,'Check that inside of press is clean and free of product residue'),
+(4,'Check casters on press'),
+(5,'Check hoses for water additions'),
+(6,'Check electrical cord to press'),
+
+SECTION:SHEETER OVEN, SORT_ORDER:4
+QUESTIONS:"(1,'No broken or missing links on the sheeter web'),
+(2,'No flaking paint on the sheeter motors'),
+(3,'No metal to metal at the oven discharge chutes'),
+(4,'No broken welds on oven discharge chute'),
+
+SECTION:PROOFER , SORT_ORDER:5
+QUESTIONS:"(1,'No torn UHMW guides on proofer incline'),
+(2,'No broken or missing flights on the proofer incline'),
+(3,'No over lubed bearings at the top of the proofer incline'),
+(4,'No broken or missing links on the proofer belt'),
+
+SECTION:FRYER, SORT_ORDER:6
+QUESTIONS:"(1,'No torn or missing UHMW on fryer infeed conveyor'),
+(2,'No broken or missing links on the fryer infeed belt'),
+(3,'No over lubed bearings on the fryer infeed conveyor'),
+(4,'No flaking paint on the fryer motors'),
+(5,'No broken or missing links on fryer take-out belt'),
+
+SECTION:CONVEYOR, SORT_ORDER:7
+QUESTIONS:"(1,'No broken links on air coil belt'),
+(2,'No broken flights at the incline conveyor'),
+(3,'No metal to metal at the end of the spiral chute'),
+
+SECTION:TUMBLER / Seasoner-Salter , SORT_ORDER:8
+QUESTIONS:"(1,'No missing UHMW around tumbler openings'),
+(2,'No metal to metal near/in tumbler'),
+
+SECTION:INCLINE TO PACKAGING, SORT_ORDER:9
+SECTION:I certify that the above line is food safe .        INTIALS:__________________, SORT_ORDER:10
+SECTION:Comments:______________________________________________________, SORT_ORDER:11
+SECTION:PC/QI Review:__________________________________________________, SORT_ORDER:12
+SECTION:Date:_______________________Time:______________________________, SORT_ORDER:13
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'CORN WASH/MILL AREA-CHECK POINTS'),(3,'Frito Press'),(4,'SHEETER OVEN'),(5,'PROOFER '),(6,'FRYER'),(7,'CONVEYOR'),(8,'TUMBLER / Seasoner-Salter '),(9,'INCLINE TO PACKAGING'),(10,'I certify that the above line is food safe .        INTIALS:__________________'),(11,'Comments:______________________________________________________'),(12,'PC/QI Review:__________________________________________________'),(13,'Date:_______________________Time:______________________________'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F006  Extruded-Sunchip Line Start-Up PSM.xlsx
+ process:3,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visible previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust in product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:WHEAT COOK AREA, SORT_ORDER:2
+QUESTIONS:"(1,'Paddles in good condition - not cracked or broken'),
+(2,'No rust in kettle'),
+(3,'No metal to metal in kettle'),
+(4,'No metal to metal in wheat hydrosieve auger'),
+(5,'No missing or frayed belts/pieces'),
+(6,'No previous product residue'),
+
+SECTION:Hammermill Area, SORT_ORDER:3
+QUESTIONS:"(1,'Hopper auger metal to metal'),
+(2,'Auger into Hammermill metal to metal'),
+(3,'Product buildup inside Hammermill shoot'),
+(4,'Sifter, tearing or holes'),
+(5,'Transfer hopper metal to metal'),
+
+SECTION:Mix Area, SORT_ORDER:4
+QUESTIONS:"(1,'Paddles in good condition'),
+(2,'Watch for rust'),
+(3,'Metal to metal in kettles'),
+(4,'Metal to metal in wheat hydrosive auger'),
+(5,'Belt missing pieces or frayed'),
+(6,'Mixer - signs of metal to metal'),
+(7,'No previous product residue'),
+
+SECTION:Wheat Auger Through to Extruder, SORT_ORDER:5
+QUESTIONS:"(1,'Metal to metal'),
+
+SECTION:Entecon, SORT_ORDER:6
+QUESTIONS:"(1,'Metal to metal'),
+(2,'No missing, broken, plastic disc '),
+
+SECTION:Ktron, SORT_ORDER:7
+QUESTIONS:"(1,'Metal to metal'),
+(2,'Check rubber gasket for rips or fray'),
+
+SECTION:Extruder Check Points, SORT_ORDER:8
+QUESTIONS:"(1,'No excess grease or oil from extruder'),
+(2,'Diverter gates working properly'),
+
+SECTION:Fryer-Check Points , SORT_ORDER:9
+QUESTIONS:"(1,'Submerger had no missing parts'),
+(2,'No metal to metal on submerger '),
+(3,'Submerger belt shows no signs to excessive wear'),
+(4,'No metal to metal on take out conveyor'),
+(5,'No oil leaks from the fryer or holdover tank'),
+(6,'Flumes watch out polynerize oil build up'),
+
+SECTION:Conveyors/Thayers-Check Points, SORT_ORDER:10
+QUESTIONS:"(1,'No missing, broken, or frayed links in the conveyors'),
+(2,'No metal-to metal'),
+(3,'No excessive product build-up on conveyors'),
+(4,'No strings or signs of fraying on belt'),
+(5,'Catch pans clean and in place'),
+(6,'No visible mixed product present on conveyors or thayers'),
+
+SECTION:Tumblers / Seasoner / Salter, SORT_ORDER:11
+QUESTIONS:"(1,'No metal-to metal at tumblers or outfeed'),
+(2,'No fraying or cracks in UHMW on tumbler'),
+(3,'Abort chutes clean'),
+(4,'No metal to metal on spraying dynamics'),
+(5,'No visible mixed product present on tumbler'),
+(6,'No metal to metal on mixing propellers'),
+(7,'No product build up in lines and tanks'),
+(8,'No product build up in product zone-floor'),
+
+SECTION:Bucket Conveyor-Check Points, SORT_ORDER:12
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'WHEAT COOK AREA'),(3,'Hammermill Area'),(4,'Mix Area'),(5,'Wheat Auger Through to Extruder'),(6,'Entecon'),(7,'Ktron'),(8,'Extruder Check Points'),(9,'Fryer-Check Points '),(10,'Conveyors/Thayers-Check Points'),(11,'Tumblers / Seasoner / Salter'),(12,'Bucket Conveyor-Check Points'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F007 Flo-Mech Start-up PSM.xlsx
+ process:19,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked, warped, or burnt through)'),
+(4,'No evidence of insects, rodents, or birds'),
+(5,'Floors and stairs clean and free of debris'),
+(6,'No lingering smell of previously run product'),
+(7,'No visible previous product residue'),
+(8,'Cleaning tools/supplies in place and (in good condition) '),
+(9,'Foreign matter (5 or more) loose items not in designated area'),
+(10,'No frayed wires in product zone'),
+(11,' Bearings over product zones not over lubricated'),
+(12,' No rust  in product area/zone'),
+(13,' No sticker/labels in product area'),
+(14,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(15,' cGMP's being followed by employees and contractors.'),
+(16,'Check all electrical components and connections (plugs) for water, damaged pieces and/or corrosion'),
+
+SECTION:Sack Lift Tip, SORT_ORDER:2
+QUESTIONS:"(1,'Check condition of bottom seal for tears, rips, missing pieces, and foreign matter'),
+
+SECTION:Sack Tip Hopper, SORT_ORDER:3
+QUESTIONS:"(1,'Check condition of door seals and all gaskets for tears, rips, and missing pieces'),
+(2,'Check for product buildup in hopper and on all seals and gaskets'),
+(3,'Check for product buildup in dust collector piping'),
+(4,'Check for foreign matter'),
+
+SECTION:Incline screw conveyor #1, SORT_ORDER:4
+QUESTIONS:"(1,'Check for metal-to-metal contact between screw and housing'),
+(2,'Check all gaskets/seals for torn and/or missing pieces and product buildup'),
+(3,'Check for product buildup in conveyor housing and on screw'),
+(4,' Check for leaks on gearbox.'),
+(5,'Check for foreign matter'),
+
+SECTION:Incline screw conveyor #2, SORT_ORDER:5
+QUESTIONS:"(1,'Check for metal-to-metal contact between screw and housing'),
+(2,'Check all gaskets/seals for torn and/or missing pieces and product buildup'),
+(3,'Check for product buildup in conveyor housing and on screw'),
+(4,' Check for leaks on gearbox.'),
+(5,'Check for foreign matter'),
+
+SECTION:Weight Hopper, SORT_ORDER:6
+QUESTIONS:"(1,' Check all gaskets/seals for torn and/or missing pieces and product buildup.'),
+(2,'Check inside of hopper for product buildup and foreign matter'),
+(3,'Check white filter for fraying and product buildup'),
+
+SECTION:Horizontal Mixer, SORT_ORDER:7
+QUESTIONS:"(1,'	Check all gaskets/seals for torn and/or missing pieces and product buildup'),
+(2,'Check for metal-to-metal contact inside of mixer.'),
+(3,'Check for product buildup/foreign matter inside of mixer.'),
+(4,' Check blue filters for product buildup.'),
+(5,'Check minor ingredient addition port for product buildup'),
+(6,'Check inspection hatch for product buildup.'),
+(7,' Check inspection hatch gasket for tears and missing pieces.'),
+(8,' Check gearboxes for leaks.'),
+(9,'Check for flaking paint.'),
+
+SECTION:Incline Conveyor After Mixer, SORT_ORDER:8
+QUESTIONS:"(1,'Check condition of all gaskets/seals for torn or missing pieces'),
+(2,'Check unit for product buildup and foreign matter'),
+(3,'Check auger for metal to plastic wear'),
+(4,'Check for flaking paint'),
+
+SECTION:Buffer Hopper, SORT_ORDER:9
+QUESTIONS:"(1,'Check all gaskets/seals for tears and missing pieces'),
+(2,'Check inside the unit for product buildup and foreign matter'),
+
+SECTION:I certify that the above line is Food Safe.                         INITIALS:____________________________, SORT_ORDER:10
+SECTION:Comments:________________________________________________________________________, SORT_ORDER:11
+SECTION:PC/QI Review:________________________________________________, SORT_ORDER:12
+SECTION:Date:___________________________Time:_________________________, SORT_ORDER:13
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'Sack Lift Tip'),(3,'Sack Tip Hopper'),(4,'Incline screw conveyor #1'),(5,'Incline screw conveyor #2'),(6,'Weight Hopper'),(7,'Horizontal Mixer'),(8,'Incline Conveyor After Mixer'),(9,'Buffer Hopper'),(10,'I certify that the above line is Food Safe.                         INITIALS:____________________________'),(11,'Comments:________________________________________________________________________'),(12,'PC/QI Review:________________________________________________'),(13,'Date:___________________________Time:_________________________'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F008 Pretzel Start-up PSM.xlsx
+ process:1,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked, warped, or burnt through)'),
+(4,'No evidence of insects, rodents, or birds'),
+(5,'Floors and stairs clean and free of debris'),
+(6,'No lingering smell of previously run product'),
+(7,'No visible previous product residue'),
+(8,'Cleaning tools/supplies in place and (in good condition) '),
+(9,'Foreign matter (5 or more) loose items not in designated area'),
+(10,'No frayed wires in product zone'),
+(11,' Bearings over product zones not over lubricated'),
+(12,' No rust  in product area/zone'),
+(13,' No sticker/labels in product area'),
+(14,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(15,' cGMP's being followed by employees and contractors.'),
+(16,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:Mixer, SORT_ORDER:2
+QUESTIONS:"(1,'No product or chemical residue in mixer'),
+(2,'No metal to metal'),
+(3,'No flaking paint, string, or tape in product zone'),
+(4,'No cracked, broken, or fraying plastic '),
+(5,'No oil leaks'),
+
+SECTION:Extruder / Braid Head /Die Plate / Band Cutter, SORT_ORDER:3
+QUESTIONS:"(1,'No fraying, broken, or rubbing plastic to plastic'),
+(2,'No oil leaks'),
+(3,'No product or chemical residue'),
+(4,'No cracked, broken, or fraying plastic '),
+(5,'No Metal to metal'),
+(6,'No fraying or peeling on conveyor belt.'),
+(7,'No over greased bearings'),
+(8,'No damage to cutter blade or teflon coating'),
+(9,'No standing water in catch pans'),
+(10,'No rust on cutter blade'),
+
+SECTION:Guillotine Cutter, SORT_ORDER:4
+QUESTIONS:"(1,'No oil leaks'),
+(2,'No standing water in catch pans'),
+(3,'No product or chemical residue'),
+(4,'No over greased bearings'),
+(5,'No cracked, broken, or fraying plastic/lexan '),
+(6,'No fraying or peeling of conveyor belt.'),
+(7,'No damage to cutter blade or teflon coating'),
+(8,'No rust on cutter blade'),
+
+SECTION:Proofer, SORT_ORDER:5
+QUESTIONS:"(1,'No over greased bearings'),
+(2,'No metal to metal'),
+(3,'No product or chemical residue'),
+(4,'No cracked broken or fraying plastic'),
+(5,'No fraying or peeling on conveyor belt.'),
+
+SECTION:Caustic Cooker / Salter, SORT_ORDER:6
+QUESTIONS:"(1,'No over greased bearings'),
+(2,'No product or chemical residue'),
+(3,'No broken or missing links on belt'),
+(4,'No metal to metal'),
+(5,'No cracked broken or fraying plastic'),
+(6,'No oil leaks'),
+(7,'No standing water in catch pans'),
+
+SECTION:Ovens / Oven Exit Conveyor, SORT_ORDER:7
+QUESTIONS:"(1,'No build up of product on belt'),
+(2,'No rust build up in oven'),
+(3,'No metal to metal'),
+(4,'No metal to metal on exit scraper and chute'),
+(5,'No product or chemical residue'),
+(6,'No fraying or peeling of conveyor belt.'),
+(7,'No cracked, broken or fraying plastic'),
+(8,'Oven belts tracking correctly'),
+(9,'No flaking rust, fraying, or broken'),
+(10,'Oven door seals intact and not fraying'),
+
+SECTION:Kiln Infeed Conveyor / Kiln Oven / Kiln Exit Conveyor, SORT_ORDER:8
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No product or chemical residue'),
+(3,'No fraying or peeling of conveyor belt.'),
+(4,'No cracked, broken, or fraying of plastic'),
+(5,'No rust build up in kiln'),
+(6,'No broken or missing links on belt'),
+(7,'Kiln oven seals intact and not fraying'),
+(8,'No over greased bearings'),
+(9,'No oil leaks'),
+
+SECTION:Seasoning Tumbler / Acrison Seasoner / Oil Spray Unit / Slurry Applicator, SORT_ORDER:9
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No product or chemical residue'),
+(3,'No cracked, broken, or  fraying, plastic'),
+(4,'No oil leaks'),
+(5,'No over greased bearings'),
+
+SECTION:Finished Product Transfer Conveyor / Baked Packaging Incline Conveyor / Baked Crossover/ Allen Conveyor  , SORT_ORDER:10
+SECTION:I certify that the above line is Food Safe.           INITIALS:____________, SORT_ORDER:11
+SECTION:Comments:__________________________________________________, SORT_ORDER:12
+SECTION:PC/QI Review:______________________________________________, SORT_ORDER:13
+SECTION:Date:________________________Time:_________________________, SORT_ORDER:14
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'Mixer'),(3,'Extruder / Braid Head /Die Plate / Band Cutter'),(4,'Guillotine Cutter'),(5,'Proofer'),(6,'Caustic Cooker / Salter'),(7,'Ovens / Oven Exit Conveyor'),(8,'Kiln Infeed Conveyor / Kiln Oven / Kiln Exit Conveyor'),(9,'Seasoning Tumbler / Acrison Seasoner / Oil Spray Unit / Slurry Applicator'),(10,'Finished Product Transfer Conveyor / Baked Packaging Incline Conveyor / Baked Crossover/ Allen Conveyor  '),(11,'I certify that the above line is Food Safe.           INITIALS:____________'),(12,'Comments:__________________________________________________'),(13,'PC/QI Review:______________________________________________'),(14,'Date:________________________Time:_________________________'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F009 BC72 Start-up PSM.xlsx
+ process:4,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visable previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust in product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:INCLINE CONVEYOR AFTER BUFFER HOPPER, SORT_ORDER:2
+QUESTIONS:"(1,'Check condition of all gaskets/seals for torn or missing pieces'),
+(2,'Check unit for product buildup and foreign matter'),
+(3,'Check auger for metal to plastic wear'),
+(4,'Check for flaking paint'),
+
+SECTION:KTRON FEEDER, SORT_ORDER:3
+QUESTIONS:"(1,'Check for metal to metal'),
+(2,'Check for mold and food buildup'),
+(3,'Check for pieces of plastic from the seal'),
+
+SECTION:EXTRUDER/CUTTERS, SORT_ORDER:4
+QUESTIONS:"(1,'Cutter cage has no visable wear, broken plastic, or frayed UHMW'),
+(2,'Motor platform clear of debris and tools'),
+(3,'No insect activity around extruder housing'),
+(4,'No signs of leaks from the ceiling and corn meal hopper lid is closed'),
+(5,'General use conveyors'),
+(6,'Tables and carts are clean and free of forign matter'),
+(7,'Inspect all animal feed containers'),
+(8,'Verify no trash is present, if trash is present remove trash'),
+(9,'Check for metal to metal and metal to plastic'),
+
+SECTION:INCLINE CONVEYOR /  WENGER DRYER, SORT_ORDER:5
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+(5,'Metal to metal at oven inlet and outlet'),
+(6,'No previous product on outlet scraper'),
+(7,'No missing pieces or damage at oven outlet scraper'),
+
+SECTION:INCLINE TO TUMBLER INFEED, SORT_ORDER:6
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+
+SECTION:SEASONING AREA, SORT_ORDER:7
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'INCLINE CONVEYOR AFTER BUFFER HOPPER'),(3,'KTRON FEEDER'),(4,'EXTRUDER/CUTTERS'),(5,'INCLINE CONVEYOR /  WENGER DRYER'),(6,'INCLINE TO TUMBLER INFEED'),(7,'SEASONING AREA'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F010 TPC Schaaf Extruder Start-up PSM.xlsx
+ process:19,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visable previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  in product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' GMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:INCLINE CONVEYOR AFTER BUFFER HOPPER, SORT_ORDER:2
+QUESTIONS:"(1,'Check condition of all gaskets/seals for torn or missing pieces'),
+(2,'Check unit for product buildup and foreign matter'),
+(3,'Check auger for metal to plastic wear'),
+(4,'Check for flaking paint'),
+
+SECTION:Dosing #1/Dosing #2 FEEDERs, SORT_ORDER:3
+QUESTIONS:"(1,'Check for metal to metal '),
+(2,'Check for mold and food buildup'),
+(3,'Check for broken or cracked plastic '),
+(4,'Check for coloring or fading of rubber hoses '),
+(5,'Check for missing pieces of seals'),
+
+SECTION:EXTRUDER/CUTTER, SORT_ORDER:4
+QUESTIONS:"(1,'Cutter cage has no visable wear, broken plastic, or frayed UHMW'),
+(2,'Motor platform clear of debris and tools'),
+(3,'No insect activity around extruder housing'),
+(4,'No signs of leaks from the ceiling and corn meal hopper lid is closed'),
+(5,'General use conveyors '),
+(6,'Tables and carts are clean and free of forign matter '),
+(7,'Inspect all animal feed containers '),
+(8,'Verify no trash is present, if trash is present remove trash'),
+(9,'Check for metal to metal and metal to plastic'),
+
+SECTION:INCLINE TO WENGER, SORT_ORDER:5
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash '),
+(5,'Metal to metal at oven inlet and outlet '),
+(6,'No previous product on outlet scraper '),
+(7,'No missing pieces or damage at oven outlet scraper '),
+
+SECTION:INCLINE TO TUMBLER INFEED, SORT_ORDER:6
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+
+SECTION:SEASONING AREA, SORT_ORDER:7
+QUESTIONS:"(1,'Slurry hose not on the floor'),
+(2,'Slurry kettles free of debris and tools'),
+(3,'Scraping tools in proper place and clean'),
+(4,'No raw material stored in containers on the floor'),
+(5,'Inspect all animal feed containers'),
+(6,'Verify no trash is present, if trash is present remove trash'),
+
+SECTION:Bucket Conveyor, SORT_ORDER:8
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'INCLINE CONVEYOR AFTER BUFFER HOPPER'),(3,'Dosing #1/Dosing #2 FEEDERs'),(4,'EXTRUDER/CUTTER'),(5,'INCLINE TO WENGER'),(6,'INCLINE TO TUMBLER INFEED'),(7,'SEASONING AREA'),(8,'Bucket Conveyor'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F011 TPC Packaging Start- up PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F012 TPC Baked Line (RBS) Start-up PSM.xlsx
+ process:19,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint, string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visible previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  in product area/zone'),
+(14,'No peeling/torn stickers/labels in product zone.'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:  Dry Mixer, SORT_ORDER:2
+QUESTIONS:"(1,'No product or chemical residue in mixer'),
+(2,'No metal to metal'),
+(3,'No flaking paint, string, or tape in product zone'),
+(4,'No cracked, broken, or fraying plastic '),
+(5,'No oil leaks'),
+
+SECTION:Hapman Dump Station, SORT_ORDER:3
+QUESTIONS:"(1,'No metal to metal'),
+(2,'Check RBS-1 key hole for product'),
+(3,'Check filter housing for build up'),
+(4,'Check door pistons for leaks '),
+(5,'Check all plastic switches for cracks or breaks'),
+
+SECTION:Continuous wet mixing, SORT_ORDER:4
+QUESTIONS:"(1,'Check feed for missing rubber or plastic'),
+(2,'No plastic to metal on  mixer'),
+(3,'Check screws for fraying or missing pieces'),
+(4,'Check for product or chemical residue'),
+(5,'Check FMD belt for faring or stains'),
+
+SECTION:Sheeting, SORT_ORDER:5
+QUESTIONS:"(1,'Check infeed belt for fraying'),
+(2,'No metal to metal on rollers'),
+(3,'No fraying or product residue on belt'),
+(4,'No fraying or broken plastic on roller scrapers '),
+
+SECTION:Dual Rotary Cutter, SORT_ORDER:6
+QUESTIONS:"(1,'No fraying or broken plastic on cutter'),
+(2,'No fraying on belt'),
+(3,'No stains or chemical residue'),
+
+SECTION:First Oven (Baking) , SORT_ORDER:7
+QUESTIONS:"(1,'No build up of product on belt'),
+(2,'No rust build up in oven'),
+(3,'No metal to metal'),
+(4,'No metal to metal on exit scraper and chute'),
+(5,'Oven belts tracking correctly'),
+(6,'Oven door seals intact and not fraying'),
+
+SECTION:Curling Transfer Conveyor, SORT_ORDER:8
+QUESTIONS:"(1,'No metal to Plastic on entry chute'),
+(2,'No broken or missing pieces of plastic on curling belt'),
+(3,'No metal to plastic on exit chute'),
+(4,'Check for product and chemical'),
+
+SECTION:Second Oven (Drying), SORT_ORDER:9
+QUESTIONS:"(1,'No build up of product on belt'),
+(2,'No rust build up in oven'),
+(3,'No metal to metal'),
+(4,'No metal to metal on exit scraper and chute'),
+(5,'Oven belts tracking correctly'),
+(6,'Oven door seals intact and not fraying'),
+
+SECTION:Seasoning Equipment from Dryer to Tumbler, SORT_ORDER:10
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No fraying on belts'),
+(3,'No product, stains, or chemical residue'),
+(4,'Check all plastic switches and button'),
+
+SECTION:Seasoning Equipment Tumbler to Bucket Conveyors, SORT_ORDER:11
+QUESTIONS:"(1,'No metal to metal'),
+(2,'Check oil spray bar for oil build up'),
+(3,'Check the seasoning tray for product '),
+(4,'Check Ktron for product on screws'),
+(5,'Check for broken flight and fraying plastic'),
+
+SECTION:Converyors to packaging, SORT_ORDER:12
+SECTION:I Certify that the above line is Food safe.                            INITIALS: _______________________, SORT_ORDER:13
+SECTION:COMMENTS: ____________________________________________________________________, SORT_ORDER:14
+SECTION:PCQI Review: ______________________________________________________________, SORT_ORDER:15
+SECTION:Date: _______________________________TIME:_________________________________, SORT_ORDER:16
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'  Dry Mixer'),(3,'Hapman Dump Station'),(4,'Continuous wet mixing'),(5,'Sheeting'),(6,'Dual Rotary Cutter'),(7,'First Oven (Baking) '),(8,'Curling Transfer Conveyor'),(9,'Second Oven (Drying)'),(10,'Seasoning Equipment from Dryer to Tumbler'),(11,'Seasoning Equipment Tumbler to Bucket Conveyors'),(12,'Converyors to packaging'),(13,'I Certify that the above line is Food safe.                            INITIALS: _______________________'),(14,'COMMENTS: ____________________________________________________________________'),(15,'PCQI Review: ______________________________________________________________'),(16,'Date: _______________________________TIME:_________________________________'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F013 Popcorn Start-up PSM.xlsx
+ process:2,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visable previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  un product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:ACCURATE, SORT_ORDER:2
+QUESTIONS:"(1,'Check for metal to plastic'),
+(2,'Check for mold and food buildup'),
+(3,'Check for pieces of plastic'),
+(4,'Check for metal to metal and metal '),
+
+SECTION:CRETORS POPPER FP 80, SORT_ORDER:3
+QUESTIONS:"(1,'No evidence of mold on the line'),
+(2,'Check for food build up in tumbler and screw'),
+(3,'No excess grease/oil '),
+(4,'No Metal to Metal'),
+
+SECTION:INCLINE CONVEYOR , SORT_ORDER:4
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+(5,'Metal to metal '),
+(6,'No previous product on outlet scraper'),
+(7,'No missing pieces or damage at oven outlet scraper'),
+
+SECTION:INCLINE TO TUMBLER INFEED, SORT_ORDER:5
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+
+SECTION:SEASONING AREA, SORT_ORDER:6
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'ACCURATE'),(3,'CRETORS POPPER FP 80'),(4,'INCLINE CONVEYOR '),(5,'INCLINE TO TUMBLER INFEED'),(6,'SEASONING AREA'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F020 Miscellaneous Start-Up PSM.xlsx
+ process:19,type:1
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint, string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked, warped, burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visible previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,'Bearings over product zones not over lubricated'),
+(13,'No rust  in product area/zone'),
+(14,'No peeling/torn stickers/labels in product zone.'),
+(15,'Equipment leaks (steam, oil, grease, etc.) in product zone/area'),
+(16,'cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:Dry Mixer, SORT_ORDER:2
+QUESTIONS:"(1,'No product or chemical residue in mixer'),
+(2,'No metal to metal'),
+(3,'No flaking paint, string, or tape in product zone'),
+(4,'No cracked, broken, or fraying plastic '),
+(5,'No oil leaks'),
+
+SECTION:Seasoning Tumbler, SORT_ORDER:3
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'Dry Mixer'),(3,'Seasoning Tumbler'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F025 Kettle Line Shift Change PSM.xlsx
+ process:5,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F026 TPC TC (Wash to Packaging) Line Shift Change PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F027 Extruded-Sunchip Line Shift Change PSM.xlsx
+ process:3,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F028 Schaaf SSE Extruder Shift Change PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F029 Pretzel Shift Change PSM.xlsx
+ process:1,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F030 Miscellaneous_Shift Change PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F031 BC72 Shift Change PSM.xlsx
+ process:4,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F032 Bake Line Shift Change (RBS) PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F033 TPC Packaging Shift Change PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F034 Flo-Mech-up PSM Shift Change PSM.xlsx
+ process:19,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F035 Popcorn Shift Change  PSM.xlsx
+ process:2,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F036 PC Line Shift Change PSM.xlsx
+ process:7,type:4
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F051 BC-72  Line Allergen Change Over PSM Audit.xlsx
+ process:4,type:3
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visable previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  un product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' GMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:HAPMAN/KTRON FEEDER, SORT_ORDER:2
+QUESTIONS:"(1,'Check for metal to plastic'),
+(2,'Check for mold and food buildup'),
+(3,'Check for pieces of plastic'),
+(4,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:EXTRUDER/CUTTERS, SORT_ORDER:3
+QUESTIONS:"(1,'Cutter cage has no visable wear, broken plastic, or frayed UHMW'),
+(2,'Motor platform clear of debris and tools'),
+(3,'No insect activity around extruder housing'),
+(4,'No signs of leaks from the ceiling and corn meal hopper lid is closed'),
+(5,'General use conveyors'),
+(6,'Tables and carts are clean and free of forign matter'),
+(7,'Inspect all animal feed containers'),
+(8,'Verify no trash is present, if trash is present remove trash'),
+(9,'Check for metal to metal and metal to plastic'),
+(10,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:INCLINE CONVEYOR /  WENGER DRYER, SORT_ORDER:4
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+(5,'Metal to metal at oven inlet and outlet'),
+(6,'No previous product on outlet scraper'),
+(7,'No missing pieces or damage at oven outlet scraper'),
+(8,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:INCLINE TO TUMBLER INFEED, SORT_ORDER:5
+QUESTIONS:"(1,'No broken flights on incline'),
+(2,'Chain guard and motor drip pans in place at drive motors'),
+(3,'Inspect all animal feed containers'),
+(4,'Verify no trash is present, if trash is present remove trash'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:SEASONING AREA, SORT_ORDER:6
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'HAPMAN/KTRON FEEDER'),(3,'EXTRUDER/CUTTERS'),(4,'INCLINE CONVEYOR /  WENGER DRYER'),(5,'INCLINE TO TUMBLER INFEED'),(6,'SEASONING AREA'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F052 Pretzel Line Allergen Change Over PSM.xlsx
+ process:1,type:3
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Check lighting shields (not missing, cracked, warped, or burnt through)'),
+(4,'No evidence of insects, rodents, or birds'),
+(5,'Floors and stairs clean and free of debris'),
+(6,'No lingering smell of previously run product'),
+(7,'No visible previous product residue'),
+(8,'Cleaning tools/supplies in place and (in good condition) '),
+(9,'Foreign matter (5 or more) loose items not in designated area'),
+(10,'No frayed wires in product zone'),
+(11,' Bearings over product zones not over lubricated'),
+(12,' No rust  in product area/zone'),
+(13,' No sticker/labels in product area'),
+(14,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(15,' cGMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:Mixer, SORT_ORDER:2
+QUESTIONS:"(1,'No product or chemical residue in mixer'),
+(2,'No metal to metal'),
+(3,'No flaking paint, string, or tape in product zone'),
+(4,'No cracked, broken, or fraying plastic '),
+(5,'No oil leaks'),
+(6,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Extruder / Braid Head /Die Plate / Band Cutter, SORT_ORDER:3
+QUESTIONS:"(1,'No fraying, broken, or rubbing plastic to plastic'),
+(2,'No oil leaks'),
+(3,'No product or chemical residue'),
+(4,'No cracked, broken, or fraying plastic '),
+(5,'No Metal to metal'),
+(6,'No fraying or peeling on conveyor belt.'),
+(7,'No over greased bearings'),
+(8,'No damage to cutter blade or teflon coating'),
+(9,'No standing water in catch pans'),
+(10,'No rust on cutter blade'),
+(11,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Guillotine Cutter, SORT_ORDER:4
+QUESTIONS:"(1,'No oil leaks'),
+(2,'No standing water in catch pans'),
+(3,'No product or chemical residue'),
+(4,'No over greased bearings'),
+(5,'No cracked, broken, or fraying plastic/lexan '),
+(6,'No fraying or peeling of conveyor belt.'),
+(7,'No damage to cutter blade or teflon coating'),
+(8,'No rust on cutter blade'),
+(9,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Proofer, SORT_ORDER:5
+QUESTIONS:"(1,'No over greased bearings'),
+(2,'No metal to metal'),
+(3,'No product or chemical residue'),
+(4,'No cracked broken or fraying plastic'),
+(5,'No fraying or peeling on conveyor belt.'),
+(6,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Caustic Cooker / Salter, SORT_ORDER:6
+QUESTIONS:"(1,'No over greased bearings'),
+(2,'No product or chemical residue'),
+(3,'No broken or missing links on belt'),
+(4,'No metal to metal'),
+(5,'No cracked broken or fraying plastic'),
+(6,'No oil leaks'),
+(7,'No standing water in catch pans'),
+(8,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Ovens / Oven Exit Conveyor, SORT_ORDER:7
+QUESTIONS:"(1,'No build up of product on belt'),
+(2,'No rust build up in oven'),
+(3,'No metal to metal'),
+(4,'No metal to metal on exit scraper and chute'),
+(5,'No product or chemical residue'),
+(6,'No fraying or peeling of conveyor belt.'),
+(7,'No cracked, broken or fraying plastic'),
+(8,'Oven belts tracking correctly'),
+(9,'No flaking rust, fraying, or broken'),
+(10,'Oven door seals intact and not fraying'),
+(11,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Kiln Infeed Conveyor / Kiln Oven / Kiln Exit Conveyor, SORT_ORDER:8
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No product or chemical residue'),
+(3,'No fraying or peeling of conveyor belt.'),
+(4,'No cracked, broken, or fraying of plastic'),
+(5,'No rust build up in kiln'),
+(6,'No broken or missing links on belt'),
+(7,'Kiln oven seals intact and not fraying'),
+(8,'No over greased bearings'),
+(9,'No oil leaks'),
+(10,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Seasoning Tumbler / Acrison Seasoner / Oil Spray Unit / Slurry Applicator, SORT_ORDER:9
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No product or chemical residue'),
+(3,'No cracked, broken, or  fraying, plastic'),
+(4,'No oil leaks'),
+(5,'No over greased bearings'),
+(6,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Finished Product Transfer Conveyor / Baked Packaging Incline Conveyor Baked Crossover/ Allen Conveyor  , SORT_ORDER:10
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'Mixer'),(3,'Extruder / Braid Head /Die Plate / Band Cutter'),(4,'Guillotine Cutter'),(5,'Proofer'),(6,'Caustic Cooker / Salter'),(7,'Ovens / Oven Exit Conveyor'),(8,'Kiln Infeed Conveyor / Kiln Oven / Kiln Exit Conveyor'),(9,'Seasoning Tumbler / Acrison Seasoner / Oil Spray Unit / Slurry Applicator'),(10,'Finished Product Transfer Conveyor / Baked Packaging Incline Conveyor Baked Crossover/ Allen Conveyor  '),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F053 TC Line Allergen Change Over PSM.xlsx
+ process:19,type:3
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,'All sprinklers have facets attached and in place'),
+(5,'No evidence of insects, rodents, or birds'),
+(6,'Floors and stairs clean and free of debris'),
+(7,'No lingering smell of previously run product'),
+(8,'No visable previous product residue'),
+(9,'Cleaning tools/supplies in place and (in good condition) '),
+(10,'Foreign matter (5 or more) loose items not in designated area'),
+(11,'No frayed wires in product zone'),
+(12,' Bearings over product zones not over lubricated'),
+(13,' No rust  un product area/zone'),
+(14,' No sticker/labels in product area'),
+(15,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(16,' GMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:CORN WASH/MILL AREA-CHECK POINTS, SORT_ORDER:2
+QUESTIONS:"(1,'No mold or excessive slime on the hydrosieve or corn washer hopper'),
+(2,'No mold or slime in corn washer tumbler, tumbler housing, drain belt, mill feed, or mill'),
+(3,'No torn vinyl flap at corn wash tumbler outfeed'),
+(4,'No leaking gear boxes over product zone in corn wash area'),
+(5,'No metal or other foreign material on the corn wash discharge magnet'),
+(6,'No metal or other foreign objects on the mill feed magnet'),
+(7,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:FRITO PRESS, SORT_ORDER:3
+QUESTIONS:"(1,'Check for leaks from Hydraulic pump'),
+(2,'Check sprokets and chains'),
+(3,'Check that inside of press is clean and free of product residue'),
+(4,'Check casters on press'),
+(5,'Check hoses for water additions'),
+(6,'Check electrical cord to press'),
+(7,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:SHEETER OVEN, SORT_ORDER:4
+QUESTIONS:"(1,'No broken or missing links on the sheeter web'),
+(2,'No flaking paint on the sheeter motors'),
+(3,'No metal to metal at the oven discharge chutes'),
+(4,'No broken welds on oven discharge chute'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:PROOFER , SORT_ORDER:5
+QUESTIONS:"(1,'No torn UHMW guides on proofer incline'),
+(2,'No broken or missing flights on the proofer incline'),
+(3,'No over lubed bearings at the top of the proofer incline'),
+(4,'No broken or missing links on the proofer belt'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:FRYER, SORT_ORDER:6
+QUESTIONS:"(1,'No torn or missing UHMW on fryer infeed conveyor'),
+(2,'No broken or missing links on the fryer infeed belt'),
+(3,'No over lubed bearings on the fryer infeed conveyor'),
+(4,'No flaking paint on the fryer motors'),
+(5,'No broken or missing links on fryer take-out belt'),
+(6,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:CONVEYOR, SORT_ORDER:7
+QUESTIONS:"(1,'No broken links on air coil belt'),
+(2,'No broken flights at the incline conveyor'),
+(3,'No metal to metal at the end of the spiral chute'),
+(4,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:TUMBLER / Seasoner-Salter , SORT_ORDER:8
+QUESTIONS:"(1,'No missing UHMW around tumbler openings'),
+(2,'No metal to metal near/in tumbler'),
+(3,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:INCLINE TO PACKAGING, SORT_ORDER:9
+
+SECTIONS:(0,'If any of these exist do not start up . Contact your Coordinator'),(1,'General Check Points'),(2,'CORN WASH/MILL AREA-CHECK POINTS'),(3,'FRITO PRESS'),(4,'SHEETER OVEN'),(5,'PROOFER '),(6,'FRYER'),(7,'CONVEYOR'),(8,'TUMBLER / Seasoner-Salter '),(9,'INCLINE TO PACKAGING'),
+
+
+FILE:C:\Users\michelle.badu\Documents\Pepsico\TPC22000.821.F054 Kettle Line Allergen Change Over PSM.xlsx
+ process:5,type:3
+SECTION:If any of these exist do not start up . Contact your Coordinator, SORT_ORDER:0
+SECTION:General Check Points, SORT_ORDER:1
+QUESTIONS:"(1,'Ceiling tiles in place-not cracked or fraying'),
+(2,'No flaking paint,string, or tape in product zone'),
+(3,'Lighting shields (not missing, cracked,warped,burnt through)'),
+(4,' Lighting shields (not missing, cracked, warped, or burnt through'),
+(5,'All sprinklers have facets attached and in place'),
+(6,'No evidence of insects, rodents, or birds'),
+(7,'Floors and stairs clean and free of debris'),
+(8,'No lingering smell of previously run product'),
+(9,'No visable previous product residue'),
+(10,'Cleaning tools/supplies in place and (in good condition) '),
+(11,'Foreign matter (5 or more) loose items not in designated area'),
+(12,'No frayed wires in product zone'),
+(13,' Bearings over product zones not over lubricated'),
+(14,' No rust  in product area/zone'),
+(15,' No sticker/labels in product area'),
+(16,'Equipment leaks (steam,oil,grease, etc.) in product zone/area'),
+(17,' GMP's being followed by employees and contractors.'),
+(17,'Check all electrical components and connections (plugs) for water, damaged pieces, and/or corrosion'),
+
+SECTION:PEF, SORT_ORDER:2
+QUESTIONS:"(1,'No fraying, cracked, broken, or missing belting. '),
+(2,'Door seals in good condition (no water leaks)'),
+(3,'No metal to metal'),
+(4,'No cracked or broken lexan'),
+(5,'No fraying, broken or missing pieces og UHMW'),
+(6,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Slicer Portable / Feed Conveyor, SORT_ORDER:3
+QUESTIONS:"(1,'No broken flights on belts'),
+(2,'No broken or missing links on belts'),
+(3,'No fraying or missing pieces on UHMW'),
+(4,'No metal to metal'),
+(5,'No torn or missing flap pieces '),
+(6,'No broken or missing pieces '),
+(7,'No previous product residue in slicer'),
+(8,'No oil leaks'),
+(9,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Blancher / Conveyors, SORT_ORDER:4
+QUESTIONS:"(1,'No broken flights on belt'),
+(2,'No broken or missing links on belt'),
+(3,'No fraying or missing pieces on UHMW'),
+(4,'No residue at blancher outfeed'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION: Surge Hopper Conveyor, SORT_ORDER:5
+QUESTIONS:"(1,'No plastic to plastic'),
+(2,'No broken flights on belt'),
+(3,'No broken or missing links on belt'),
+(4,'No fraying or missing pieces on UHMW'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Fryer Infeed Belt, SORT_ORDER:6
+QUESTIONS:"(1,'No metal to metal on fryer infeed belt'),
+(2,'No plastic to plastic on fryer infeed belt'),
+(3,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION: Slicer, SORT_ORDER:7
+QUESTIONS:"(1,'No metal to metal'),
+(2,'No torn or missing flap pieces '),
+(3,'No broken or missing pieces '),
+(4,'No previous product residue in slicer'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Fryer, SORT_ORDER:8
+QUESTIONS:"(1,'Paddles intact - no missing pieces'),
+(2,'No flaking rust in fryer'),
+(3,'No metal to metal '),
+(4,'No oil leaks '),
+(5,'No missing or broken links on conveyor'),
+(6,'No broken wires'),
+(7,'No flaking rust on chains'),
+(8,'No overgreased bearings, all catchpans clean and free of debris'),
+(9,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Exit Conveyors (1-4), SORT_ORDER:9
+QUESTIONS:"(1,'No missing or broken links on conveyor'),
+(2,'No missing or torn rubber flaps'),
+(3,'No overgreased bearings, all catchpans clean and free of debris'),
+(4,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Exit Conveyors (5-7), SORT_ORDER:10
+QUESTIONS:"(1,'No missing or broken links on conveyor'),
+(2,'No missing or torn rubber flaps'),
+(3,'No overgreased bearings, all catchpans clean and free of debris'),
+(4,'No flaking rust or paint on gear motors'),
+(5,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION: Seasoning Tumbler / Acrison Seasoner/ Salter/ Oil Spray Unit/ Slurry Applicator, SORT_ORDER:11
+QUESTIONS:"(1,'No metal to metal at tumbler infeed and outlet'),
+(2,'No previously run seasoning residue in tumbler'),
+(3,'No previsouly run seasoning residue on spray bar'),
+(4,'No oil leaks'),
+(5,'No over greased bearings '),
+(6,'No fraying or cracked or broken plastic.'),
+(7,'No previsouly run product residue on abort chute'),
+(8,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),
+
+SECTION:Bucket Elevator to Packaging PC, SORT_ORDER:12
+QUESTIONS:"(1,'No broken or missing bucket flights'),
+(2,'No over greased bearings on bucket elevator '),
+(3,'CHECK FOR LEFTOVER ALLERGEN BUILD UP OR RESIDUE. '),

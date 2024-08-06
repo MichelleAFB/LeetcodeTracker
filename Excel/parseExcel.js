@@ -33,8 +33,8 @@ const ADODB = require('node-adodb');
 const connection = ADODB.open("ADODB.Connection") ;
 
 var connectionstring=' DRIVER=ODBC Driver 17 for SQL server;Data Source=192.168.4.20\PEPSICOSQL;Database=master;Integrated Security=false;User ID=sa;Password=Engineer@3;';
-
-
+/*
+try{
 connection
   .execute('INSERT INTO Users(UserName, UserSex, UserAge) VALUES ("Newton", "Male", 25)')
   .then(data => {
@@ -43,6 +43,9 @@ connection
   .catch(error => {
     console.error(error);
   });
+}catch(err){
+
+}
   /*
 var rs = new ActiveXObject("ADODB.Recordset");
 
@@ -1532,7 +1535,12 @@ app.post("/parse-file",(req,res)=>{
                  
             
 })
+
+app.post("/try",(req,res)=>{
+    
+})
 app.post("/generate-questions-and-section-types-1",(req,res)=>{
+    console.log("HIIII")
     const sectionsInForm=[]
     const sectionsInFormDBString=[]// stored in array
     var questionsString=""
@@ -1541,7 +1549,7 @@ app.post("/generate-questions-and-section-types-1",(req,res)=>{
     dir_name=dir_name.replace(/"\"/g, "/")
     
 const directoryPath = path.join(dir_name);
-
+console.log(directoryPath)
 
 fs.readdir(directoryPath, function (err, files) {
     i=0
@@ -1552,15 +1560,16 @@ fs.readdir(directoryPath, function (err, files) {
     } 
     ourFiles=files
     const alreadyProcessedForms=[]
-    console.log(files)
-    while(i<ourFiles.length/*<ourFiles.length*/){
-        const p=dir_name+"/"+ourFiles[i]
+   console.log(files)
+    while( i<13/*ourFiles.length*/){
+        console.log("i:",i)
+        const p=dir_name+"/"+ourFiles[i] 
         const parsedSections=[]
         const workbook = XLSX.readFile(p);
 
         var fileName=ourFiles[i]
         var formName=fileName.split(".")
-        var findFirst=ourFiles[i].split(" ")
+        var findFirst=ourFiles[i].split(" ") 
         var formString=""
        
         if(findFirst[0].includes(".")){
@@ -1592,24 +1601,29 @@ fs.readdir(directoryPath, function (err, files) {
           
           sheets[sheetName] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
           var sheetIndex=1
-          const lastSheetIndex=Object.keys(sheets).length
-          //  console.log(sheetIndex,lastSheetIndex+1)
-          while(sheetIndex<lastSheetIndex){
+          const lastSheetIndex=Object.keys(sheets).length 
+     
+            if(lastSheetIndex==1){
+          while(sheetIndex<=lastSheetIndex){
+             
                const sections=[]
               var rowIndex=0
               var jump
               var switchFlag=false
-            
-                        while(rowIndex<sheets["Sheet"+sheetIndex].length ){
+         
+              if(rowIndex<sheets["Sheet"+sheetIndex].length ){
+                //console.log(rowIndex," ",sheets["Sheet"+sheetIndex].length )
+                try{
+                        while(rowIndex<sheets["Sheet"+sheetIndex].length){
+                      
+                            var row=sheets["Sheet"+sheetIndex][rowIndex]  
                          
-                            var row=sheets["Sheet"+sheetIndex][rowIndex] 
-                        
                             
                             if(row!=null ){ 
-                             //  console.log(row)
+                             
                                 if(row.length>0 ){
                                   
-                                    if(ourFiles[i]=="TPC22000.821.F001 TPC Potato Bin Room PSM.xlsx"&& ( row.includes('WORK REQUEST NUMBER')) ||  (  row.includes('Work Request Number')) || (  row.includes("GO") &&   row.includes("NO-GO")) || (  row.includes("Go") &&   row.includes("No-Go") )){
+                                    if( row.includes("NO-GO")|| ( row.includes('WORK REQUEST NUMBER')) ||  (  row.includes('Work Request Number')) || (  row.includes("GO") &&   row.includes("NO-GO")) || (  row.includes("Go") &&   row.includes("No-Go") )){
                                         const indexes=[]
                                         const sectionsSoFar=[]
                                         //console.log(row)
@@ -1623,12 +1637,22 @@ fs.readdir(directoryPath, function (err, files) {
                                         // console.log("\n\nSECTION",row)
                                       var insertQuestions=""
                                       const sectionTitle=row[0]
-                                      console.log("---------------------section:"+sectionTitle)
+                                   console.log("--------section:"+sectionTitle)
                                      
 
-                                      var section={section:sectionTitle,questions:[]}
+                                      var section={section:sectionTitle,questions:[],questionsString:null}
                                         var rIndex=rowIndex+1
+                                   
+                                        console.log("here",sheets["Sheet"+sheetIndex][rIndex] )
+                                        
                                          var r=sheets["Sheet"+sheetIndex][rIndex] 
+                                    
+                                       indexes.push(r[0])
+                                       section.questions.push({order:r[0],question:r[1]})
+                                       r[1].replace("'","`")
+                                       var s=`('${formName}','${sectionTitle}',${r[0]},'${r[1]}'),`
+                                       
+                                       insertQuestions=insertQuestions+s
                                     if(sectionTitle!=null ){  
                                         sectionsSoFar.push(section.section)
                                         if(sectionTitle.length>2){  
@@ -1654,7 +1678,7 @@ fs.readdir(directoryPath, function (err, files) {
                                 }
                                // console.log(section.section)
                                   
-                                    
+                                    section.quest
                                     sections.push(section)
                                     questionsString=questionsString+insertQuestions
                                     sectionsInFormDBString.push(insertQuestions)
@@ -1673,21 +1697,178 @@ fs.readdir(directoryPath, function (err, files) {
                     if(switchFlag){
                         if(!alreadyProcessedForms.includes(formName)){
                             alreadyProcessedForms.push(formName)
-                        sectionsInForm.push({formName:formName,sections:sections})
+                        sectionsInForm.push({formName:formName,sections:sections,questionsString:questionsString})
                         }
                         rowIndex=rowIndex+jump
-                        switchFlag=false
+                        rowIndex++
+                       // console.log("rowindex:",rowIndex,sheets["Sheet"+sheetIndex][rowIndex])
+                       // console.log(rowIndex,"lstrow:",sheets["Sheet"+sheetIndex].length)
+                        if(rowIndex>=sheets["Sheet"+sheetIndex].length){ 
+                            console.log("\n\nJUMP",rowIndex,"lstrow:",sheets["Sheet"+sheetIndex].length)
+                            console.log("UPGRADING TO NEXT SHEET")
+                            sheetIndex++
+                            if(sheetIndex>lastSheetIndex){
+                                i++
+                            }
+                        }
+                        switchFlag=false 
                     }else{
                         rowIndex++
+                       
+                        if(rowIndex>=sheets["Sheet"+sheetIndex].length){
+                            console.log("\n\nNO jump",rowIndex,"lstrow:",sheets["Sheet"+sheetIndex].length)
+                            console.log("UPGRADING TO NEXT SHEET")
+                            sheetIndex++
+                            if(sheetIndex>lastSheetIndex){
+                                i++
+                            }
+                        }
                     }
                         }
-                        sheetIndex++
+                    }catch(err){ 
+                        console.log(err)
+                    }
+                    }else{
+                       break
+                        i++
+
+                    }
+                      
         }
+    }else{
+        while(sheetIndex<lastSheetIndex){
+             
+            const sections=[]
+           var rowIndex=0
+           var jump
+           var switchFlag=false
+        console.log(rowIndex," sheet length:",sheets["Sheet"+sheetIndex].length)
+           if(rowIndex<sheets["Sheet"+sheetIndex].length ){
+             //console.log(rowIndex," ",sheets["Sheet"+sheetIndex].length )
+                     while(rowIndex<sheets["Sheet"+sheetIndex].length ){
+                   
+                         var row=sheets["Sheet"+sheetIndex][rowIndex]  
+                      
+                         
+                         if(row!=null ){ 
+                          
+                             if(row.length>0 ){
+                               
+                                 if( row.includes("NO-GO")|| ( row.includes('WORK REQUEST NUMBER')) ||  (  row.includes('Work Request Number')) || (  row.includes("GO") &&   row.includes("NO-GO")) || (  row.includes("Go") &&   row.includes("No-Go") )){
+                                     const indexes=[]
+                                     const sectionsSoFar=[]
+                                     //console.log(row)
+                                     var nextRow=sheets["Sheet"+sheetIndex][rowIndex+1] 
+                                     //console.log(row)
+                                    // console.log(nextRow)
+                                     
+                                  
+                                       //console.log(ss)
+                                     //  console.log(ss)
+                                     // console.log("\n\nSECTION",row)
+                                   var insertQuestions=""
+                                   const sectionTitle=row[0]
+                                console.log("--------section:"+sectionTitle)
+                                  
+
+                                   var section={section:sectionTitle,questions:[],questionsString:null}
+                                     var rIndex=rowIndex+1
+                                     if(i==0){
+                                     console.log("here",sheets["Sheet"+sheetIndex][rIndex-1] )
+                                     }
+                                      var r=sheets["Sheet"+sheetIndex][rIndex] 
+                                 
+                                    indexes.push(r[0])
+                                    section.questions.push({order:r[0],question:r[1]})
+                                    r[1].replace("'","`")
+                                    var s=`('${formName}','${sectionTitle}',${r[0]},'${r[1]}'),`
+                                    
+                                    insertQuestions=insertQuestions+s
+                                 if(sectionTitle!=null ){  
+                                     sectionsSoFar.push(section.section)
+                                     if(sectionTitle.length>2){  
+                                 while(r.length>0 && r.length==2){ 
+                                     //console.log(r)
+                                     if(!indexes.includes(r[0])){
+                                         indexes.push(r[0])
+                                      section.questions.push({order:r[0],question:r[1]})
+                                      r[1].replace("'","`")
+                                      var s=`('${formName}','${sectionTitle}',${r[0]},'${r[1]}'),`
+                                      
+                                      insertQuestions=insertQuestions+s
+                                      
+                                     
+                                     }
+                                     r=sheets["Sheet"+sheetIndex][rIndex]
+                                      rIndex++  
+                                      jump=rIndex-rowIndex
+                                      switchFlag=true
+                                   
+                                 }
+                             }
+                             }
+                            // console.log(section.section)
+                               
+                                 section.quest
+                                 sections.push(section)
+                                 questionsString=questionsString+insertQuestions
+                                 sectionsInFormDBString.push(insertQuestions)
+                                 var rDifference=rIndex-rowIndex
+                                
+                                 
+                                
+                                // console.log("difference:",rDifference)
+                                 }
+                              
+                             }
+                         }else{
+                     
+                         }
+                // rowIndex++
+                 if(switchFlag){
+                     if(!alreadyProcessedForms.includes(formName)){
+                         alreadyProcessedForms.push(formName)
+                     sectionsInForm.push({formName:formName,sections:sections,questionsString:questionsString})
+                     }
+                     rowIndex=rowIndex+jump
+                     rowIndex++
+                     console.log("rowindex:",rowIndex,sheets["Sheet"+sheetIndex][rowIndex])
+                     if(rowIndex>=sheets["Sheet"+sheetIndex].length){ 
+                         sheetIndex++
+                         if(sheetIndex>=lastSheetIndex){
+                             i++
+                         }
+                     }
+                     switchFlag=false 
+                 }else{
+                     rowIndex++
+                    
+                     if(rowIndex>=sheets["Sheet"+sheetIndex].length){
+                         sheetIndex++
+                         if(sheetIndex>=lastSheetIndex){
+                             i++
+                         }
+                     }
+                 }
+                     }
+                 }else{
+                    break
+                     i++
+
+                 }
+                   
+     }
+        
+    }
        
-         i++
-         if(i>=files.length){
+     
+         if(i>=12/*ourFiles.length*/){ 
+            try{
             res.json({forms:sectionsInForm,questionsStringDB:questionsString,questionAndSections:sectionsInFormDBString})
-         }
+            }catch(err){
+
+            }
+        }
           //console.log(sheets)
           
         });
@@ -1970,6 +2151,7 @@ fs.readdir(directoryPath, function (err, files) {
                          order++
         
                         if(typeof(sheets["Sheet1"][qIndex][0])!="number"){
+                            allSectionsStr= allSectionsStr+"-------------------------------"
                             sections.push(section)
                             index+=qIndex
                             qswitch=true
@@ -2151,6 +2333,7 @@ fs.readdir(directoryPath, function (err, files) {
             
                             if(typeof(sheets["Sheet1"][qIndex][0])!="number"){
                                 if(row[0]!=" "){
+                                  
                                 sections.push(section)
                               forms.push({formName:formName.toUpperCase(),formId:formId,sections:sections})
                                 }
