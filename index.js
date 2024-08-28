@@ -131,11 +131,13 @@ var rooms={}
 
 const totalRooms=[]
 const hotel=[]
- io.sockets.on("connection",(socket)=>{
-  
+ io.sockets.on("connection",async(socket)=>{
+  socket.request.headers['authorization'] = socket.handshake.auth.token
+
 
   socket.on("disconnect", (reason) => {
-  
+   // socket.removeAllListeners();
+    console.log(reason);
     console.log("DISCONNECTED")
     if (socket.active) {
       // temporary disconnection, the socket will automatically try to reconnect
@@ -147,12 +149,14 @@ const hotel=[]
   });
 
    socket.on("NEW_USER_SESSION",(data)=>{
+    //console.log(Object.keys(socket.client.conn.request),socket.client.conn.id)
+   
     var done=false
    
     if(data.user!=null){
       console.log("NEW SESSION")
       console.log(data.user.firstname+ " tapped in ","\n\n")
-      if(!totalRooms.contains(data.user.userId)){
+      if(!totalRooms.includes(data.user.userId)){
         totalRooms.push(data.user.userId)
     if(data.id!=null){
     
@@ -212,12 +216,17 @@ const hotel=[]
   }
   }else{
     console.log("DISCONNECTIMG USELESS CONNECTION",socket.id)
-    socket.disconnect()
+    socket.removeAllListeners();
+    //socket.disconnect()
   }
    })
    socket.on("UPDATE_GROUP_CHALLENGE",async(data)=>{
+    console.log(socket.id," STATUS:",socket.status)
+   
     console.log("\n\n\nSOCKET:UPDATING GROUP CHALLENGE")
     if(data.user!=null){
+      
+
       const user=data.user
       console.log(Object.values(rooms))
       if(Object.values(rooms).includes(user.userId)){
@@ -229,23 +238,38 @@ const hotel=[]
             console.log("\nFOUND "+k+" user:"+rooms[k])
             sendee=k
             console.log("other socket id",sendee,user.firstname)
-            
+          
           const groupChallenge=await GroupChallengeData.find({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]},{$and:[{"startDay":new Date().toString().substring(0,15)},{"endDay":new Date().toString().substring(0,15)},{"userId":user.userId}]}]})
-          const others=await  GroupChallenge.find({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]},{$and:[{"startDay":new Date().toString().substring(0,15)},{"endDay":new Date().toString().substring(0,15)},{"userId":{$ne:user.userId}}]}]})
-          if(groupChallenge!=null){
-            console.log("SOCKET:"+groupChallenge.challengeId)
+          const others=await  GroupChallenge.find({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]}]})
+          if(groupChallenge.length>0){
+          
+            console.log("CHALLENGE EXIST SOCKET:"+socket.status)
+            console.log("CHALLENGE EXIST:"+groupChallenge.length)
+            console.log("OTHERS EXIST:"+others.length)
             var oIndex=0
             if(oIndex<others.length){
               
               var other=others[oIndex]
+              function cb(){
+
+              }
               while(oIndex<others.length){
                 const o=Object.keys(rooms)
                 var oo=0
+                const groupChallengeData=await GroupChallengeData.findOne({"challengeId":groupChallenge.challengeId})
                 Object.keys(rooms).map((kk)=>{
                   //console.log("SEARCHING",rooms[kk])
                   if(rooms[kk]==other.userId){
                     console.log("SOCKET:FOUND OTHER ")
-                    socket.to(kk).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge})
+
+                    socket.broadcast.emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge,groupChallengeData:groupChallengeData,time:new Date()},(r)=>{
+                      console.log(socket.id," STATUS:",socket.status)
+                      console.log("\n\n------------RETURNED CALLBACK",r)
+                    })
+                    socket.to(sendee).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge,time:new Date(),sendee:sendee},(r)=>{
+                      console.log(socket.id," STATUS:",socket.status)
+                      console.log("\n\n------------RETURNED CALLBACK",r)
+                    })
                     console.log("SUCCESS SENDING")
                   }else{
                     
@@ -258,7 +282,12 @@ const hotel=[]
               }
             }
             try{
-          socket.to(sendee).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge})
+              const groupChallenge=await GroupChallengeData.findOne({$or:[{$and:[{"startDate":{$lte:new Date()}},{"endDate":{$gte:new Date()}},{"userId":user.userId}]},{$and:[{"startDay":new Date().toString().substring(0,15)},{"endDay":new Date().toString().substring(0,15)},{"userId":user.userId}]}]})
+              if(groupChallenge!=null){
+              const groupChallengeData=await GroupChallengeData.findOne({"challengeId":groupChallenge.challengeId})
+              socket.to(sendee).emit("GROUP_CHALLENGE_UPDATED",{groupChallenge:groupChallenge,groupChallengeData:groupChallengeData,time:new Date(),sendee:sendee})
+
+            }
             }catch(err){
               console.log(err)
             }
@@ -936,9 +965,12 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 setInterval(function () {
   console.log("\n\n\*************************************PINGING")
   try{
+    console.log("\n\n\n-------------CALL API------")
+    /*
   axios.get("https://leetcodetracker.onrender.com").then((response)=>{
     console.log(response.data,new Date().toString(),"\n\n\n")
   })
+  */
 }catch(err){
   console.log(err)
 }
@@ -1105,6 +1137,102 @@ app.post("/correct-streak",async(req,res)=>{
   }
    }
 })
+
+function getSubstringCount(str,word){
+  let count = 0, // Initialize a counter variable
+  i = 0; // Initialize an index variable
+
+// Loop until the end of the string is reached
+var examples={}
+while (true) {
+  var newWord=word+" "+(count+1)+":"
+ 
+ 
+ 
+  // Find the index of the next occurrence of the searchValue in the string starting from index i
+  const r = str.indexOf(word, i);
+  var end
+  var lastExample
+
+  if(examples!=null){
+  end=i-1
+  }
+  if (r!=-1){
+  examples[newWord]={start:r,end:-1}
+  }
+
+  // If the searchValue is found in the string
+  if (r !== -1) {
+    // Increment the counter by 1 and update the index to start searching from the next position
+    [count, i] = [count + 1, r + 1];
+  } else {
+    // If the searchValue is not found, return the final count
+    console.log(examples)
+    Object.keys(examples).forEach((k,i)=>{
+     // console.log("key:",k,"i:",i)
+      try{
+      var ex=Object.keys(examples)[i-1]
+    
+     
+      examples[ex].end=examples[Object.keys(examples)[i]].start-1
+      if(i ==Object.keys(examples).length-1){
+        try{
+        var startIndex=examples[Object.keys(examples)[i]].start
+        var rest=str.substring(startIndex,str.length-1)
+        var endIndex=rest.indexOf("Constraints")
+       // console.log("lastIndex:",endIndex)
+        examples[Object.keys(examples)[i]].end=startIndex+endIndex-1
+        }catch(e){
+          console.log(e,"\n\nHERE")
+        }
+      }
+      }catch(e){
+        console.log(e)
+      }
+    })
+    console.log(examples)
+    return {count:count,examples:examples};
+  }
+}
+
+}
+function getInputAndOutputofUseCase(str){
+  var inputIndex=str.indexOf("Input")
+  var outputIndex=str.indexOf("Output")
+  var input=str.substring(inputIndex,outputIndex)
+  var expIndex=str.indexOf("Explanation")
+  var output=str.substring(outputIndex,expIndex)
+  console.log("--------input",input)
+  console.log("---------output",output)
+  return{input:input,output:output}
+
+  
+
+}
+
+app.post("/generate-use-cases",async(req,res)=>{
+  const problem=req.body.problem
+  var prompt=problem.prompt
+  var countEx=getSubstringCount(prompt,"Example")
+  var count=countEx.count
+  var examples=countEx.examples
+  const cases=[]
+
+ Object.keys(examples).forEach((k)=>{
+  var ex=k
+  var start=examples[k].start
+  var end=examples[k].end
+  console.log(prompt.substring(start,end),"\n\n")
+  var c=getInputAndOutputofUseCase(prompt.substring(start,end))
+  cases.push({"example":k,input:c.input,output:c.output})
+  if (cases.length==Object.keys(examples).length)
+    {
+      res.json({success:true,examples:cases})
+    }
+ })
+  
+
+})
 app.post("/add-to-streak",async(req,res)=>{
   console.log("HI")
   const id=req.body.userId
@@ -1131,13 +1259,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
       
       var date=req.body.day
       date=date.split(" ")
+     
       var dateDate=new Date(date[3],monthnum[months.indexOf(date[1])-1],date[2])
       var yesterDay=new Date(dateDate)
       var tommorow=new Date(dateDate)
       yesterDay=yesterDay.setDate(dateDate.getDate()-1)
       tommorow.setDate(dateDate.getDate()+1)
       const yesterday=new Date(yesterDay)
-  
+          console.log('1172',dateDate)
+          if(dateDate instanceof Date){
       const groupChallenge=await GroupChallenge.findOne({$and:[{"userId":id},{"startDate":{$lte:dateDate}},{"endDate":{$gte:dateDate}}]})
      // console.log("CHALLENGE EXIST:",groupChallenge,"\n\n")
       const groupChallengeData=await GroupChallengeData.findOne({$and:[{$or:[{"userId":id},{"contestants":{$in:[id]}}]},{$or:[{$and:[{"startDate":{$lte:dateDate}},{"endDate":{$gte:dateDate}}]},{$or:[{"startDay":req.body.day},{"enDay":req.body.day}]}]}]})
@@ -1755,6 +1885,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
         }
 
       }
+    }
     }catch(err){
       console.log(err)
     }
@@ -4439,12 +4570,19 @@ if(challenges.length>1){
       var curr=startDate
  
     const tommorow=new Date()
-    tommorow.setDate(tommorow.getDate()+1)
     var problemCounter={}
+    tommorow.setDate(tommorow.getDate()+1)
+    
        while(curr<stop && curr.toString().substring(0,15)!=stop.toString().substring(0,15) && curr.toString().substring(0,15)!=tommorow.toString().substring(0,15)){
         var i=0
         while(i<challenges.length){
           var userId=challenges[i].userId
+         if(problemCounter[userId]==null){
+          problemCounter[userId]={
+            user:null,
+            problems:0
+          }
+         }
           var u=await User.findOne({"userId":userId})
           const userData={
             userId:u.userId,
@@ -4508,6 +4646,13 @@ if(challenges.length>1){
  // console.log(stop)
   //console.log(startDate.toString().substring(0,15)+"--------------"+endDate.toString().substring(0,15))
   var problemCounter={}
+  const contestants=await GroupChallenge.find({"challengeId":req.params.challengeId})
+  var contest=contestants.map((c)=>{
+    if(!data.contestants.includes(c.userId)){
+      data.contestants.push(c.userId)
+    }
+    return c.userId
+  })
   data.contestants.map((c)=>{
  
     problemCounter[c]={}
@@ -4523,6 +4668,12 @@ if(challenges.length>1){
       var curr=startDate
     console.log(data.title)
     const c=await GroupChallenge.findOne({"challengeId":req.params.challengeId})
+    console.log("curr:",curr,"stop:",stop)
+   
+    console.log(req.params.challengeId)
+ 
+    data.contestants=contest
+    console.log(Object.keys(c))
        while(curr<stop && curr.toString().substring(0,15)!=stop.toString().substring(0,15)){
         var i=0
         while(i<data.contestants.length){
@@ -4538,12 +4689,14 @@ if(challenges.length>1){
             challengeId:59186
        
           }
+    
           //socket.emit("UPDATE_GROUP_CHALLENGE",{user:userData,groupChallenge:c})
           problemCounter[userId].user=userData
           
                 var streak=await Streak.findOne({$and:[{"userId":userId},{"day":curr.toString().substring(0,15)}]})
-              if(streak!=null){
-                //console.log(curr.toString().substring(0,15)+"----"+userId+" "+streak.problems.length)
+              
+                if(streak!=null){
+                console.log(curr.toString().substring(0,15)+"----"+userId+" "+streak.problems.length)
                 //console.log(streak.day)
                 problemCounter[userId].problems+=streak.problems.length
                 var day=streak.day.split(" ")
@@ -5245,6 +5398,8 @@ app.post("/finalize-group-challenges/:challengeId",async(req,res)=>{
 
 async function getLoserFromLosers(challenge,allLosers,date){
   var loser
+  var stop=new Date()
+  stop.setDate(new Date(challenge.startDate).getDate()-1)
   var foundLoser=await allLosers.reduce(async(a,b)=>{
    
     var aProbs=0
@@ -5263,7 +5418,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
    
     }else if(a.streak==null && b.streak==null){
       loser="BOTH"
-      const start=challenge.startDate
+      const start=challenge.startDate 
       var earlierAdded
       if(b.day.toString().substring(0,15)==a.day.toString().substring(0,15)){
         console.log("EQUAL DAY")
@@ -5327,7 +5482,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
             }
           }
             curr.setDate(curr.getDate()-1)
-            if(curr.toString().substring(0,15)==stopDate.toString().substring(0,15)){
+            if(curr.toString().substring(0,15)==stopDate.toString().substring(0,15) || curr.toString().substring(0,15)==stop.toString().substring(0,15)){
               console.log("\nFIN",aProbs," b",bProbs)
               if(earlierAdded!=null){
                 return earlierAdded
@@ -5356,7 +5511,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
           console.log("start:",start,"end:",curr)
           aProbs=0
           bProbs=0
-          while(curr>stopDate){
+          while(curr>stopDate && curr>stop){
             astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
             bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
             try{
@@ -5373,7 +5528,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
 
             }
             curr.setDate(curr.getDate()-1)
-            if(curr.toString().substring(0,15)==curr.toString().substring(0,15)){
+            if(curr.toString().substring(0,15)==curr.toString().substring(0,15) || curr.toString().substring(0,15)==stop.toString().substring(0,15)){
               if(aProbs>bProbs){
                 loser=b
                 return b
@@ -5425,7 +5580,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
                   console.log("start:",start,"end:",curr)
                   aProbs=0
                   bProbs=0
-                  while(curr>stopDate){
+                  while(curr>stopDate && curr>stop){
                     astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
                     bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
                     try{
@@ -5442,7 +5597,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
   
                     }
                     curr.setDate(curr.getDate()-1)
-                    if(curr.toString().substring(0,15)==curr.toString().substring(0,15)){
+                    if(curr.toString().substring(0,15)==curr.toString().substring(0,15) || curr.toString().substring(0,15)==stop.toString().substring(0,15)){
                       if(aProbs>bProbs){
                         loser=b
                         return b
@@ -5475,16 +5630,20 @@ async function getLoserFromLosers(challenge,allLosers,date){
         var curr=new Date(date)
         var stopDate=challenge.startDate
         stopDate.setDate(stopDate.getDate()-1)
-     
-       
+      
+        console.log("STOP",stop)
+        if(curr<=curr || stopDate<challenge.startDate){
+          console.log("\n\n\n\ERROOOR-----------") 
+        }
+        
         if(date.toString().substring(0,15)!=challenge.startDate.toString().substring(0,15)){
-          console.log("INVESTIGATE")
+          console.log("INVESTIGATE") 
           curr.setDate(curr.getDate()-1)
-          //curr=new Date(curr)
+          //curr=new Date(curr) 
           console.log("curr",curr)
           console.log("stopDate",stopDate)
 
-          while(curr>stopDate){
+          while(curr>stopDate && curr>stop){
             var bstr=await Streak.findOne({$and:[{"userId":b.user.userId},{"day":curr.toString().substring(0,15)}]})
             var astr=await Streak.findOne({$and:[{"userId":a.user.userId},{"day":curr.toString().substring(0,15)}]})
             earlierAdded=astr.timeLastAdded && bstr.timeLastAdded!=null? astr.timeLastedAdded<bstr.timeLastedAdded? a: b:astr.timeLastAdded!=null && bstr.timeLastAdded==null? a:astr.timeLastAdded==null && bstr.timeLastAdded!=null?b:astr.timeLastAdded==null && bstr.timeLastAdded==null? earlierAdded:earlierAdded
@@ -5525,7 +5684,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
             }
           }
             curr.setDate(curr.getDate()-1)
-            if(curr.toString().substring(0,15)==stopDate.toString().substring(0,15)){
+            if(curr.toString().substring(0,15)==stopDate.toString().substring(0,15) || curr.toString().substring(0,15)==stop.toString().substring(0,15)){
               console.log("\nFIN",aProbs," b",bProbs)
               if(aProbs>bProbs){
                 console.log("b")
@@ -5560,7 +5719,7 @@ async function getLoserFromLosers(challenge,allLosers,date){
 
                   }
                   curr.setDate(curr.getDate()-1)
-                  if(curr.toString().substring(0,15)==curr.toString().substring(0,15)){
+                  if(curr.toString().substring(0,15)==curr.toString().substring(0,15)  || curr.toString().substring(0,15)==stop.toString().substring(0,15)){
                     if(aProbs>bProbs){
                       loser=b
                       return b
@@ -5606,12 +5765,12 @@ async function getLoserFromLosers(challenge,allLosers,date){
       return a
     }else{
       console.log("\n\n\nPROBLEMS",aProbs,bProbs)
-    }
+    } 
   }
   })
   var l=await foundLoser
   var i=0
- console.log(l)
+
  console.log("loser",loser)
   if(loser!=null){
     allLosers.map((lo)=>{
@@ -5785,7 +5944,7 @@ async function getConsistencyWinner(losers,challenge){
   end.setDate(end.getDate()+1)
  
   
-  var index=0
+  var index=0 
   var sorted={}
   const diff=datediff(new Date(challenge.startDate),new Date(challenge.endDate))
   console.log("DIFF",diff)
@@ -5864,7 +6023,7 @@ app.get("/finalize-grade-group-challenges/:challengeId",async(req,res)=>{
   axios.post("http://localhost:3022/finalize-group-challenges/"+req.params.challengeId).then(async(response)=>{
     console.log("MADE IT",Object.keys(response.data))
     console.log(response.data.losers.length)
-    const allLosers=response.data.losers
+    const allLosers=response.data.losers 
     const allRanks=[]
     const ranks={}
     console.log(allLosers)
@@ -5886,7 +6045,7 @@ app.get("/finalize-grade-group-challenges/:challengeId",async(req,res)=>{
       var rank=losersLength
      
     
-        while(index<allLosers.length){
+        while(index<allLosers.length && rank>0){
           var losers=allLosers[index].losers
           if(losers.length>1){
           while(losers.length>1){
@@ -5894,6 +6053,20 @@ app.get("/finalize-grade-group-challenges/:challengeId",async(req,res)=>{
            var l=await  getLoserFromLosers(challenge,losers,allLosers[index].date)
            
            losers=l.losers
+           if(allRanks.length==losersLength){
+            const updateRanks=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
+              $set:{"ranks":allRanks}
+            })
+            allRanks.map(async(c)=>{
+              const updateChallenge=await GroupChallenge.updateOne({$and:[{"challengeId":req.params.challengeId},{"userId":c.user.userId}]},{
+                $set:{"rank":c.rank,"status":"COMPLETE_AND_CLOSED"}
+              })
+              console.log(updateChallenge)
+            })
+            res.json({ranks:ranks,allRanks:allRanks,losers:response.data.losers})
+
+           }
+           if(l.loser!=null){
            console.log("index:",index," new losers",losers.length)
            var newLoser=l.loser
         
@@ -5943,6 +6116,9 @@ app.get("/finalize-grade-group-challenges/:challengeId",async(req,res)=>{
               res.json({ranks:ranks,allRanks:allRanks,losers:response.data.losers})
              
             }
+          }else{
+           res.json({message:"ERROR",allRanks:allRanks})
+          }
 
           
           }
@@ -9218,12 +9394,21 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                       losers=[]                     
                       index++
                       console.log("7808:index",index,"all",allLosers.length)
-                      if(index>=allLosers.length || index>=ids.length || processed.length==ids.length){
-                     
+                    
+                      if(index>=allLosers.length || index>=ids.length || processed.length==ids.length || allRanks.length==ids.length){
+                        const updateCha=await GroupChallenge.updateMany({"challengeId":req.params.challengeId},{
+                          $set:{"status":"COMPLETE_AND_CLOSED"}
+                        })
                         const updateDate=await GroupChallengeData.updateOne({"challengeId":req.params.challengeId},{
                           $set:{"ranks":allRanks}})
                         axios.get("http://localhost:3022/find-bad/"+req.params.challengeId).then((response)=>{
                           res.json({success:true,ranks:allRanks,data:response.data})
+                        })
+                      }else{
+                        console.log("INDEX:--SO FAR")
+                        console.log("allranks.length:",allRanks.length, " ids length:",ids.length)
+                        allRanks.map((r)=>{
+                          console.log("rank:",r.rank," user:",r.user)
                         })
                       }
                     }else{
@@ -9320,8 +9505,13 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                    console.log("7453 BACK IN METH: rank",rank," user:"+losers[0].challenge.userId)
                    allRanks.push({rank:rank,user:losers[0].challenge.userStats,date:new Date(losers[0].date)})
                    processed.push(losers[0].challenge.userId)
+                   var failDate=losers[0].date
+                   if(!failDate instanceof Date){
+                    failDate=losers[0].challenge.date
+                   }
+                   console.log(losers[0].date)
                    var update=await GroupChallenge.updateOne({$and:[{"challengeId":losers[0].challenge.challengeId},{"userId":losers[0].challenge.userId}]},{
-                     $set:{"rank":rank,"success":false,"dateFailed":losers[0].challenge.date instanceof Date?losers[0].challenge.date:new Date(losers[0].challenge.date)}
+                     $set:{"rank":rank,"success":false,"dateFailed":failDate}
                     })
                    processed.push(losers[0].challenge.userId)
                    indexindex++
@@ -10355,7 +10545,7 @@ app.get("/get-current-challenge/:userId",async(req,res)=>{
 app.get("/monthCharts/:id",async(req,res)=>{
  // dbmongo.streak.createIndex( { "$**": "text" } )
  const date=new Date()
- console.log(date.getFullYear())
+
   const janDates=[]
  const jan=await Streak.find({
   $and:[{"userId":req.params.id},{"day":{$regex:"Jan"}},{"day":{$regex:date.getFullYear().toString()}}]
@@ -10406,7 +10596,7 @@ var janCount=0;
   })
   var mayCount=0;
   may.map((a)=>{
-    console.log("maycount:",a.problems.length)
+    
     mayCount+=a.problems.length
     mayDates.push(a.day)
   })
@@ -10484,12 +10674,12 @@ var janCount=0;
   var decCount=0;
   dec.map((a)=>{
     decCount+=a.problems.length
-    console.log("dec:"+decCount)
+
     decDates.push(a.day)
   })
 
   
-  console.log(julCount,augCount,sepCount,octCount,novCount)
+  
   setTimeout(()=>{
     res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,days:mayDates},{month:"June",problems:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
 
