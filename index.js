@@ -1330,12 +1330,19 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               
               if(groupChallenge!=null){
                 axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                  res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                    res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data,perent:response.data.percent})
+  
+                  })
                 })
                 
               }else{
                 console.log("GROUP CHALLENGE NULL")
-                res.json({success:true,updatedStreak:updateStreak,streak:streak})
+        
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data,perent:response.data.percent})
+
+                })
               }
         
           }else{
@@ -1358,12 +1365,16 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
            
         if(groupChallenge!=null){
           axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-            res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
+              res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
+
+      
           })
           
         }else{
           console.log("GROUP CHALLENGE NULL")
-          res.json({success:true,updatedStreak:updateStreak,streak:streak})
+            res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
+
+        
         }
              
         
@@ -1396,61 +1407,21 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               if(groupChallenge!=null){
                 console.log("\n\nGROUP CHALLENGE EXISTS!!!")
                 axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                  
-                  res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                    res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data,percent:response.data.percent})
+  
+                  })
                 })
                 
               }else{
                 console.log("GROUP CHALLENGE NULL")
-                res.json({success:true,updatedStreak:updateStreak,streak:streak})
-              }
-            /*if(tommorowStreak!=null && tommorowGroup!=null){
-              if(tommorowStreak.group!=yesterdayStreak.group){
-                console.log("972:must match: tommorow"+tommorow.toString().substring(0,15) +" yesterday:"+yesterday.toString().substring(0,15))
-                tommorowGroup.days.map(async(dd)=>{
-                  const reviseTommorow=await Streak.updateOne({$and:[{"userId":req.body.userId},{"day":dd}]},{
-                    $set:{"group":yesterdayStreak.group}
-                  })
-                  if(!streakGroup.days.includes(dd)){
-                    const updateStreakGroup=await StreakGroup.updateOne({"_id":yesterdayStreak.group},{
-                      $push:{"days":dd}
-                    })
-                  }
-                })
-               if(tommorowGroup._id!=streakGroup._id){
-                const deleteOldGroup=await StreakGroup.deleteOne({"_id":tommorowGroup._id})
-                console.log("1072:deleted old Group:",deleteOldGroup)
-               }
-               
+                
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data,percent:response.data.percent})
 
+                })
               }
-              var found=true
-              while(found){
-                var str=await Streak.findOne({$and:[{"userId":req.body.userId},{"day":nextDate.toString().substring(0,15)}]})
-                console.log(nextDate.toString())
-                if(str!=null){
-                  console.log("\n\nproblems:",str.problems.length)
-                  const newgroup=await StreakGroup.findOne({"_id":yesterdayStreak.group})
-                  console.log(newgroup.days)
-                  const updateStreak=await Streak.updateOne({"_id":str._id},{
-                    $set:{"group":yesterdayStreak.group}
-                  })
-                  if(!newgroup.days.includes(nextDate.toString().substring(0,15))){
-                    const updateStreakGroup=await StreakGroup.updateOne({"_id":newgroup._id},{
-                      $push:{"days":str.day}
-                    })
-                    console.log(updateStreakGroup,"\n\n")
-                  }
-                  
-                }else{
-                  found=false
-                  break
-                }
-                nextDate.setDate(nextDate.getDate()+1)
-              }
-            }
-            */
-          //  res.json({success:true,updatedStreak:updateStreak,streak:streak})
+  
 
           }else{
             var streakGroup=await StreakGroup.findOne({$and:[{"_id":streakExist.group}]})
@@ -1467,12 +1438,18 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
            
               if(groupChallenge!=null){
                 axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                  res.json({success:true,updatedStreak:updateStreak,streak:streak,groupChallenge:response.data})
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({success:true,updatedStreak:updateStreak,streak:streak,percent:response.data.percent})
+
+                })
                 })
                 
               }else{
                 console.log("H+GROUP CHALLENGE NULL")
-                res.json({success:true,updatedStreak:updateStreak,streak:streak})
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({success:true,updatedStreak:updateStreak,streak:streak,percent:response.data.percent})
+
+                })
               }
              
          
@@ -1556,13 +1533,18 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
           }
           if(groupChallenge!=null){
             axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-              res.json({success:true,streak:save,updatedGroup:updateStreakGroup,groupChallenge:response.data})
+              axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                res.json({success:true,streak:save,updatedGroup:updateStreakGroup,percent:response.data.percent,groupChallenge:response.data})
+              })
+              
             })
             
           }else{
             console.log("H+GROUP CHALLENGE NULL")
-
-            res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+            axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+              res.json({success:true,streak:save,updatedGroup:updateStreakGroup,percent:response.data.percent})
+            })
+           
           }
          
                
@@ -1624,12 +1606,17 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
              
             if(groupChallenge!=null){
               axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                res.json({success:true,streak:save,updatedGroup:updateStreakGroup})              })
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({success:true,streak:save,updatedGroup:updateStreakGroup,percent:response.data.percent})  
+                })          
+                })
               
             }else{
               console.log("H+GROUP CHALLENGE NULL")
 
-              res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
+              axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                res.json({success:true,streak:save,updatedGroup:updateStreakGroup,percent:response.data.percent})  
+              }) 
             }
             
 
@@ -1637,13 +1624,16 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               //res.json({success:true,streak:save,updatedGroup:updateStreakGroup})
               if(groupChallenge!=null){
                 axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                  res.json({success:true,streak:save,updatedGroup:updateStreakGroup,groupChallenge:response.data})              })
-                
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                    res.json({success:true,streak:save,updatedGroup:updateStreakGroup,percent:response.data.percent})  
+                  })
+                })                 
               }else{
                 console.log("H+GROUP CHALLENGE NULL")
 
-                res.json({success:true,streak:save,updatedGroup:updateStreakGroup,groupChallenge:response.data})
-              }
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({success:true,streak:save,updatedGroup:updateStreakGroup,percent:response.data.percent})  
+                })               }
 
             }
             }else if(streakGroup.days.includes(req.body.day)){
@@ -1706,13 +1696,16 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
                 if(groupChallenge!=null){
                   axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                    res.json({groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                    axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                      res.json({percent:response.data.percent,groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                    })  
                   })
                 }else{
                   console.log("H+GROUP CHALLENGE NULL")
   
-                  res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
-                }
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                    res.json({percent:response.data.percent,groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                  })                  }
 
            
               }else if(!Object.keys(req.body.problem).includes("problem") && req.body.problem!=null){
@@ -1730,12 +1723,16 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
               
                   if(groupChallenge!=null){
                     axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                      res.json({success:true,streak:newStreak,groupChallenge:response.data})
+                      axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                        res.json({percent:response.data.percent,success:true,streak:newStreak,groupChallenge:response.data})
+                      })  
                     })
                   }else{
                     console.log("H+GROUP CHALLENGE NULL")
     
-                    res.json({success:true,streak:newStreak})
+                    axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                      res.json({percent:response.data.percent,success:true,streak:newStreak,groupChallenge:response.data})
+                    }) 
                   }
                 
                   
@@ -1787,13 +1784,16 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
                 */
                 if(groupChallenge!=null){
                   axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                    res.json({groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                    axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                      res.json({percent:response.data.percent,groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                    })
                   })
                 }else{
                   console.log("H+GROUP CHALLENGE NULL")
   
-                  res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
-                }
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                    res.json({percent:response.data.percent,groupChallenge:response.data,success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
+                  })                }
               
               }
               }
@@ -1804,12 +1804,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             
               if(groupChallenge!=null){
                 axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                  res.json({success:false,message:"streakGroup does not exist",groupChallenge:response.data})
+                  axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                    res.json({percent:response.data.percent,success:false,message:"streakGroup does not exist",groupChallenge:response.data})
+                  })
                 })
               }else{
                 console.log("H+GROUP CHALLENGE NULL")
-                res.json({success:false,message:"streakGroup does not exist"})
-
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({percent:response.data.percent,success:false,message:"streakGroup does not exist",groupChallenge:response.data})
+                })
                // res.json({success:true,streak:updatedStreak,updatedStreak:update,updatedGroup:updateStreakGroup})
               }
           
@@ -1842,12 +1845,15 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             console.log(myGroupChallenge || groupChallenge!=null)
             if(groupChallenge!=null){
               axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                res.json({success:true,streak:addStreak,updatedGroup:addGroup,groupChallenge:response.data})
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({percent:response.data.percent,success:true,streak:addStreak,updatedGroup:addGroup,groupChallenge:response.data})
+                })
               })
               
             }else{
-              
-              res.json({success:true,streak:newStreak,streakGroup:addGroup})
+              axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                res.json({percent:response.data.percent,success:true,streak:addStreak,updatedGroup:addGroup,groupChallenge:response.data})
+              })
             }
            
          
@@ -1868,12 +1874,17 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
             
         
               axios.get("http://localhost:3022/find-bad/"+groupChallenge.challengeId).then((response)=>{
-                res.json({success:true,streak:newStreak,streakGroup:addGroup,groupChallenge:response.data})
+                axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                  res.json({percent:response.data.percent,success:true,streak:newStreak,streakGroup:addGroup,groupChallenge:response.data})
+                })
               })
               
             }else{
               
-              res.json({success:true,streak:newStreak,streakGroup:addGroup})
+              
+              axios.get("http://localhost:3022/streak-animation/"+id).then((response)=>{
+                res.json({percent:response.data.percent,success:true,streak:newStreak,streakGroup:addGroup,groupChallenge:response.data})
+              })
             }
         
              
@@ -1883,7 +1894,7 @@ var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
 
           }
         }
-
+/****************************************** */
       }
     }
     }catch(err){
@@ -10681,6 +10692,7 @@ var janCount=0;
   
   
   setTimeout(()=>{
+    console.log("sepetember",sepDates)
     res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,days:mayDates},{month:"June",problems:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
 
   },1000)
@@ -10782,6 +10794,7 @@ app.get("/monthCharts/:id/:year",async(req,res)=>{
  
     /*********** */
    const sepDates=[]
+  
     const sep=await Streak.find({
      $and:[{"userId":req.params.id},{"day":{$regex:"Sep"}},{"day":{$regex:date.getFullYear().toString()}}]
    })
@@ -10828,7 +10841,11 @@ app.get("/monthCharts/:id/:year",async(req,res)=>{
    
    
   console.log("may:",mayCount,junCount)
-     res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,days:mayDates},{month:"June",problems:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
+  console.log("september:",sepCount)
+  setTimeout(()=>{
+    res.json({success:true,months:[{month:"January",problems:janCount,days:janDates},{month:"February",problems:febCount,days:febDates},{month:"March",problems:marCount,days:marDates},{month:"April",problems:aprCount,days:aprDates},{month:"May",problems:mayCount,days:mayDates},{month:"June",problems:junCount,days:junDates},{month:"July",problems:julCount,days:julDates},{month:"August",problems:augCount,days:augDates},{month:"September",problems:sepCount,days:sepDates},{month:"October",problems:octCount,days:octDates},{month:"November",problems:novCount,days:novDates},{month:"December",problems:decCount,days:decDates}]})
+
+  },1000)
  
  
  
@@ -10856,6 +10873,53 @@ app.post("/process/:userId",async(req,res)=>{
     res.json({streaks:streaks})
   },600)
 })
+
+app.get("/streak-animation/:userId",async(req,res)=>{
+  var today=new Date().toString().substring(0,15)
+  var yesterday=new Date()
+  yesterday.setDate(yesterday.getDate()-1).toString().substring(0,15)
+  const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[today]}}]})
+  
+  const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+ 
+  const currDay=today.split(" ")[0]
+ 
+  const firstIndex=0
+  var currIndex=days.indexOf(currDay)
+ 
+ 
+  var steps=currIndex-firstIndex+1
+  var s=steps
+  console.log(currDay+" is "+steps+" days after Sun")
+
+  
+ var startPercent=Math.floor((steps-1)*(100/7))
+  var percentComplete=Math.floor(steps*(100/7))
+  
+  var daysObject={
+    "Sun":{percent:100/7},
+    "Mon":{percent:(100/7)*2},
+    "Tue":{percent:(100/7)*3},
+    "Wed":{percent:(100/7)*4},
+    "Thu":{percent:(100/7)*5},
+    "Fri":{percent:(100/7)*6},
+    "Sat":{percent:(100/7)*7}
+  }
+  var s=steps
+  console.log("steps",steps)
+  var today=new Date()
+  while(s>0){
+   
+    var t=today.toString().substring(0,15).split(" ")[0]
+    console.log(t)
+    daysObject[t].date=today
+    s--
+    today.setDate(today.getDate()-1)
+  } 
+  
+  res.json({success:true,percent:percentComplete,days:daysObject})
+  
+}) 
 
 app.get("/get-current-challenge-2/:userId",async(req,res)=>{
   const streaks=[]
