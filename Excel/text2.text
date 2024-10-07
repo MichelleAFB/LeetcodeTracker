@@ -1,7 +1,1 @@
-(1,170,'No metal to metal at tumbler infeed and outlet'),
-(2,170,'No previously run seasoning residue in tumbler'),
-(3,170,'No previously run seasoning residue on spray bar'),
-(4,170,'No oil leaks'),
-(5,170,'No over greased bearings '),
-(6,170,'No fraying or cracked or broken plastic.'),
-(7,170,'No previously run product residue on abort chute')
+var checked=new Date(currDay[3],monthnum[months.indexOf(currDay[1])-1],currDay[2])

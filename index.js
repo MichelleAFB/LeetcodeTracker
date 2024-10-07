@@ -2092,8 +2092,23 @@ function dateWithTimeZone (timeZone, year, month, day, hour, minute, second)  {
 
   return date;
 }
+app.use(express.text());
+app.post("/divide",(req,res)=>{
+  console.log(Object.keys(req))
+  console.log(req.body)
+  var list=req.body.split("\n")
+  i=1
+  list=list.map((l)=>{
+    l= l.replace(/(\r\n|\n|\r)/gm, "");
+    l="(269,"+l+","+i+")"
+  })
+  
 
-
+  console.log(list)
+ // const list=req.body.list
+ // list=list.split("\n")
+ // print(list)
+})
 app.post("/fix-time-last",async(req,res)=>{
 
   const streaks=await Streak.find({timeLastAdded:{$ne:null}})
@@ -2911,6 +2926,30 @@ function coinFlip(min, max) {
 						 	 	  	  print(comment)
 							 	 	  index=names.index(s)
 							 	 	  data.append({"element":d.get("Name"),"usedBy":s})*/
+app.get("/get-current-data/:userId",async(req,res)=>{
+  console.log("HIII")
+    axios.get("http://localhost:3022/current-streak-exists/"+req.params.userId).then((response1)=>{
+      console.log("here",response1.data)
+      if(response1.data.exists==true){
+        axios.get("http://localhost:3022/streak-animation/"+req.params.userId).then((response2)=>{
+          res.json({success:true,percent:response2.data.percent,streakExists:response1.data.exists,checkDate:new Date().toString().substring(0,15)})
+
+        })
+      }else{
+        res.json({success:true,groupChallenges:(response1.data.groupChallenges==null?null:response1.data.groupChallenges),streakExists:response1.data.exists,checkDate:new Date().toString().substring(0,15)})
+
+      }
+    })
+    
+  
+})
+app.get("/current-streak-exists/:userId",async(req,res)=>{
+  var date=new Date()
+  date.setDate(date.getDate()-1)
+  const streak=await Streak.findOne({$and:[{"userId":req.params.userId},{"day":date.toString().substring(0,15)}]}
+)
+res.json({success:true,exists:streak!=null?true:false})
+})
 /*
 app.post("/get-current-group-challenge/:userId",async(req,res)=>{
   const all=await GroupChallenge.find({$or:[{"userId":req.params.userId},{ allUserIds: { $in : [req.params.userId]} }]})
@@ -2935,6 +2974,8 @@ app.post("/get-current-group-challenge/:userId",async(req,res)=>{
       }
       }
     })
+  }else{
+    res.json({success:true})
   }
   if(other.length>0){
     other.map((a)=>{
@@ -3271,6 +3312,7 @@ if(req.body.others){
 
 })
 */
+
 app.get("/get-all-group-challenges/:userId",async(req,res)=>{
   var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
 "Aug","Sep","Oct","Nov","Dec"];
@@ -10877,13 +10919,19 @@ app.post("/process/:userId",async(req,res)=>{
 app.get("/streak-animation/:userId",async(req,res)=>{
   var today=new Date().toString().substring(0,15)
   var yesterday=new Date()
-  yesterday.setDate(yesterday.getDate()-1).toString().substring(0,15)
-  const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[today]}}]})
-  
+  yesterday.setDate(yesterday.getDate()-1)
+  console.log(yesterday.toString().substring(0,15))
+  const group=await StreakGroup.findOne({$and:[{"userId":req.params.userId},{"days":{$in:[yesterday.toString().substring(0,15)]}}]})
+  if(group!=null){
+  var months= ["Jan","Feb","Mar","Apr","May","Jun","Jul",
+    "Aug","Sep","Oct","Nov","Dec"];
+    var monthnum=["01","02","03","04","05","06","07","08","09","10","11","12"]
   const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
- 
-  const currDay=today.split(" ")[0]
- 
+
+  var currDay=group.days[group.days.length-1].split(" ")
+  var checked=new Date(currDay[3],monthnum[months.indexOf(currDay[1])-1],currDay[2])
+  currDay=currDay[0]
+ console.log(currDay)
   const firstIndex=0
   var currIndex=days.indexOf(currDay)
  
@@ -10917,7 +10965,10 @@ app.get("/streak-animation/:userId",async(req,res)=>{
     today.setDate(today.getDate()-1)
   } 
   
-  res.json({success:true,percent:percentComplete,days:daysObject})
+  res.json({success:true,percent:percentComplete,days:daysObject,streakExists:true,lastChecked:checked})
+}else{
+  res.json({success:true,percent:0,streakExists:false})
+}
   
 }) 
 
@@ -13176,7 +13227,7 @@ app.get("/create-links", async(req, res) => {
       
         const title = q.title;
         const exists=await Problem.findOne({$and:[{title:q.title},{link:{$exists:false}}]})
-        if (title.substring(0, 1) != " " && exists!=null) {
+       
           console.log("creating link for "+title)
           var end = title //.substring(1, title.length);
           end = end.toLowerCase();
@@ -13211,15 +13262,17 @@ app.get("/create-links", async(req, res) => {
 
            // console.log("success")
             if(i>=results.length-1){
-             // res.json({success:true,updated:updated,success:true})
+              res.json({success:true,updated:updated,success:true})
             }
             i++
           }catch(err1){
-            res.json(err1)
+            try{
+           // res.json(err1)
+            }catch(e){
+             // console.log(e)
+            }
           }
-        }else{
-          console.log("no updates for links")
-        }
+    
         /*if (title.substring(0, 1) != " ") {
           var end = title;
           end = end.toLowerCase();
@@ -13249,17 +13302,28 @@ app.get("/create-links", async(req, res) => {
         }*/
       });
       setTimeout(()=>{
-        res.json({success:true,length:updated.length,updated:updated,success:true})
+        try{
+       // res.json({success:true,length:updated.length,updated:updated,success:true})
+        }catch(e){
+          console.log("ALREADY SENT")
+        }
 
       },8000)
     
   
 });
+app.get("/get-all-links",async(req,res)=>{
+  const links=await Problem.distinct("link")
+  console.log(links)
+  res.json({success:true,links:links})
 
+})
 app.get("/all-question-tags",async(req,res)=>{
   const tags=await ProblemTopicTag.find({})
   res.json({success:true,topicTags:tags})
 })
+
+app.get
 
 app.get("/graphql",async(req,res)=>{
   const https=require('https')
